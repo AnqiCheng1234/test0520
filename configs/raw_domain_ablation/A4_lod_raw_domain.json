@@ -1,0 +1,5 @@
+{
+  "lowpass_kernel": 3,
+  "lut_path": "configs/raw_domain_ablation/lut_lod_day_to_robotcar_day.npy",
+  "quantize_bits": 8
+}

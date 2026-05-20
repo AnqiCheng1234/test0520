@@ -1,0 +1,13 @@
+.idea/
+__pycache__/
+*.pyc
+*.log
+assets/
+checkpoints/
+plans/
+codex_debug/
+codex_smoke/
+finetune_stf/exp/
+finetune_stf/logs/
+scripts/verify_output/
+metric_depth/

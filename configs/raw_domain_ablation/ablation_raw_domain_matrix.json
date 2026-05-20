@@ -1,0 +1,153 @@
+{
+  "files": {
+    "A0": {
+      "lod": "/home/caq/6666_raw/dav2_raw_0520/configs/raw_domain_ablation/A0_lod_raw_domain.json",
+      "robotcar_day": "/home/caq/6666_raw/dav2_raw_0520/configs/raw_domain_ablation/A0_robotcar_day_raw_domain.json",
+      "robotcar_night": "/home/caq/6666_raw/dav2_raw_0520/configs/raw_domain_ablation/A0_robotcar_night_raw_domain.json"
+    },
+    "A1": {
+      "lod": "/home/caq/6666_raw/dav2_raw_0520/configs/raw_domain_ablation/A1_lod_raw_domain.json",
+      "robotcar_day": "/home/caq/6666_raw/dav2_raw_0520/configs/raw_domain_ablation/A1_robotcar_day_raw_domain.json",
+      "robotcar_night": "/home/caq/6666_raw/dav2_raw_0520/configs/raw_domain_ablation/A1_robotcar_night_raw_domain.json"
+    },
+    "A2": {
+      "lod": "/home/caq/6666_raw/dav2_raw_0520/configs/raw_domain_ablation/A2_lod_raw_domain.json",
+      "robotcar_day": "/home/caq/6666_raw/dav2_raw_0520/configs/raw_domain_ablation/A2_robotcar_day_raw_domain.json",
+      "robotcar_night": "/home/caq/6666_raw/dav2_raw_0520/configs/raw_domain_ablation/A2_robotcar_night_raw_domain.json"
+    },
+    "A3": {
+      "lod": "/home/caq/6666_raw/dav2_raw_0520/configs/raw_domain_ablation/A3_lod_raw_domain.json",
+      "robotcar_day": "/home/caq/6666_raw/dav2_raw_0520/configs/raw_domain_ablation/A3_robotcar_day_raw_domain.json",
+      "robotcar_night": "/home/caq/6666_raw/dav2_raw_0520/configs/raw_domain_ablation/A3_robotcar_night_raw_domain.json"
+    },
+    "A4": {
+      "lod": "/home/caq/6666_raw/dav2_raw_0520/configs/raw_domain_ablation/A4_lod_raw_domain.json",
+      "robotcar_day": "/home/caq/6666_raw/dav2_raw_0520/configs/raw_domain_ablation/A4_robotcar_day_raw_domain.json",
+      "robotcar_night": "/home/caq/6666_raw/dav2_raw_0520/configs/raw_domain_ablation/A4_robotcar_night_raw_domain.json"
+    }
+  },
+  "matrix": {
+    "A0": {
+      "description": "current baseline / identity raw-domain transform",
+      "lod": {},
+      "robotcar_day": {},
+      "robotcar_night": {}
+    },
+    "A1": {
+      "description": "per-dataset pedestal + scale using p1/p99.9; RobotCar-night pedestal mode=fixed_zero",
+      "lod": {
+        "pedestal": [
+          7.62939453125e-06,
+          7.62939453125e-06,
+          7.62939453125e-06,
+          7.62939453125e-06
+        ],
+        "scale": [
+          0.029815673828125,
+          0.0548553466796875,
+          0.054107666015625,
+          0.03485107421875
+        ]
+      },
+      "robotcar_day": {
+        "pedestal": [
+          0.04677581787109375,
+          0.04853057861328125,
+          0.04869842529296875,
+          0.05480194091796875
+        ],
+        "scale": [
+          0.953216552734375,
+          0.9514617919921875,
+          0.9512939453125,
+          0.9451904296875
+        ]
+      },
+      "robotcar_night": {
+        "pedestal": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.9999923706054688,
+          0.9999923706054688,
+          0.9999923706054688,
+          0.9999923706054688
+        ]
+      }
+    },
+    "A2": {
+      "description": "A1 + LoD power-law companding toward display-referred space",
+      "lod": {
+        "gamma": 0.4545454545,
+        "pedestal": [
+          7.62939453125e-06,
+          7.62939453125e-06,
+          7.62939453125e-06,
+          7.62939453125e-06
+        ],
+        "scale": [
+          0.029815673828125,
+          0.0548553466796875,
+          0.054107666015625,
+          0.03485107421875
+        ]
+      },
+      "robotcar_day": {
+        "pedestal": [
+          0.04677581787109375,
+          0.04853057861328125,
+          0.04869842529296875,
+          0.05480194091796875
+        ],
+        "scale": [
+          0.953216552734375,
+          0.9514617919921875,
+          0.9512939453125,
+          0.9451904296875
+        ]
+      },
+      "robotcar_night": {
+        "pedestal": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.9999923706054688,
+          0.9999923706054688,
+          0.9999923706054688,
+          0.9999923706054688
+        ]
+      }
+    },
+    "A3": {
+      "description": "CDF/LUT mapping for LoD; RobotCar kept identity unless an explicit eval config is desired",
+      "lod": {
+        "lut_path": "configs/raw_domain_ablation/lut_lod_day_to_robotcar_day.npy"
+      },
+      "robotcar_day": {},
+      "robotcar_night": {}
+    },
+    "A4": {
+      "description": "A3 + RobotCar-style 8-bit quantization and light low-pass degradation on LoD; the low-pass is a lower-bound approximation, not cv2.remap's spatially varying rectification",
+      "lod": {
+        "lowpass_kernel": 3,
+        "lut_path": "configs/raw_domain_ablation/lut_lod_day_to_robotcar_day.npy",
+        "quantize_bits": 8
+      },
+      "robotcar_day": {},
+      "robotcar_night": {}
+    }
+  },
+  "robotcar_night_pedestal_mode": "fixed_zero",
+  "stats_json": "configs/raw_domain_ablation/raw_distribution_summary.json",
+  "stats_rows_selected": {
+    "lod_day": 6053,
+    "robotcar_day": 65,
+    "robotcar_night": 250
+  }
+}

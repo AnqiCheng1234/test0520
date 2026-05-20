@@ -1,0 +1,398 @@
+{
+  "args": {
+    "stf_manifest": null,
+    "raw_npz_root": "/mnt/drive/3333_raw/seeing_through_fog/cam_stereo_left_bayer_rect/npz",
+    "vkitti_list": "/home/caq/6666_raw/dav2_raw_512960/finetune_stf/dataset/splits/vkitti2/train.txt",
+    "num_stf": -1,
+    "num_vkitti": 200,
+    "patch_size": 32,
+    "seed": 42,
+    "output": "/home/caq/6666_raw/dav2_raw_512960/finetune_stf/tools/stf_unprocessing_calibration_v2.json",
+    "device": "cuda",
+    "progress_interval": 250
+  },
+  "stf_manifests": [
+    "/home/caq/6666_raw/seeingthroughfog/manifests/stf_raw_depth_v1_train.csv",
+    "/home/caq/6666_raw/seeingthroughfog/manifests/stf_raw_depth_v1_val.csv",
+    "/home/caq/6666_raw/seeingthroughfog/manifests/stf_raw_depth_v1_test.csv"
+  ],
+  "companded_max": 3967.0,
+  "stf_cfa_distribution": {
+    "GBRG": 6216
+  },
+  "vkitti_canonical_reference": {
+    "canonical_exposure_gain": 1.0,
+    "per_ch_mean_avg": [
+      0.21499121189117432,
+      0.2432485818862915,
+      0.24379900097846985,
+      0.22325092554092407
+    ],
+    "R_mean_avg": 0.21499115228652954,
+    "G_mean_avg": 0.24352382123470306,
+    "B_mean_avg": 0.22325091063976288,
+    "all_mean_avg": 0.23132242385298013,
+    "num_samples": 200
+  },
+  "current_brooks_ranges": {
+    "red_gain_range": [
+      1.2,
+      2.4
+    ],
+    "blue_gain_range": [
+      1.2,
+      2.4
+    ],
+    "black_level_range": [
+      0.0,
+      0.02
+    ],
+    "exposure_gain_range": [
+      0.25,
+      0.7
+    ],
+    "read_noise_std_range": [
+      0.001,
+      0.02
+    ],
+    "shot_log_gain_range": [
+      -2.0,
+      0.0
+    ],
+    "cfa_patterns": [
+      "RGGB",
+      "BGGR",
+      "GRBG",
+      "GBRG"
+    ]
+  },
+  "group_reports": {
+    "overall": {
+      "n_stf_samples": 6216,
+      "basic_summary": {
+        "mean_R": {
+          "p10": 0.06701203435659409,
+          "p50": 0.32248975336551666,
+          "p90": 0.38456691801548004
+        },
+        "mean_G": {
+          "p10": 0.08452488854527473,
+          "p50": 0.31580397486686707,
+          "p90": 0.3884296715259552
+        },
+        "mean_B": {
+          "p10": 0.09259599074721336,
+          "p50": 0.31477653980255127,
+          "p90": 0.392168328166008
+        },
+        "mean_all": {
+          "p10": 0.08233332261443138,
+          "p50": 0.3189053386449814,
+          "p90": 0.3865219056606293
+        },
+        "p1_all": {
+          "p10": 0.0,
+          "p50": 0.0,
+          "p90": 0.0
+        },
+        "p5_all": {
+          "p10": 0.03882026672363281,
+          "p50": 0.08217796683311462,
+          "p90": 0.11570456624031067
+        },
+        "p99_all": {
+          "p10": 0.3216536343097687,
+          "p50": 0.6692714691162109,
+          "p90": 0.7834635674953461
+        },
+        "G_over_R": {
+          "p10": 0.9358269414919648,
+          "p50": 1.0480480203108953,
+          "p90": 1.3501703909326341
+        },
+        "G_over_B": {
+          "p10": 0.8537964935741034,
+          "p50": 0.981698855568667,
+          "p90": 1.027460389099097
+        }
+      },
+      "patch_ptc_summary": {
+        "num_images_fit": 6215,
+        "read_var": {
+          "p10": 0.0,
+          "p50": 0.00029374779441976746,
+          "p90": 0.005182806367150165
+        },
+        "shot_scale": {
+          "p10": 1e-08,
+          "p50": 0.005610508377440187,
+          "p90": 0.07258965600647051
+        }
+      },
+      "residual_noise_summary": {
+        "num_images_fit": 6215,
+        "read_var": {
+          "p10": 0.0,
+          "p50": 1.5543147279782234e-06,
+          "p90": 6.83965747377455e-05
+        },
+        "shot_scale": {
+          "p10": 3.7831779431522604e-05,
+          "p50": 0.0002848641288482542,
+          "p90": 0.001223089735724501
+        }
+      },
+      "selected_noise_source_for_recommendation": "residual_noise",
+      "recommended_brooks_ranges": {
+        "red_gain_range": [
+          0.9358269414919648,
+          1.3501703909326341
+        ],
+        "blue_gain_range": [
+          0.8537964935741034,
+          1.027460389099097
+        ],
+        "black_level_range": [
+          0.0,
+          0.0001
+        ],
+        "exposure_gain_range": [
+          0.34709084358450276,
+          1.595037682788309
+        ],
+        "read_noise_std_range": [
+          1e-05,
+          0.008270222169793597
+        ],
+        "shot_log_gain_range": [
+          -10.182361082848972,
+          -6.706375051522766
+        ],
+        "cfa_patterns": [
+          "GBRG"
+        ]
+      }
+    },
+    "day": {
+      "n_stf_samples": 2830,
+      "basic_summary": {
+        "mean_R": {
+          "p10": 0.3256139099597931,
+          "p50": 0.36425137519836426,
+          "p90": 0.3992254078388214
+        },
+        "mean_G": {
+          "p10": 0.32214666306972506,
+          "p50": 0.3623148053884506,
+          "p90": 0.40202022790908815
+        },
+        "mean_B": {
+          "p10": 0.31978864669799806,
+          "p50": 0.36303339898586273,
+          "p90": 0.40572800040245055
+        },
+        "mean_all": {
+          "p10": 0.32487939298152924,
+          "p50": 0.36280475556850433,
+          "p90": 0.39980819523334504
+        },
+        "p1_all": {
+          "p10": 0.0,
+          "p50": 0.0,
+          "p90": 0.0
+        },
+        "p5_all": {
+          "p10": 0.0803882010281086,
+          "p50": 0.10057978332042694,
+          "p90": 0.1250201722234514
+        },
+        "p99_all": {
+          "p10": 0.6632215976715088,
+          "p50": 0.709100067615509,
+          "p90": 0.852810674905777
+        },
+        "G_over_R": {
+          "p10": 0.9263611000242397,
+          "p50": 1.0033077903449008,
+          "p90": 1.0718182286940892
+        },
+        "G_over_B": {
+          "p10": 0.9670817608813936,
+          "p50": 0.9963143505729779,
+          "p90": 1.0369392601178256
+        }
+      },
+      "patch_ptc_summary": {
+        "num_images_fit": 2830,
+        "read_var": {
+          "p10": 0.0,
+          "p50": 0.001946371696127232,
+          "p90": 0.007289186572939742
+        },
+        "shot_scale": {
+          "p10": 1e-08,
+          "p50": 0.001910537628752039,
+          "p90": 0.009810620244086212
+        }
+      },
+      "residual_noise_summary": {
+        "num_images_fit": 2830,
+        "read_var": {
+          "p10": 0.0,
+          "p50": 1.605763911837999e-05,
+          "p90": 9.717625845201006e-05
+        },
+        "shot_scale": {
+          "p10": 6.708429151990864e-06,
+          "p50": 0.00017358189215387307,
+          "p90": 0.0004506303815772058
+        }
+      },
+      "selected_noise_source_for_recommendation": "residual_noise",
+      "recommended_brooks_ranges": {
+        "red_gain_range": [
+          0.9263611000242397,
+          1.0718182286940892
+        ],
+        "blue_gain_range": [
+          0.9670817608813936,
+          1.0369392601178256
+        ],
+        "black_level_range": [
+          0.0,
+          0.0001
+        ],
+        "exposure_gain_range": [
+          1.32285482970985,
+          1.6508455964216726
+        ],
+        "read_noise_std_range": [
+          1e-05,
+          0.009857801907728217
+        ],
+        "shot_log_gain_range": [
+          -11.512925464970229,
+          -7.704863107522683
+        ],
+        "cfa_patterns": [
+          "GBRG"
+        ]
+      }
+    },
+    "night": {
+      "n_stf_samples": 2360,
+      "basic_summary": {
+        "mean_R": {
+          "p10": 0.05964715778827667,
+          "p50": 0.07736088708043098,
+          "p90": 0.11617800593376157
+        },
+        "mean_G": {
+          "p10": 0.07272197902202607,
+          "p50": 0.10146442800760269,
+          "p90": 0.1568611353635788
+        },
+        "mean_B": {
+          "p10": 0.07772937044501305,
+          "p50": 0.11561904475092888,
+          "p90": 0.17906567752361296
+        },
+        "mean_all": {
+          "p10": 0.07096256092190742,
+          "p50": 0.0991956815123558,
+          "p90": 0.1515309184789657
+        },
+        "p1_all": {
+          "p10": 0.0,
+          "p50": 0.0,
+          "p90": 0.0
+        },
+        "p5_all": {
+          "p10": 0.035506681129338996,
+          "p50": 0.04184522479772568,
+          "p90": 0.048651374876499176
+        },
+        "p99_all": {
+          "p10": 0.2437358245253563,
+          "p50": 0.44378623366355896,
+          "p90": 0.6675321400165558
+        },
+        "G_over_R": {
+          "p10": 1.180825143904769,
+          "p50": 1.2892898423935666,
+          "p90": 1.417953359698934
+        },
+        "G_over_B": {
+          "p10": 0.7998416838264066,
+          "p50": 0.8971195654667641,
+          "p90": 0.9935906789734302
+        }
+      },
+      "patch_ptc_summary": {
+        "num_images_fit": 2359,
+        "read_var": {
+          "p10": 0.0,
+          "p50": 0.0,
+          "p90": 0.0002340175261246306
+        },
+        "shot_scale": {
+          "p10": 0.0021853517033237923,
+          "p50": 0.03510384622098872,
+          "p90": 0.11345315537350284
+        }
+      },
+      "residual_noise_summary": {
+        "num_images_fit": 2359,
+        "read_var": {
+          "p10": 0.0,
+          "p50": 0.0,
+          "p90": 6.32950667024146e-06
+        },
+        "shot_scale": {
+          "p10": 0.00021220085998455547,
+          "p50": 0.000611226260147395,
+          "p90": 0.0020345446015086824
+        }
+      },
+      "selected_noise_source_for_recommendation": "residual_noise",
+      "recommended_brooks_ranges": {
+        "red_gain_range": [
+          1.180825143904769,
+          1.417953359698934
+        ],
+        "blue_gain_range": [
+          0.7998416838264066,
+          0.9935906789734302
+        ],
+        "black_level_range": [
+          0.0,
+          0.0001
+        ],
+        "exposure_gain_range": [
+          0.29862367736065615,
+          0.6441305600752683
+        ],
+        "read_noise_std_range": [
+          1e-05,
+          0.002515851082683842
+        ],
+        "shot_log_gain_range": [
+          -8.457977279084991,
+          -6.197483268173157
+        ],
+        "cfa_patterns": [
+          "GBRG"
+        ]
+      }
+    }
+  },
+  "notes": [
+    "This v2 calibration keeps STF->parameter inversion as the primary goal.",
+    "Recommendations are reported separately for overall/day/night STF subsets.",
+    "Noise recommendations prefer residual-noise fits (raw minus weak blur), falling back to patch PTC when residual fits are unavailable.",
+    "All ranges are reported in the normalized packed-Bayer [0,1] domain after STF companded values are divided by 3967.",
+    "G_over_R and G_over_B are direct estimates of Brooks red_gain and blue_gain because Brooks invert-WB divides R and B while leaving G unchanged.",
+    "Exposure gain is still estimated relative to a canonical VKITTI Brooks reference at exposure_gain=1.",
+    "Noise parameters remain model-input-domain fits, not exact physical sensor parameters."
+  ]
+}

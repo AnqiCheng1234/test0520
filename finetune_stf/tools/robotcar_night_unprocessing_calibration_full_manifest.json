@@ -1,0 +1,173 @@
+{
+  "args": {
+    "manifest": [
+      "/mnt/drive/3333_raw/robotcar_raw_depth_lms_front_480640_night_2runs_vo/manifests/robotcar_raw_depth_v1_val.csv"
+    ],
+    "dataset_name": "robotcar_night_sensor_linear",
+    "vkitti_list": "/home/caq/6666_raw/dav2_raw_0520/finetune_stf/dataset/splits/vkitti2/train.txt",
+    "num_vkitti": 200,
+    "num_samples": -1,
+    "patch_size": 32,
+    "seed": 42,
+    "output": "finetune_stf/tools/robotcar_night_unprocessing_calibration_full_manifest.json",
+    "device": "cuda",
+    "progress_interval": 200,
+    "prefer_raw_path": "native",
+    "raw_key": "bayer_rect"
+  },
+  "dataset_name": "robotcar_night_sensor_linear",
+  "processed_rows": 3730,
+  "skipped_rows": 0,
+  "manifest_paths": [
+    "/mnt/drive/3333_raw/robotcar_raw_depth_lms_front_480640_night_2runs_vo/manifests/robotcar_raw_depth_v1_val.csv"
+  ],
+  "source_summary": {
+    "raw_domain_distribution": {
+      "sensor_linear_unit_interval": 3730
+    },
+    "cfa_distribution": {
+      "GBRG": 3730
+    },
+    "pack_order_distribution": {
+      "[R,Gr,Gb,B]": 3730
+    },
+    "white_level_summary": {
+      "p10": 255.0,
+      "p50": 255.0,
+      "p90": 255.0
+    },
+    "black_level_summary": {
+      "p10": 0.0,
+      "p50": 0.0,
+      "p90": 0.0
+    }
+  },
+  "vkitti_canonical_reference": {
+    "canonical_exposure_gain": 1.0,
+    "per_ch_mean_avg": [
+      0.21474626660346985,
+      0.24334125220775604,
+      0.24390177428722382,
+      0.2261345237493515
+    ],
+    "R_mean_avg": 0.21474626660346985,
+    "G_mean_avg": 0.2436215579509735,
+    "B_mean_avg": 0.2261345535516739,
+    "all_mean_avg": 0.23203099120408296,
+    "num_samples": 200
+  },
+  "basic_summary": {
+    "mean_R": {
+      "p10": 0.04485348239541054,
+      "p50": 0.2513195872306824,
+      "p90": 0.4883825987577438
+    },
+    "mean_G": {
+      "p10": 0.03295931331813336,
+      "p50": 0.18203365802764893,
+      "p90": 0.33551246523857114
+    },
+    "mean_B": {
+      "p10": 0.02057449221611023,
+      "p50": 0.09343061223626137,
+      "p90": 0.1687626913189888
+    },
+    "mean_all": {
+      "p10": 0.033167509362101555,
+      "p50": 0.17877869307994843,
+      "p90": 0.3280971050262451
+    },
+    "p1_all": {
+      "p10": 0.0,
+      "p50": 0.0,
+      "p90": 0.0013939951313659549
+    },
+    "p5_all": {
+      "p10": 0.0,
+      "p50": 0.0013786765048280358,
+      "p90": 0.015566023252904413
+    },
+    "p99_all": {
+      "p10": 0.4281818329393865,
+      "p50": 1.0,
+      "p90": 1.0
+    },
+    "sat_ratio": {
+      "p10": 0.0025955403645833335,
+      "p50": 0.023437906901041666,
+      "p90": 0.074867919921875
+    },
+    "G_over_R": {
+      "p10": 0.6146325721831747,
+      "p50": 0.691814105451628,
+      "p90": 0.8074631109936032
+    },
+    "G_over_B": {
+      "p10": 1.380053190197515,
+      "p50": 1.9771848262354332,
+      "p90": 2.513052384657433
+    }
+  },
+  "patch_ptc_summary": {
+    "num_images_fit": 3730,
+    "read_var": {
+      "p10": 0.0,
+      "p50": 0.0,
+      "p90": 0.0012197131281124934
+    },
+    "shot_scale": {
+      "p10": 0.024054955271009884,
+      "p50": 0.07074014493626343,
+      "p90": 0.28491787834547094
+    }
+  },
+  "residual_noise_summary": {
+    "num_images_fit": 3730,
+    "read_var": {
+      "p10": 0.0,
+      "p50": 4.564548926504712e-05,
+      "p90": 0.00022053859224563705
+    },
+    "shot_scale": {
+      "p10": 0.0007202112097412299,
+      "p50": 0.002159672697028679,
+      "p90": 0.007546239384243938
+    }
+  },
+  "selected_noise_source_for_recommendation": "residual_noise",
+  "recommended_brooks_ranges": {
+    "red_gain_range": [
+      0.6146325721831747,
+      0.8074631109936032
+    ],
+    "blue_gain_range": [
+      1.380053190197515,
+      2.513052384657433
+    ],
+    "black_level_range": [
+      0.0,
+      0.0001
+    ],
+    "exposure_gain_range": [
+      0.13528898507728163,
+      1.377187093213195
+    ],
+    "read_noise_std_range": [
+      1e-05,
+      0.014850541816568075
+    ],
+    "shot_log_gain_range": [
+      -7.2359660421091325,
+      -4.8867059346137545
+    ],
+    "cfa_patterns": [
+      "GBRG"
+    ]
+  },
+  "notes": [
+    "Raw path selection prefers raw_native_path by default, then falls back to raw_eval_path and raw_src_path.",
+    "Normalization uses manifest white_level/black_level metadata for sensor-linear domains.",
+    "Pack order is canonicalized to [R,Gr,Gb,B] before statistics and noise fitting.",
+    "Noise recommendations prefer residual-noise lower-envelope fit, and fall back to patch-PTC when needed."
+  ]
+}
