@@ -57,7 +57,7 @@ conda run -n "${CONDA_ENV}" torchrun --nproc_per_node=1 --master_port 29741 fine
   --amp \
   --amp-dtype bf16 \
   --vkitti-randomize-unprocessing \
-  --log-interval 500 \
+  --log-interval 200 \
   2>&1 | tee "${RUN1_DIR}/train.log"
 
 echo "[SEQ] finished run 1/2: ${RUN1_NAME}"
@@ -90,7 +90,7 @@ conda run -n "${CONDA_ENV}" torchrun --nproc_per_node=1 --master_port 29742 fine
   --amp \
   --amp-dtype bf16 \
   --vkitti-randomize-unprocessing \
-  --log-interval 500 \
+  --log-interval 200 \
   2>&1 | tee "${RUN2_DIR}/train.log"
 
 echo "[SEQ] finished run 2/2: ${RUN2_NAME}"

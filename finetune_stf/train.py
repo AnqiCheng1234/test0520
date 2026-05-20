@@ -334,7 +334,7 @@ def parse_args():
         help="[raw_mix stage] fixed micro-step budget per epoch; 6696 matches existing vkitti_lod baselines",
     )
     parser.add_argument("--num-workers", default=4, type=int)
-    parser.add_argument("--log-interval", default=500, type=int)
+    parser.add_argument("--log-interval", default=200, type=int)
     parser.add_argument("--norm-mode", default="companded")
     parser.add_argument(
         "--lod-raw-domain-config",

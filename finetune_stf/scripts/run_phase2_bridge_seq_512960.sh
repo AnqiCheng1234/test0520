@@ -33,7 +33,7 @@ conda run -n dav3 torchrun --nproc_per_node=1 --master_port 29621 finetune_stf/t
   --amp \
   --amp-dtype bf16 \
   --vkitti-randomize-unprocessing \
-  --log-interval 500 \
+  --log-interval 200 \
   2>&1 | tee "${RUN1_DIR}/train.log"
 
 echo "[SEQ] finished run 1/2: ${RUN1_NAME}"
@@ -54,7 +54,7 @@ conda run -n dav3 torchrun --nproc_per_node=1 --master_port 29622 finetune_stf/t
   --amp \
   --amp-dtype bf16 \
   --vkitti-randomize-unprocessing \
-  --log-interval 500 \
+  --log-interval 200 \
   2>&1 | tee "${RUN2_DIR}/train.log"
 
 echo "[SEQ] finished run 2/2: ${RUN2_NAME}"

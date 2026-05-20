@@ -57,7 +57,7 @@ conda run -n "${CONDA_ENV}" torchrun --nproc_per_node=1 --master_port 29761 fine
   --amp \
   --amp-dtype bf16 \
   --vkitti-randomize-unprocessing \
-  --log-interval 500 \
+  --log-interval 200 \
   2>&1 | tee "${RUN_DIR}/train.log"
 
 echo "[RUN] finished: ${RUN_NAME}"
