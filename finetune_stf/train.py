@@ -49,9 +49,15 @@ from finetune_stf.dataset.robotcar import (
     RobotCarValRGB,
     RobotCarValRaw,
 )
-from finetune_stf.dataset.raw_utils import DEFAULT_RAW_NPZ_ROOT
+from finetune_stf.dataset.raw_utils import DEFAULT_RAW_NPZ_ROOT, STF_RAW_DECODE_MODES
 from finetune_stf.dataset.stf import DEFAULT_STF_ROOT, STF
-from finetune_stf.dataset.stf_raw import STF_RAW, STF_RAW_NATIVE_HW
+from finetune_stf.dataset.stf_raw import (
+    DEFAULT_STF_PSEUDO_MANIFEST,
+    STF_FAST_EVAL_BACKENDS,
+    STF_RAW,
+    STF_RAW_NATIVE_HW,
+    STF_TRAIN_TARGET_MODES,
+)
 from finetune_stf.dataset.vkitti2 import DEFAULT_TRAIN_LIST as DEFAULT_VKITTI_TRAIN_LIST, VKITTI2
 from finetune_stf.models.lora_bridge import (
     DEFAULT_BRIDGE_FEATURE_KEYS,
@@ -85,6 +91,7 @@ from finetune_stf.models.raw_ram import (
     FUNCTION_ORDER,
     RAW_RAM_INPUT_TYPES,
     RAW_RAM_RGB_INPUT_TYPES,
+    RAW_RAM_RGB_TAIL_CHOICES,
     RGB_INTERFACE_HEAD_MODE_CHOICES,
     build_raw_ram_depth_model,
 )
@@ -165,6 +172,13 @@ KITTI_EVAL_PROTOCOL_CHOICES = ("rgb_pretrained_ref", "rgb_checkpoint_decoder")
 BEST_METRIC_CHOICES = ("stf", "kitti", "eth3d", "robotcar", "robotcar_day", "robotcar_night", "avg4")
 RAW_MIX_SOURCE_CHOICES = ("vkitti", "hypersim", "lod", "lod_day", "lod_night")
 DEFAULT_HEAVY_SAVE_ROOT = "/mnt/drive/3333_raw/0000_exp_ckpt"
+FIXED_VIZ_RGB_BASELINE_SPLITS = ("stf", "eth3d", "robotcar", "robotcar_night")
+DAV2_VARIANT_NAMES = {
+    "vits": "DAv2-S",
+    "vitb": "DAv2-B",
+    "vitl": "DAv2-L",
+    "vitg": "DAv2-G",
+}
 
 
 def resolve_heavy_save_path(save_path, heavy_save_root):
@@ -231,6 +245,9 @@ def parse_args():
     )
     parser.add_argument("--stf-root", default=DEFAULT_STF_ROOT)
     parser.add_argument("--raw-npz-root", default=DEFAULT_RAW_NPZ_ROOT)
+    parser.add_argument("--stf-raw-decode-mode", default="legacy_companded", choices=STF_RAW_DECODE_MODES)
+    parser.add_argument("--stf-train-target-mode", default="gt_sparse", choices=STF_TRAIN_TARGET_MODES)
+    parser.add_argument("--stf-pseudo-manifest", default=DEFAULT_STF_PSEUDO_MANIFEST)
     parser.add_argument("--vkitti-train-list", default=str(DEFAULT_VKITTI_TRAIN_LIST))
     parser.add_argument("--hypersim-processed-base", default=str(DEFAULT_HYPERSIM_PROCESSED_BASE))
     parser.add_argument("--hypersim-train-root", default=None)
@@ -339,6 +356,12 @@ def parse_args():
         default=0.1,
         type=float,
         help="Residual scale for residual_tanh / residual_linear RGB interface modes.",
+    )
+    parser.add_argument(
+        "--raw-ram-rgb-tail",
+        default="tanh2p5",
+        choices=RAW_RAM_RGB_TAIL_CHOICES,
+        help="Tail after RamCore3 BN for raw_ram_rgb before DAv2.",
     )
     parser.add_argument("--bridge-source", default="ram_core", choices=["ram_core"])
     parser.add_argument(
@@ -465,6 +488,7 @@ def parse_args():
     parser.add_argument("--eth3d-max-depth", default=80.0, type=float)
     parser.add_argument("--eth3d-max-samples", default=None, type=int)
     parser.add_argument("--eth3d-norm-mode", default="sensor_linear")
+    parser.add_argument("--stf-fast-eval-backend", default="sparse", choices=STF_FAST_EVAL_BACKENDS)
     parser.add_argument("--eth3d-fast-eval-backend", default="proxy", choices=ETH3D_FAST_EVAL_BACKEND_CHOICES)
     parser.add_argument("--eval-robotcar", action="store_true")
     parser.add_argument("--robotcar-root", default=DEFAULT_ROBOTCAR_ROOT)
@@ -535,6 +559,30 @@ def parse_args():
             parser.error("--lod-fraction must be in (0, 1)")
     if args.train_steps_per_epoch < 1:
         parser.error("--train-steps-per-epoch must be >= 1")
+    if args.stf_raw_decode_mode != "legacy_companded" and args.norm_mode != "passthrough":
+        parser.error(
+            "--stf-raw-decode-mode legacy_online_decomp16/canonical_decomp16 already returns "
+            "[0,1] decompanded RAW; pass --norm-mode passthrough"
+        )
+    raw_root_str = str(Path(args.raw_npz_root).expanduser())
+    if "cam_stereo_left_bayer_rect" in raw_root_str and args.stf_raw_decode_mode == "canonical_decomp16":
+        parser.error("The legacy STF raw NPZ root requires legacy_companded or legacy_online_decomp16 decode mode")
+    if "canonical" in raw_root_str.lower() and args.stf_raw_decode_mode != "canonical_decomp16":
+        parser.error("A canonical STF raw NPZ root requires --stf-raw-decode-mode canonical_decomp16")
+    if args.stf_train_target_mode == "dav2_pseudo":
+        pseudo_manifest = Path(args.stf_pseudo_manifest).expanduser()
+        if not pseudo_manifest.is_file():
+            parser.error(f"--stf-pseudo-manifest does not exist: {pseudo_manifest}")
+        args.stf_pseudo_manifest = str(pseudo_manifest.resolve())
+    if (
+        args.stage == "stf_only"
+        and args.input_type in RAW_MODEL_INPUT_TYPES
+        and (args.input_height, args.input_width) != STF_RAW_NATIVE_HW
+    ):
+        parser.error(
+            f"STF RAW stf_only runs must use native input size {STF_RAW_NATIVE_HW}; "
+            f"got {(args.input_height, args.input_width)}"
+        )
     try:
         args.train_sources = tuple(parse_csv_list(args.train_sources, field_name="--train-sources"))
         args.train_source_ratios = tuple(parse_float_csv(args.train_source_ratios, field_name="--train-source-ratios"))
@@ -619,7 +667,8 @@ def parse_args():
     if args.input_type in PHASE1_BNCLEAN_GUARDED_INPUT_TYPES and os.environ.get("PHASE1_BNCLEAN_REVIEWED") != "1":
         parser.error(
             "Phase-1 BN-clean guard: raw_ram_rgb/raw_ram_rgb_bridge/raw_ram_rgb_bridge_lora "
-            "now feed RamCore3 BN+tanh2.5 output to DAv2, without hard clamp or ImageNet norm. "
+            "now feed RamCore3 BN output to DAv2, optionally with --raw-ram-rgb-tail tanh2p5, "
+            "without hard clamp or ImageNet norm. "
             "Re-audit finetune_stf/models/raw_ram.py, finetune_stf/models/lora_bridge.py, and "
             "plans/0519_log_night_only/phase1_lod_night_only_plan.md, then rerun with "
             "PHASE1_BNCLEAN_REVIEWED=1."
@@ -798,6 +847,7 @@ def build_model(args):
             input_type=args.input_type,
             rgb_interface_mode=args.rgb_interface_mode,
             rgb_residual_scale=args.rgb_residual_scale,
+            raw_ram_rgb_tail=args.raw_ram_rgb_tail,
             sensor_hw=sensor_hw,
             backbone_hw=None,
         )
@@ -1074,6 +1124,10 @@ def describe_rgb_interface(mode, residual_scale):
     return str(mode)
 
 
+def dav2_rgb_pred_label(args):
+    return f"RGB {DAV2_VARIANT_NAMES.get(str(args.encoder), str(args.encoder))} pred"
+
+
 def build_datasets(args):
     size = (args.input_height, args.input_width)
     stf_eval_size = get_stf_eval_size(args)
@@ -1093,6 +1147,9 @@ def build_datasets(args):
                 "channel_mode": args.channel_mode,
                 "use_imagenet_norm": args.use_imagenet_norm,
                 "input_mode": resolve_stf_raw_input_mode(args.input_type),
+                "stf_raw_decode_mode": args.stf_raw_decode_mode,
+                "depth_mode": "fast",
+                "fast_eval_backend": args.stf_fast_eval_backend,
             }
         )
 
@@ -1103,6 +1160,9 @@ def build_datasets(args):
     if args.stage in ("stf_only", "mixed", "vkitti_only"):
         stf_train_kwargs = dict(stf_val_kwargs)
         stf_train_kwargs["size"] = size
+        if args.input_type in RAW_MODEL_INPUT_TYPES:
+            stf_train_kwargs["stf_train_target_mode"] = args.stf_train_target_mode
+            stf_train_kwargs["stf_pseudo_manifest"] = args.stf_pseudo_manifest
         datasets["stf_train"] = stf_dataset_cls("train", merge_test_into_train=True, **stf_train_kwargs)
     if args.stage in ("lod_only", "vkitti_lod") or "lod" in raw_mix_sources:
         lod_manifests = resolve_lod_manifest_paths(args)
@@ -1934,6 +1994,16 @@ def log_setup(logger, args, datasets, train_state, model):
         args.loss_target_normalization,
         args.loss_norm_min_scale,
     )
+    if args.input_type in RAW_MODEL_INPUT_TYPES:
+        logger.info(
+            "[STF_RAW] decode_mode=%s norm_mode=%s train_target_mode=%s pseudo_manifest=%s fast_eval_backend=%s raw_ram_rgb_tail=%s",
+            args.stf_raw_decode_mode,
+            args.norm_mode,
+            args.stf_train_target_mode,
+            args.stf_pseudo_manifest,
+            args.stf_fast_eval_backend,
+            args.raw_ram_rgb_tail,
+        )
     lod_manifests = resolve_lod_manifest_paths(args)
     if "stf_train" in datasets:
         if "val" in datasets:
@@ -2121,10 +2191,16 @@ def log_setup(logger, args, datasets, train_state, model):
             head_desc,
         )
     if args.input_type in RAW_RAM_RGB_INPUT_TYPES:
+        raw_rgb_tail_desc = (
+            "ramcore_bn_no_clamp_no_imagenet_norm"
+            if args.raw_ram_rgb_tail == "identity"
+            else "ramcore_bn_tanh25_no_clamp_no_imagenet_norm"
+        )
         logger.info(
-            "[MODEL] %s functions=%s ram_core_out_channels=3 dav2_input=ramcore_bn_tanh25_no_clamp_no_imagenet_norm",
+            "[MODEL] %s functions=%s ram_core_out_channels=3 dav2_input=%s",
             args.input_type,
             FUNCTION_ORDER,
+            raw_rgb_tail_desc,
         )
     if args.input_type in (*RAW_RAM_BRIDGE_INPUT_TYPES, *RAW_RAM_RGB_BRIDGE_INPUT_TYPES):
         bridge_head_desc = (
@@ -2875,7 +2951,7 @@ def main():
         and args.enable_fixed_viz_dump
         and any(
             split_name in train_state.get("fixed_viz_samples", {})
-            for split_name in ("robotcar", "robotcar_night")
+            for split_name in FIXED_VIZ_RGB_BASELINE_SPLITS
         )
     )
     if needs_fixed_viz_rgb_baseline:
@@ -2947,8 +3023,10 @@ def main():
             )
         if fixed_viz_rgb_baseline_model is not None:
             logger.info(
-                "[VIZ] fixed RobotCar RGB DAv2 baseline weights=%s",
+                "[VIZ] fixed RGB pred baseline splits=%s weights=%s label=%s",
+                FIXED_VIZ_RGB_BASELINE_SPLITS,
                 args.pretrained_from,
+                dav2_rgb_pred_label(args),
             )
         if train_viz_rgb_baseline_model is not None:
             if args.train_viz_rgb_baseline_checkpoint:
@@ -2966,7 +3044,7 @@ def main():
                 logger.info(
                     "[TRAIN_VIZ] rgb_baseline weights=%s label=%s",
                     args.pretrained_from,
-                    args.train_viz_rgb_baseline_label or f"RGB DAv2 {args.encoder}",
+                    args.train_viz_rgb_baseline_label or dav2_rgb_pred_label(args),
                 )
 
     if args.resume_from:
@@ -3704,7 +3782,7 @@ def main():
                     args.save_path,
                     writer=writer,
                     baseline_model=train_viz_rgb_baseline_model,
-                    baseline_label=args.train_viz_rgb_baseline_label or f"RGB DAv2 {args.encoder}",
+                    baseline_label=args.train_viz_rgb_baseline_label or dav2_rgb_pred_label(args),
                     logger=logger,
                 )
             if args.enable_fixed_viz_dump and train_state.get("fixed_viz_samples"):
@@ -3728,8 +3806,8 @@ def main():
                     model_overrides=model_overrides,
                     input_type_overrides=input_type_overrides,
                     rgb_baseline_model=fixed_viz_rgb_baseline_model,
-                    rgb_baseline_splits=("robotcar", "robotcar_night"),
-                    rgb_baseline_label="RGB DAv2",
+                    rgb_baseline_splits=FIXED_VIZ_RGB_BASELINE_SPLITS,
+                    rgb_baseline_label=dav2_rgb_pred_label(args),
                 )
                 logger.info(
                     "[VIZ] dumped fixed samples epoch=%d splits=%s root=%s",

@@ -35,7 +35,9 @@ from eval_rel_depth_strict import (
 from depth_anything_v2.util.transform import NormalizeImage, PrepareForNet, Resize
 from finetune_stf.dataset.raw_utils import (
     DEFAULT_RAW_NPZ_ROOT,
+    STF_RAW_DECODE_MODES,
     bayer_to_3ch,
+    decode_stf_raw_4ch,
     load_rectified_bayer_npz,
     normalize_raw,
     normalize_raw_4ch,
@@ -100,6 +102,7 @@ def parse_args():
     parser.add_argument("--min-depth", type=float, default=DEFAULT_MIN_DEPTH)
     parser.add_argument("--max-depth", type=float, default=DEFAULT_MAX_DEPTH)
     parser.add_argument("--norm-mode", default="companded")
+    parser.add_argument("--stf-raw-decode-mode", default="legacy_companded", choices=STF_RAW_DECODE_MODES)
     parser.add_argument("--channel-mode", default="rgb_avg_g")
     parser.add_argument("--bridge-source", default="ram_core", choices=["ram_core"])
     parser.add_argument(
@@ -143,6 +146,11 @@ def parse_args():
         args.bridge_layers = list(dict.fromkeys(args.bridge_layers))
     elif args.input_type in RAW_RAM_BRIDGE_INPUT_TYPES:
         args.bridge_layers = list(DEFAULT_BRIDGE_LAYERS_BY_ENCODER[args.encoder])
+    if args.input_type != "rgb" and args.stf_raw_decode_mode != "legacy_companded" and args.norm_mode != "passthrough":
+        parser.error(
+            f"{args.stf_raw_decode_mode} already returns [0,1] decompanded RAW; "
+            "use --norm-mode passthrough to avoid a second normalization."
+        )
     return args
 
 
@@ -671,7 +679,7 @@ def write_results(save_dir, split, checkpoint_path, manifest_path, records, summ
     ]
     txt_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
-    fieldnames = [
+    base_fieldnames = [
         "index",
         "sample_name",
         "image_path",
@@ -691,6 +699,16 @@ def write_results(save_dir, split, checkpoint_path, manifest_path, records, summ
         "d2",
         "d3",
     ]
+    base_fieldname_set = set(base_fieldnames)
+    extra_metric_fieldnames = sorted(
+        {
+            key
+            for record in records
+            for key in record["metrics"].keys()
+            if key not in base_fieldname_set
+        }
+    )
+    fieldnames = base_fieldnames + extra_metric_fieldnames
     with csv_path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
@@ -764,6 +782,7 @@ def main():
 
         if args.input_type in ("raw_ram", "raw_ram_residual", *RAW_RAM_BRIDGE_INPUT_TYPES):
             bayer_rect = load_rectified_bayer_npz(image_path)
+            bayer_rect = decode_stf_raw_4ch(bayer_rect, decode_mode=args.stf_raw_decode_mode)
             bayer_4ch_norm = normalize_raw_4ch(bayer_rect, norm_mode=args.norm_mode)
             # For visualization, create a pseudo-RGB from the 4ch Bayer
             image_rgb_vis = bayer_to_3ch(bayer_rect, channel_mode="rgb_avg_g")
@@ -784,6 +803,7 @@ def main():
             )
         elif args.input_type == "raw":
             bayer_rect = load_rectified_bayer_npz(image_path)
+            bayer_rect = decode_stf_raw_4ch(bayer_rect, decode_mode=args.stf_raw_decode_mode)
             image_rgb = bayer_to_3ch(bayer_rect, channel_mode=args.channel_mode)
             image_rgb = normalize_raw(image_rgb, norm_mode=args.norm_mode)
             raw_bgr = pseudo_rgb_to_bgr(image_rgb)

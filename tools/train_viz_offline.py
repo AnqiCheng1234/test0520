@@ -17,6 +17,7 @@ from finetune_stf.train import (  # noqa: E402
     build_datasets,
     build_model,
     build_rgb_reference_eval_model,
+    dav2_rgb_pred_label,
     resolve_model_state,
     strip_module_prefix,
 )
@@ -110,7 +111,7 @@ def main():
         epoch,
         str(output_root),
         baseline_model=baseline_model,
-        baseline_label=args.train_viz_rgb_baseline_label or f"RGB DAv2 {args.encoder}",
+        baseline_label=args.train_viz_rgb_baseline_label or dav2_rgb_pred_label(args),
     )
 
     print(

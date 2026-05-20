@@ -20,6 +20,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from anqi_eval.eval_rel_depth_strict import affine_align_disp, compute_metrics
 from finetune_stf.train import (
+    FIXED_VIZ_RGB_BASELINE_SPLITS,
     METRIC_KEYS,
     affine_align_disp_1d,
     build_datasets,
@@ -31,12 +32,14 @@ from finetune_stf.train import (
     sample_bilinear_disparity_at_mask,
     strip_module_prefix,
     sync_rgb_decoder_eval_model,
+    dav2_rgb_pred_label,
 )
 from finetune_stf.util.viz_dump import collect_fixed_samples, dump_fixed_samples
 
 
-_VALID_SPLITS = {"kitti", "nyu", "eth3d", "robotcar", "robotcar_night"}
+_VALID_SPLITS = {"stf", "kitti", "nyu", "eth3d", "robotcar", "robotcar_night"}
 _EVAL_FLAG_BY_SPLIT = {
+    "stf": "eval_stf",
     "kitti": "eval_kitti",
     "nyu": "eval_nyu",
     "eth3d": "eval_eth3d",
@@ -67,13 +70,13 @@ def _load_args(run_dir, *, splits=None):
     if splits is not None:
         for split, flag in _EVAL_FLAG_BY_SPLIT.items():
             data[flag] = split in splits
-        data["eval_stf"] = False
         data["stage"] = "offline_viz"
     return SimpleNamespace(**data)
 
 
 def _make_loaders(datasets):
     loader_keys = {
+        "val": "val_loader",
         "kitti_val": "kitti_val_loader",
         "nyu_val": "nyu_val_loader",
         "eth3d_val_fast": "eth3d_val_fast_loader",
@@ -204,7 +207,7 @@ def main():
             model_overrides["kitti"] = kitti_reference_eval_model
         input_type_overrides["kitti"] = "rgb"
 
-    if any(split_name in fixed_samples for split_name in ("robotcar", "robotcar_night")):
+    if any(split_name in fixed_samples for split_name in FIXED_VIZ_RGB_BASELINE_SPLITS):
         fixed_viz_rgb_baseline_model = kitti_reference_eval_model or build_rgb_reference_eval_model(args).cuda().eval()
 
     dump_outputs = dump_fixed_samples(
@@ -216,8 +219,8 @@ def main():
         model_overrides=model_overrides,
         input_type_overrides=input_type_overrides,
         rgb_baseline_model=fixed_viz_rgb_baseline_model,
-        rgb_baseline_splits=("robotcar", "robotcar_night"),
-        rgb_baseline_label="RGB DAv2",
+        rgb_baseline_splits=FIXED_VIZ_RGB_BASELINE_SPLITS,
+        rgb_baseline_label=dav2_rgb_pred_label(args),
     )
     print(json.dumps({split: len(paths) for split, paths in dump_outputs.items()}, indent=2, sort_keys=True))
 

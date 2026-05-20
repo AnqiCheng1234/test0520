@@ -185,6 +185,7 @@ RAW_RAM_RGB_BRIDGE_FEATURE_CHANNELS = {
     "x3": 3,
 }
 PHASE1B_TANH_ALPHA = 2.5
+RAW_RAM_RGB_TAIL_CHOICES = ("identity", "tanh2p5")
 
 
 def phase1b_tanh_tail_squash(x, alpha=PHASE1B_TANH_ALPHA):
@@ -539,18 +540,27 @@ class RawRamRgbDepthModel(nn.Module):
         *,
         sensor_hw=SENSOR_INPUT_HW,
         backbone_hw=BACKBONE_INPUT_HW,
+        raw_ram_rgb_tail="tanh2p5",
     ):
         super().__init__()
+        raw_ram_rgb_tail = str(raw_ram_rgb_tail)
+        if raw_ram_rgb_tail not in RAW_RAM_RGB_TAIL_CHOICES:
+            raise ValueError(
+                f"Unsupported raw_ram_rgb_tail={raw_ram_rgb_tail!r}; "
+                f"expected one of {RAW_RAM_RGB_TAIL_CHOICES}"
+            )
         self.ram_core = RamCore3()
         self.dav2 = dav2_model
+        self.raw_ram_rgb_tail = raw_ram_rgb_tail
         _register_imagenet_stats(self)
         self.spatial_adapter = CenterPadCropAdapter(sensor_hw=sensor_hw, backbone_hw=backbone_hw)
 
     def forward(self, x_raw):
         x_rgb3_in = packed_bayer_to_base_rgb(x_raw)
         x3 = self.ram_core(x_rgb3_in)
-        # Phase-1b keeps the BN-clean path but softly bounds heavy tails before DAv2.
-        x3 = phase1b_tanh_tail_squash(x3)
+        if self.raw_ram_rgb_tail == "tanh2p5":
+            # Phase-1b compatibility path: softly bound heavy tails before DAv2.
+            x3 = phase1b_tanh_tail_squash(x3)
         # Previous Phase-1 path:
         # x_norm = x3
         # Pre-Phase-1 path:
@@ -614,11 +624,17 @@ def build_raw_ram_depth_model(
     residual_scale=0.1,
     rgb_interface_mode="residual_tanh",
     rgb_residual_scale=0.1,
+    raw_ram_rgb_tail="tanh2p5",
     sensor_hw=SENSOR_INPUT_HW,
     backbone_hw=BACKBONE_INPUT_HW,
 ):
     if input_type == "raw_ram_rgb":
-        return RawRamRgbDepthModel(dav2_model, sensor_hw=sensor_hw, backbone_hw=backbone_hw)
+        return RawRamRgbDepthModel(
+            dav2_model,
+            sensor_hw=sensor_hw,
+            backbone_hw=backbone_hw,
+            raw_ram_rgb_tail=raw_ram_rgb_tail,
+        )
     if input_type == "raw_ram":
         return RawRamDepthModel(
             dav2_model,

@@ -4,7 +4,7 @@ __pycache__/
 *.log
 assets/
 checkpoints/
-plans/
+anqi_eval/results/
 codex_debug/
 codex_smoke/
 finetune_stf/exp/

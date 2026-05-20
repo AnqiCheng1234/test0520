@@ -29,6 +29,7 @@ from foundation.engine.transforms import packed_bayer_to_base_rgb
 
 
 _FIXED_SAMPLE_LOADERS = (
+    ("stf", "val_loader"),
     ("kitti", "kitti_val_loader"),
     ("eth3d", "eth3d_val_fast_loader"),
     ("robotcar", "robotcar_val_fast_loader"),
@@ -36,6 +37,7 @@ _FIXED_SAMPLE_LOADERS = (
 )
 _IMAGENET_MEAN = np.array([0.485, 0.456, 0.406], dtype=np.float32)
 _IMAGENET_STD = np.array([0.229, 0.224, 0.225], dtype=np.float32)
+_STF_PSEUDO_MANIFEST_CACHE = {}
 
 
 def _clone_sample_to_cpu(sample):
@@ -193,7 +195,7 @@ def _infer_ram_rgb(active_model, x_raw):
         in_channels = _ram_core_input_channels(module.ram_core)
         if in_channels == 3:
             x3_in = packed_bayer_to_base_rgb(x_raw)
-            return module.ram_core(x3_in)
+            return _apply_raw_ram_rgb_tail(module, module.ram_core(x3_in))
     if hasattr(module, "input_stem"):
         x_rgb = module.input_stem(x_raw)
         if bool(getattr(module, "clip_rgb", True)):
@@ -433,6 +435,104 @@ def _json_float(value):
     return value if math.isfinite(value) else None
 
 
+def _sample_name_value(sample):
+    return str(_first_value(sample.get("sample_name"), _first_value(sample.get("sample_stem"), "")))
+
+
+def _load_depth_array(path_value):
+    path_value = _first_value(path_value)
+    if not path_value:
+        return None
+    path = Path(str(path_value)).expanduser()
+    if not path.is_file():
+        return None
+    if path.suffix.lower() == ".npy":
+        array = np.load(path).astype(np.float32, copy=False)
+    elif path.suffix.lower() == ".npz":
+        with np.load(path, allow_pickle=False) as data:
+            for key in ("arr_0", "depth", "aligned_depth"):
+                if key in data.files:
+                    array = np.asarray(data[key], dtype=np.float32)
+                    break
+            else:
+                return None
+    else:
+        return None
+    if array.ndim != 2:
+        return None
+    return array
+
+
+def _resize_2d_nearest(values, target_hw):
+    values = np.asarray(values, dtype=np.float32)
+    if tuple(values.shape) == tuple(target_hw):
+        return values
+    resized = cv2.resize(
+        values,
+        (int(target_hw[1]), int(target_hw[0])),
+        interpolation=cv2.INTER_NEAREST,
+    )
+    return resized.astype(np.float32, copy=False)
+
+
+def _valid_positive_view(values, target_hw=None, *, resize_mode="nearest"):
+    if values is None:
+        return None
+    view = np.asarray(values, dtype=np.float32)
+    if target_hw is not None and tuple(view.shape) != tuple(target_hw):
+        if resize_mode == "bilinear":
+            view = _resize_2d_bilinear(view, target_hw)
+        else:
+            view = _resize_2d_nearest(view, target_hw)
+    valid = np.isfinite(view) & (view > 0)
+    out = view.astype(np.float32, copy=True)
+    out[~valid] = np.nan
+    return out
+
+
+def _train_viz_gt_view_from_sample(sample, target_hw):
+    """Sparse metric GT paired with a train sample whose target may be pseudo depth."""
+    view = _valid_positive_view(_load_depth_array(sample.get("sparse_depth_path")), target_hw)
+    if view is not None:
+        return view
+    return None
+
+
+def _load_stf_pseudo_manifest(manifest_path):
+    manifest_path = str(Path(manifest_path).expanduser().resolve())
+    cached = _STF_PSEUDO_MANIFEST_CACHE.get(manifest_path)
+    if cached is not None:
+        return cached
+    rows = {}
+    path = Path(manifest_path)
+    if path.is_file():
+        with path.open(newline="", encoding="utf-8") as handle:
+            reader = csv.DictReader(handle)
+            for row in reader:
+                sample_name = row.get("sample_name")
+                pseudo_path = row.get("pseudo_depth_npy")
+                if sample_name and pseudo_path:
+                    rows[str(sample_name)] = str(pseudo_path)
+    _STF_PSEUDO_MANIFEST_CACHE[manifest_path] = rows
+    return rows
+
+
+def _fixed_train_target_view_from_sample(sample, args, target_hw):
+    """Training target paired with a fixed eval sample, usually STF DAv2-L pseudo target."""
+    direct = _load_depth_array(sample.get("pseudo_depth_path"))
+    if direct is not None:
+        return _valid_positive_view(direct, target_hw, resize_mode="bilinear")
+
+    manifest_path = getattr(args, "stf_pseudo_manifest", None)
+    sample_name = _sample_name_value(sample)
+    if not manifest_path or not sample_name:
+        return None
+    pseudo_path = _load_stf_pseudo_manifest(manifest_path).get(sample_name)
+    if not pseudo_path:
+        return None
+    return _valid_positive_view(_load_depth_array(pseudo_path), target_hw, resize_mode="bilinear")
+
+
 def _write_fixed_panel_extras(
     *,
     active_model,
@@ -452,16 +552,16 @@ def _write_fixed_panel_extras(
     input_type,
     amp_dtype,
     use_amp,
+    write_individual_images=False,
 ):
     show_rgb_baseline = rgb_baseline_model is not None
     with torch.autocast(device_type="cuda", dtype=amp_dtype, enabled=use_amp and tensor.is_cuda):
-        ram_rgb = _infer_ram_rgb(active_model, tensor) if tensor.ndim == 4 and tensor.shape[1] == 4 else None
         ram_rgb_pre_norm = (
             _infer_front_rgb_pre_norm(active_model, tensor)
             if tensor.ndim == 4 and tensor.shape[1] == 4
             else None
         )
-    ram_rgb_bgr = _rgb_tensor_to_bgr_preview(ram_rgb)
+    ram_rgb_bgr = _rgb_tensor_to_bgr_preview(ram_rgb_pre_norm)
 
     metrics_payload = _fixed_eval_metrics(sample, pred_disp, args, split_name)
     ram_rgb_path = split_dir / f"{stem}_ram_rgb.png"
@@ -469,7 +569,7 @@ def _write_fixed_panel_extras(
     metrics_path = split_dir / f"{stem}_metrics.json"
 
     extra = {}
-    if ram_rgb_bgr is not None:
+    if write_individual_images and ram_rgb_bgr is not None:
         cv2.imwrite(str(ram_rgb_path), ram_rgb_bgr)
         extra["ram_rgb"] = str(ram_rgb_path)
 
@@ -478,24 +578,26 @@ def _write_fixed_panel_extras(
         "sample_name": str(_first_value(sample.get("sample_name"), stem)),
         "sample_stem": stem,
         "disp": str(disp_path),
-        "color": str(color_path),
         "panel": str(panel_path),
     }
-    if ram_rgb_bgr is not None:
+    if color_path is not None:
+        metrics_json["color"] = str(color_path)
+    if write_individual_images and ram_rgb_bgr is not None:
         metrics_json["ram_rgb"] = str(ram_rgb_path)
 
     if metrics_payload is not None:
         aligned_depth = metrics_payload["panel_aligned_depth"]
         depth_mask = np.isfinite(aligned_depth) & (aligned_depth > 0)
-        depth_bgr = _colorize_depth(
-            aligned_depth,
-            depth_mask,
-            vmin=metrics_payload["vmin"],
-            vmax=metrics_payload["vmax"],
-        )
         depth_color_path = split_dir / f"{stem}_depth_color.png"
         depth_npz_path = split_dir / f"{stem}_aligned_depth.npz"
-        cv2.imwrite(str(depth_color_path), depth_bgr)
+        if write_individual_images:
+            depth_bgr = _colorize_depth(
+                aligned_depth,
+                depth_mask,
+                vmin=metrics_payload["vmin"],
+                vmax=metrics_payload["vmax"],
+            )
+            cv2.imwrite(str(depth_color_path), depth_bgr)
         np.savez_compressed(
             depth_npz_path,
             aligned_depth=aligned_depth.astype(np.float32, copy=False),
@@ -508,13 +610,14 @@ def _write_fixed_panel_extras(
         abs_rel = metrics_payload["metrics"]["abs_rel"]
         extra.update(
             {
-                "depth_color": str(depth_color_path),
                 "aligned_depth": str(depth_npz_path),
                 "abs_rel": float(abs_rel),
                 "rmse": float(metrics_payload["metrics"]["rmse"]),
                 "d1": float(metrics_payload["metrics"]["d1"]),
             }
         )
+        if write_individual_images:
+            extra["depth_color"] = str(depth_color_path)
         metrics_json.update(
             {
                 "abs_rel": _json_float(abs_rel),
@@ -529,7 +632,6 @@ def _write_fixed_panel_extras(
                 "align_scale": _json_float(metrics_payload["align"]["scale"]),
                 "align_shift": _json_float(metrics_payload["align"]["shift"]),
                 "invalid_aligned_ratio": _json_float(metrics_payload["align"]["invalid_aligned_ratio"]),
-                "depth_color": str(depth_color_path),
                 "aligned_depth": str(depth_npz_path),
                 "vmin": _json_float(metrics_payload["vmin"]),
                 "vmax": _json_float(metrics_payload["vmax"]),
@@ -540,6 +642,8 @@ def _write_fixed_panel_extras(
                 "sparse_fast_eval": bool(metrics_payload["sparse_fast_eval"]),
             }
         )
+        if write_individual_images:
+            metrics_json["depth_color"] = str(depth_color_path)
         target_view = _masked_depth_view(sample)
         current_view = aligned_depth.astype(np.float32, copy=False)
         current_title = "Current aligned"
@@ -558,12 +662,36 @@ def _write_fixed_panel_extras(
             }
         )
 
+    fixed_train_target_view = _fixed_train_target_view_from_sample(
+        sample,
+        args,
+        target_view.shape if target_view is not None else _sample_hw(sample),
+    )
+    if fixed_train_target_view is not None:
+        train_target_npz_path = split_dir / f"{stem}_train_target_rel_inv.npz"
+        np.savez_compressed(
+            train_target_npz_path,
+            target=fixed_train_target_view.astype(np.float32, copy=False),
+            target_space=np.array("inverse_relative"),
+        )
+        extra["train_target_rel_inv"] = str(train_target_npz_path)
+        metrics_json["train_target"] = {
+            "available": True,
+            "target_space": "inverse_relative",
+            "target": str(train_target_npz_path),
+        }
+    else:
+        metrics_json["train_target"] = {
+            "available": False,
+            "note": "missing paired training target for fixed-viz sample",
+        }
+
     rgb_baseline_payload = None
     rgb_baseline_view = None
     rgb_baseline_title = str(rgb_baseline_label or "RGB DAv2")
     rgb_baseline_subtitle = "baseline n/a"
     if show_rgb_baseline:
-        baseline_tensor = _fixed_rgb_baseline_input_from_sample(sample)
+        baseline_tensor = _fixed_rgb_baseline_input_from_sample(sample, target_hw=_sample_hw(sample))
         if baseline_tensor is None:
             metrics_json["rgb_baseline"] = {
                 "available": False,
@@ -595,29 +723,32 @@ def _write_fixed_panel_extras(
                     rgb_baseline_disp_path,
                     disp=rgb_baseline_disp_np.astype(np.float32, copy=False),
                 )
-                cv2.imwrite(str(rgb_baseline_color_path), _colorize_disp(rgb_baseline_disp_np))
                 baseline_info.update(
                     {
                         "disp": str(rgb_baseline_disp_path),
-                        "color": str(rgb_baseline_color_path),
                     }
                 )
+                if write_individual_images:
+                    cv2.imwrite(str(rgb_baseline_color_path), _colorize_disp(rgb_baseline_disp_np))
+                    baseline_info["color"] = str(rgb_baseline_color_path)
                 extra["rgb_baseline_disp"] = str(rgb_baseline_disp_path)
-                extra["rgb_baseline_color"] = str(rgb_baseline_color_path)
+                if write_individual_images:
+                    extra["rgb_baseline_color"] = str(rgb_baseline_color_path)
 
             rgb_baseline_payload = _fixed_eval_metrics(sample, rgb_baseline_disp, args, split_name)
             if rgb_baseline_payload is not None:
                 rgb_baseline_aligned_depth = rgb_baseline_payload["panel_aligned_depth"]
                 rgb_baseline_depth_mask = np.isfinite(rgb_baseline_aligned_depth) & (rgb_baseline_aligned_depth > 0)
-                rgb_baseline_depth_bgr = _colorize_depth(
-                    rgb_baseline_aligned_depth,
-                    rgb_baseline_depth_mask,
-                    vmin=rgb_baseline_payload["vmin"],
-                    vmax=rgb_baseline_payload["vmax"],
-                )
                 rgb_baseline_depth_color_path = split_dir / f"{stem}_rgb_dav2_depth_color.png"
                 rgb_baseline_depth_npz_path = split_dir / f"{stem}_rgb_dav2_aligned_depth.npz"
-                cv2.imwrite(str(rgb_baseline_depth_color_path), rgb_baseline_depth_bgr)
+                if write_individual_images:
+                    rgb_baseline_depth_bgr = _colorize_depth(
+                        rgb_baseline_aligned_depth,
+                        rgb_baseline_depth_mask,
+                        vmin=rgb_baseline_payload["vmin"],
+                        vmax=rgb_baseline_payload["vmax"],
+                    )
+                    cv2.imwrite(str(rgb_baseline_depth_color_path), rgb_baseline_depth_bgr)
                 np.savez_compressed(
                     rgb_baseline_depth_npz_path,
                     aligned_depth=rgb_baseline_aligned_depth.astype(np.float32, copy=False),
@@ -644,21 +775,23 @@ def _write_fixed_panel_extras(
                         "align_scale": _json_float(rgb_baseline_payload["align"]["scale"]),
                         "align_shift": _json_float(rgb_baseline_payload["align"]["shift"]),
                         "invalid_aligned_ratio": _json_float(rgb_baseline_payload["align"]["invalid_aligned_ratio"]),
-                        "depth_color": str(rgb_baseline_depth_color_path),
                         "aligned_depth": str(rgb_baseline_depth_npz_path),
                         "vmin": _json_float(rgb_baseline_payload["vmin"]),
                         "vmax": _json_float(rgb_baseline_payload["vmax"]),
                     }
                 )
+                if write_individual_images:
+                    baseline_info["depth_color"] = str(rgb_baseline_depth_color_path)
                 extra.update(
                     {
-                        "rgb_baseline_depth_color": str(rgb_baseline_depth_color_path),
                         "rgb_baseline_aligned_depth": str(rgb_baseline_depth_npz_path),
                         "rgb_baseline_abs_rel": float(rgb_baseline_abs_rel),
                         "rgb_baseline_rmse": float(rgb_baseline_payload["metrics"]["rmse"]),
                         "rgb_baseline_d1": float(rgb_baseline_payload["metrics"]["d1"]),
                     }
                 )
+                if write_individual_images:
+                    extra["rgb_baseline_depth_color"] = str(rgb_baseline_depth_color_path)
             elif rgb_baseline_disp_np is not None:
                 rgb_baseline_view = rgb_baseline_disp_np.astype(np.float32, copy=False)
                 rgb_baseline_title = f"{rgb_baseline_title} disp"
@@ -675,6 +808,7 @@ def _write_fixed_panel_extras(
         current_subtitle=current_subtitle,
         metrics_payload=metrics_payload,
         ram_rgb_pre_norm=ram_rgb_pre_norm[0] if torch.is_tensor(ram_rgb_pre_norm) and ram_rgb_pre_norm.ndim == 4 else ram_rgb_pre_norm,
+        train_target_view=fixed_train_target_view,
         show_rgb_baseline=show_rgb_baseline,
         rgb_baseline_view=rgb_baseline_view,
         rgb_baseline_title=rgb_baseline_title,
@@ -701,6 +835,7 @@ def _module(model):
 
 
 _TRAIN_SOURCE_DATASET_KEYS = {
+    "stf": "stf_train",
     "vkitti": "vkitti_train",
     "lod": "lod_train",
     "lod_day": "lod_day_train",
@@ -926,18 +1061,34 @@ def collect_fixed_train_source_samples(train_state, datasets, args, *, logger=No
                 "sample": sample,
                 "baseline_target_relation": relation,
             }
-            if baseline_enabled and hasattr(dataset, "build_rgb_baseline_input"):
-                geometry = sample.get("geometry_params")
-                if not geometry:
-                    raise ValueError(
-                        f"Train-viz RGB baseline requested, but fixed sample has no geometry_params: "
-                        f"source={source} idx={idx}"
-                    )
-                baseline_output = dataset.build_rgb_baseline_input(idx, geometry, target_hw=_sample_hw(sample))
-                baseline_tensor, rgb_preview = _coerce_baseline_output(baseline_output)
-                record["rgb_baseline_input"] = baseline_tensor.detach().cpu().float()
+            if baseline_enabled:
+                baseline_tensor = None
+                rgb_preview = None
+                if hasattr(dataset, "build_rgb_baseline_input"):
+                    geometry = sample.get("geometry_params")
+                    if not geometry:
+                        raise ValueError(
+                            f"Train-viz RGB baseline requested, but fixed sample has no geometry_params: "
+                            f"source={source} idx={idx}"
+                        )
+                    baseline_output = dataset.build_rgb_baseline_input(idx, geometry, target_hw=_sample_hw(sample))
+                    baseline_tensor, rgb_preview = _coerce_baseline_output(baseline_output)
+                else:
+                    baseline_tensor = _fixed_rgb_baseline_input_from_sample(sample, target_hw=_sample_hw(sample))
+                    rgb_preview = _fixed_rgb_preview_from_sample(sample, "raw")
+                if baseline_tensor is not None:
+                    record["rgb_baseline_input"] = baseline_tensor.detach().cpu().float()
                 if rgb_preview is not None:
-                    record["rgb_preview"] = rgb_preview.detach().cpu().float()
+                    record["rgb_preview"] = (
+                        rgb_preview.detach().cpu().float()
+                        if torch.is_tensor(rgb_preview)
+                        else torch.from_numpy(
+                            np.transpose(
+                                np.ascontiguousarray(np.asarray(rgb_preview, dtype=np.float32)),
+                                (2, 0, 1),
+                            )
+                        ).float()
+                    )
             elif "rgb_preview" in sample and torch.is_tensor(sample["rgb_preview"]):
                 record["rgb_preview"] = sample["rgb_preview"].detach().cpu().float()
 
@@ -1201,21 +1352,38 @@ def _load_rgb_preview_from_path(path_value):
     return image
 
 
-def _imagenet_normalized_rgb_tensor(image_rgb):
+def _imagenet_normalized_rgb_tensor(image_rgb, target_hw=None):
     image = np.asarray(image_rgb, dtype=np.float32)
     if image.ndim != 3 or image.shape[-1] != 3:
         return None
+    if target_hw is not None and tuple(image.shape[:2]) != tuple(target_hw):
+        image = cv2.resize(
+            image,
+            (int(target_hw[1]), int(target_hw[0])),
+            interpolation=cv2.INTER_AREA,
+        )
     image = np.clip(image, 0.0, 1.0)
     normalized = (image - _IMAGENET_MEAN.reshape(1, 1, 3)) / _IMAGENET_STD.reshape(1, 1, 3)
     chw = np.ascontiguousarray(np.transpose(normalized, (2, 0, 1))).astype(np.float32, copy=False)
     return torch.from_numpy(chw)
 
 
-def _fixed_rgb_baseline_input_from_sample(sample):
-    for key in ("rgb_eval_path", "rgb_640_path", "rgb_src_path"):
+def _resize_chw_tensor(tensor, target_hw):
+    if target_hw is None or tuple(tensor.shape[-2:]) == tuple(target_hw):
+        return tensor
+    return F.interpolate(
+        tensor.unsqueeze(0),
+        size=tuple(int(v) for v in target_hw),
+        mode="bilinear",
+        align_corners=False,
+    )[0]
+
+
+def _fixed_rgb_baseline_input_from_sample(sample, target_hw=None):
+    for key in ("rgb_eval_path", "rgb_640_path", "rgb_path", "rgb_src_path", "image_path"):
         preview = _load_rgb_preview_from_path(sample.get(key))
         if preview is not None:
-            return _imagenet_normalized_rgb_tensor(preview)
+            return _imagenet_normalized_rgb_tensor(preview, target_hw=target_hw)
 
     tensor = sample.get("image")
     if tensor is None or not torch.is_tensor(tensor):
@@ -1228,9 +1396,9 @@ def _fixed_rgb_baseline_input_from_sample(sample):
 
     finite = tensor[torch.isfinite(tensor)]
     if finite.numel() and (float(finite.min()) < -0.05 or float(finite.max()) > 1.25):
-        return tensor
+        return _resize_chw_tensor(tensor, target_hw)
     image = tensor.numpy().transpose(1, 2, 0)
-    return _imagenet_normalized_rgb_tensor(image)
+    return _imagenet_normalized_rgb_tensor(image, target_hw=target_hw)
 
 
 def _fixed_rgb_preview_from_sample(sample, input_type):
@@ -1239,7 +1407,7 @@ def _fixed_rgb_preview_from_sample(sample, input_type):
         if preview is not None:
             return preview
 
-    for key in ("rgb_eval_path", "rgb_640_path", "rgb_src_path", "image_path"):
+    for key in ("rgb_eval_path", "rgb_640_path", "rgb_path", "rgb_src_path", "image_path"):
         preview = _load_rgb_preview_from_path(sample.get(key))
         if preview is not None:
             return preview
@@ -1326,6 +1494,13 @@ def _rgb_interface_pre_clamp(rgb_head, x4, *, x_raw):
     return base_rgb + residual_scale * delta_rgb
 
 
+def _apply_raw_ram_rgb_tail(module, x3):
+    tail = str(getattr(module, "raw_ram_rgb_tail", "tanh2p5"))
+    if tail == "identity":
+        return x3
+    return phase1b_tanh_tail_squash(x3)
+
+
 def _infer_front_rgb_pre_norm(active_model, x_raw):
     if x_raw is None or not torch.is_tensor(x_raw):
         return None
@@ -1360,7 +1535,7 @@ def _infer_front_rgb_pre_norm(active_model, x_raw):
         if in_channels == 3 and x_raw.shape[1] == 4:
             x3_in = packed_bayer_to_base_rgb(x_raw)
             x3 = ram_core(x3_in)
-            return phase1b_tanh_tail_squash(x3)
+            return _apply_raw_ram_rgb_tail(module, x3)
         if in_channels == 4 and x_raw.shape[1] == 4:
             x4 = ram_core(x_raw)
             if x4.ndim == 4 and x4.shape[1] == 4:
@@ -1658,7 +1833,7 @@ def _distribution_strip(rgb_preview, raw_preview, ram_preview, width, *, height=
     block_w = (width - gap * 4) // 3
     x_positions = [gap, gap * 2 + block_w, gap * 3 + block_w * 2]
     if titles is None:
-        titles = ("RGB value distribution", "RAW preview distribution", "RAM BN+tanh2.5 distribution")
+        titles = ("RGB value distribution", "RAW preview distribution", "RAM output distribution")
     if axis_modes is None:
         axis_modes = ("unit", "unit", "zero_center")
     items = zip(x_positions, (rgb_preview, raw_preview, ram_preview), titles)
@@ -1674,18 +1849,25 @@ def _make_train_viz_panel(
     current_view,
     current_metrics,
     ram_rgb_pre_norm=None,
+    gt_depth_view=None,
     baseline_view=None,
     baseline_metrics=None,
     baseline_label="RGB DAv2",
 ):
     rgb_preview = _to_rgb_preview(record.get("rgb_preview"))
+    if rgb_preview is None:
+        rgb_preview = _fixed_rgb_preview_from_sample(record["sample"], "raw")
     raw_preview = _raw_preview_from_sample(record["sample"])
     ram_preview = _to_rgb_preview(ram_rgb_pre_norm, clip=False)
     color_limit_inputs = [target_view, current_view]
     if baseline_view is not None:
         color_limit_inputs.append(baseline_view)
     lo, hi = _color_limits(color_limit_inputs)
-    target_rgb = _colorize_array_rgb(target_view, lo, hi)
+    target_view_display = _display_target_view(record["sample"], target_view, source=record["source"])
+    target_rgb = _colorize_array_rgb(target_view_display, lo, hi)
+    gt_lo, gt_hi = _color_limits([gt_depth_view])
+    gt_display = _display_target_view(record["sample"], gt_depth_view, source=record["source"], force_sparse=True)
+    gt_rgb = _colorize_array_rgb(gt_display, gt_lo, gt_hi) if gt_depth_view is not None else None
     baseline_rgb = _colorize_array_rgb(baseline_view, lo, hi) if baseline_view is not None else None
     current_rgb = _colorize_array_rgb(current_view, lo, hi)
     source = record["source"]
@@ -1693,9 +1875,11 @@ def _make_train_viz_panel(
     tiles = [
         _make_tile(rgb_preview, "RGB", source),
         _make_tile(_preview_percentile_stretch(raw_preview), "RAW preview", "R, avg(G), B"),
-        _make_tile(_preview_percentile_stretch(ram_preview), "RAM BN+tanh2.5", "no clamp/norm"),
+        _make_tile(_preview_percentile_stretch(ram_preview), "RAM output", "no clamp/norm"),
         _make_tile(target_rgb, target_label, f"range {lo:.3g}..{hi:.3g}"),
     ]
+    if gt_depth_view is not None:
+        tiles.append(_make_tile(gt_rgb, "GT depth", f"range {gt_lo:.3g}..{gt_hi:.3g}"))
     if baseline_view is not None:
         baseline_loss = baseline_metrics.get("loss_total") if isinstance(baseline_metrics, dict) else float("nan")
         tiles.append(_make_tile(baseline_rgb, baseline_label, f"loss {_format_loss(baseline_loss)}"))
@@ -1732,6 +1916,42 @@ def _masked_depth_view(sample):
     return view
 
 
+def _is_sparse_stf_sample(sample, *, source=None, split_name=None):
+    if str(source or "").lower() == "stf" or str(split_name or "").lower() == "stf":
+        target_space = str(_first_value(sample.get("target_space"), ""))
+        if target_space == "metric_depth":
+            return True
+    depth_mode = str(_first_value(sample.get("depth_mode"), "full"))
+    backend = str(_first_value(sample.get("fast_eval_backend"), "proxy"))
+    return depth_mode == "fast" and backend == "sparse" and (
+        "lut_preview" in sample or "sparse_depth_path" in sample
+    )
+
+
+def _display_target_view(sample, target_view, *, source=None, split_name=None, dilation_kernel=7, force_sparse=False):
+    if target_view is None:
+        return target_view
+    if not force_sparse and not _is_sparse_stf_sample(sample, source=source, split_name=split_name):
+        return target_view
+    kernel_size = int(dilation_kernel)
+    if kernel_size <= 1:
+        return target_view
+    if kernel_size % 2 == 0:
+        kernel_size += 1
+    view = np.asarray(target_view, dtype=np.float32)
+    valid = np.isfinite(view)
+    if not np.any(valid):
+        return target_view
+    fill_value = float(np.nanmin(view[valid]))
+    dense = np.where(valid, view, fill_value).astype(np.float32, copy=False)
+    kernel = np.ones((kernel_size, kernel_size), dtype=np.uint8)
+    dilated_values = cv2.dilate(dense, kernel)
+    dilated_mask = cv2.dilate(valid.astype(np.uint8), kernel).astype(bool)
+    out = np.full(view.shape, np.nan, dtype=np.float32)
+    out[dilated_mask] = dilated_values[dilated_mask]
+    return out
+
+
 def _fixed_metadata_strip(split_name, sample, sample_index, metrics_payload, width, *, height=58):
     strip = np.zeros((height, width, 3), dtype=np.uint8)
     strip[:, :, :] = (18, 18, 18)
@@ -1766,6 +1986,7 @@ def _make_fixed_viz_panel(
     current_subtitle,
     metrics_payload,
     ram_rgb_pre_norm=None,
+    train_target_view=None,
     show_rgb_baseline=False,
     rgb_baseline_view=None,
     rgb_baseline_title="RGB DAv2",
@@ -1778,7 +1999,14 @@ def _make_fixed_viz_panel(
     if show_rgb_baseline and rgb_baseline_view is not None:
         color_limit_inputs.append(rgb_baseline_view)
     lo, hi = _color_limits(color_limit_inputs)
-    target_rgb = _colorize_array_rgb(target_view, lo, hi) if target_view is not None else None
+    target_display = _display_target_view(sample, target_view, split_name=split_name)
+    target_rgb = _colorize_array_rgb(target_display, lo, hi) if target_display is not None else None
+    train_lo, train_hi = _color_limits([train_target_view])
+    train_target_rgb = (
+        _colorize_array_rgb(train_target_view, train_lo, train_hi)
+        if train_target_view is not None
+        else None
+    )
     rgb_baseline_rgb = (
         _colorize_array_rgb(rgb_baseline_view, lo, hi)
         if show_rgb_baseline and rgb_baseline_view is not None
@@ -1788,9 +2016,11 @@ def _make_fixed_viz_panel(
     tiles = [
         _make_tile(rgb_preview, "RGB", split_name),
         _make_tile(_preview_percentile_stretch(input_preview), "Input preview", "RAW/base RGB"),
-        _make_tile(_preview_percentile_stretch(ram_preview), "RAM BN+tanh2.5", "no clamp/norm"),
+        _make_tile(_preview_percentile_stretch(ram_preview), "RAM output", "no clamp/norm"),
         _make_tile(target_rgb, "GT depth", f"range {lo:.3g}..{hi:.3g}"),
     ]
+    if train_target_view is not None:
+        tiles.append(_make_tile(train_target_rgb, "Train target rel inv", f"range {train_lo:.3g}..{train_hi:.3g}"))
     if show_rgb_baseline:
         tiles.append(_make_tile(rgb_baseline_rgb, rgb_baseline_title, rgb_baseline_subtitle))
     tiles.append(_make_tile(current_rgb, current_title, current_subtitle))
@@ -1804,7 +2034,7 @@ def _make_fixed_viz_panel(
                 input_preview,
                 ram_preview,
                 image_row.shape[1],
-                titles=("RGB preview distribution", "Input preview distribution", "RAM BN+tanh2.5 distribution"),
+                titles=("RGB preview distribution", "Input preview distribution", "RAM output distribution"),
             ),
         ],
         axis=0,
@@ -1931,6 +2161,7 @@ def dump_train_source_samples(
                             valid_mask[0],
                             current_aligned[0],
                         )
+                        gt_depth_view = _train_viz_gt_view_from_sample(sample, depth.shape[-2:])
                         baseline_view = None
                         if baseline_has_input:
                             _, baseline_view = _target_and_prediction_views(
@@ -1945,6 +2176,7 @@ def dump_train_source_samples(
                             current_view,
                             current_metrics,
                             ram_rgb_pre_norm=ram_rgb_pre_norm[0] if torch.is_tensor(ram_rgb_pre_norm) else None,
+                            gt_depth_view=gt_depth_view,
                             baseline_view=baseline_view,
                             baseline_metrics=baseline_metrics,
                             baseline_label=baseline_label,
@@ -1983,6 +2215,8 @@ def dump_train_source_samples(
                             "current_effective_mask": current_effective_mask[0].detach().cpu().numpy().astype(bool),
                             "baseline_effective_mask": baseline_effective_mask[0].detach().cpu().numpy().astype(bool),
                         }
+                        if gt_depth_view is not None:
+                            npz_payload["gt_depth_m"] = gt_depth_view.astype(np.float32, copy=False)
                         if target_space == "metric_depth":
                             current_depth = np.full_like(current_aligned_np, np.nan, dtype=np.float32)
                             baseline_depth = np.full_like(baseline_aligned_np, np.nan, dtype=np.float32)
@@ -2081,6 +2315,7 @@ def dump_fixed_samples(
     rgb_baseline_model=None,
     rgb_baseline_splits=None,
     rgb_baseline_label="RGB DAv2",
+    write_individual_images=False,
 ):
     if not fixed_samples:
         return {}
@@ -2132,10 +2367,13 @@ def dump_fixed_samples(
 
                     stem = _sample_stem(sample, idx)
                     npz_path = split_dir / f"{stem}_disp.npz"
-                    png_path = split_dir / f"{stem}_color.png"
+                    png_path = split_dir / f"{stem}_color.png" if write_individual_images else None
                     np.savez_compressed(npz_path, disp=disp_np.astype(np.float32, copy=False))
-                    cv2.imwrite(str(png_path), _colorize_disp(disp_np))
-                    saved_record = {"disp": str(npz_path), "color": str(png_path)}
+                    if write_individual_images:
+                        cv2.imwrite(str(png_path), _colorize_disp(disp_np))
+                    saved_record = {"disp": str(npz_path)}
+                    if png_path is not None:
+                        saved_record["color"] = str(png_path)
                     saved_record.update(
                         _write_fixed_panel_extras(
                             active_model=active_model,
@@ -2157,6 +2395,7 @@ def dump_fixed_samples(
                             input_type=input_type,
                             amp_dtype=amp_dtype,
                             use_amp=use_amp,
+                            write_individual_images=write_individual_images,
                         )
                     )
                     saved.append(saved_record)
