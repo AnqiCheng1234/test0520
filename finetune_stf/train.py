@@ -50,7 +50,12 @@ from finetune_stf.dataset.robotcar import (
     RobotCarValRaw,
 )
 from finetune_stf.dataset.raw_utils import DEFAULT_RAW_NPZ_ROOT, STF_RAW_DECODE_MODES
-from finetune_stf.dataset.stf import DEFAULT_STF_ROOT, STF
+from finetune_stf.dataset.stf import (
+    DEFAULT_STF_ROOT,
+    STF,
+    STF_PSEUDO_TRAIN_TARGET_MODES,
+    validate_stf_pseudo_manifest_for_target_mode,
+)
 from finetune_stf.dataset.stf_raw import (
     DEFAULT_STF_PSEUDO_MANIFEST,
     STF_FAST_EVAL_BACKENDS,
@@ -68,6 +73,7 @@ from finetune_stf.models.lora_bridge import (
     RAW_RAM_BRIDGE_LORA_INPUT_TYPES,
     RAW_RAM_RGB_BRIDGE_INPUT_TYPES,
     RAW_RAM_RGB_BRIDGE_LORA_INPUT_TYPES,
+    apply_lora_to_vit,
     _iter_vit_blocks,
     build_raw_ram_bridge_depth_model,
     load_bridge_init_weights,
@@ -91,6 +97,7 @@ from finetune_stf.models.raw_ram import (
     FUNCTION_ORDER,
     RAW_RAM_INPUT_TYPES,
     RAW_RAM_RGB_INPUT_TYPES,
+    RAW_RAM_RGB_LORA_INPUT_TYPES,
     RAW_RAM_RGB_TAIL_CHOICES,
     RGB_INTERFACE_HEAD_MODE_CHOICES,
     build_raw_ram_depth_model,
@@ -139,6 +146,9 @@ METRIC_KEYS = (
     "edge_overlap_iou",
 )
 RAW_PACKED_INPUT_TYPES = ("raw_packed",)
+RGB_ONLY_INPUT_TYPES = ("rgb",)
+RGB_LORA_INPUT_TYPES = ("rgb_lora",)
+RGB_INPUT_TYPES = RGB_ONLY_INPUT_TYPES + RGB_LORA_INPUT_TYPES
 BRIDGE_FEATURE_KEY_CHOICES = tuple(dict.fromkeys((*DEFAULT_BRIDGE_FEATURE_KEYS, *DEFAULT_RGB_BRIDGE_FEATURE_KEYS)))
 RAW_MODEL_INPUT_TYPES = (
     "raw",
@@ -150,7 +160,7 @@ RAW_MODEL_INPUT_TYPES = (
     *RAW_RAM_FEATURE_ADAPTER_INPUT_TYPES,
 )
 RGB_EVAL_INPUT_TYPES = (
-    "rgb",
+    *RGB_INPUT_TYPES,
     *RAW_PACKED_INPUT_TYPES,
     *RAW_RAM_INPUT_TYPES,
     *RAW_RAM_BRIDGE_INPUT_TYPES,
@@ -233,7 +243,7 @@ def parse_args():
         "--input-type",
         default="rgb",
         choices=[
-            "rgb",
+            *RGB_INPUT_TYPES,
             "raw",
             *RAW_PACKED_INPUT_TYPES,
             *RAW_RAM_INPUT_TYPES,
@@ -277,7 +287,7 @@ def parse_args():
         help="One of: none, decoder, full, last:N, first:N, range:a-b",
     )
     parser.add_argument("--loss-type", default="aligned_sig", choices=["aligned_sig", "ssi", "ssi_grad"])
-    parser.add_argument("--loss-lambda-grad", default=2.0, type=float)
+    parser.add_argument("--loss-lambda-grad", default=None, type=float)
     parser.add_argument("--loss-grad-scales", default=4, type=int)
     parser.add_argument("--loss-mask-downsample", default="strict", choices=["strict", "loose"])
     parser.add_argument(
@@ -550,6 +560,12 @@ def parse_args():
         parser.error(str(exc))
     if args.accum_steps < 1:
         parser.error("--accum-steps must be >= 1")
+    if args.loss_type == "ssi_grad":
+        if args.loss_lambda_grad is None:
+            parser.error("--loss-lambda-grad is required when --loss-type ssi_grad")
+    else:
+        args.loss_lambda_grad = None
+        args.loss_grad_scales = None
     if args.lod_per_vkitti < 1:
         parser.error("--lod-per-vkitti must be >= 1")
     if args.lod_fraction is not None:
@@ -569,10 +585,17 @@ def parse_args():
         parser.error("The legacy STF raw NPZ root requires legacy_companded or legacy_online_decomp16 decode mode")
     if "canonical" in raw_root_str.lower() and args.stf_raw_decode_mode != "canonical_decomp16":
         parser.error("A canonical STF raw NPZ root requires --stf-raw-decode-mode canonical_decomp16")
-    if args.stf_train_target_mode == "dav2_pseudo":
+    if args.stf_train_target_mode in STF_PSEUDO_TRAIN_TARGET_MODES:
         pseudo_manifest = Path(args.stf_pseudo_manifest).expanduser()
         if not pseudo_manifest.is_file():
             parser.error(f"--stf-pseudo-manifest does not exist: {pseudo_manifest}")
+        try:
+            validate_stf_pseudo_manifest_for_target_mode(
+                pseudo_manifest,
+                args.stf_train_target_mode,
+            )
+        except ValueError as exc:
+            parser.error(str(exc))
         args.stf_pseudo_manifest = str(pseudo_manifest.resolve())
     if (
         args.stage == "stf_only"
@@ -646,7 +669,7 @@ def parse_args():
     if args.hypersim_min_depth <= 0 or args.hypersim_max_depth <= args.hypersim_min_depth:
         parser.error("--hypersim-max-depth must be greater than --hypersim-min-depth > 0")
     if args.stage in ("lod_only", "vkitti_lod") and args.input_type not in (
-        "rgb",
+        *RGB_INPUT_TYPES,
         *RAW_PACKED_INPUT_TYPES,
         *RAW_RAM_INPUT_TYPES,
         *RAW_RAM_BRIDGE_INPUT_TYPES,
@@ -832,8 +855,20 @@ def iter_requested_robotcar_modes(args):
 def build_model(args):
     model = DepthAnythingV2(**MODEL_CONFIGS[args.encoder])
     sensor_hw = (args.input_height, args.input_width)
-    if args.input_type in ("rgb", "raw"):
+    if args.input_type in (*RGB_INPUT_TYPES, "raw"):
         model = build_dav2_padded_rgb_depth_model(model, sensor_hw=sensor_hw, backbone_hw=None)
+        if args.input_type in RGB_LORA_INPUT_TYPES:
+            dav2_module = model.dav2 if hasattr(model, "dav2") else model
+            model.lora_block_mode = str(args.lora_block_mode)
+            model.lora_rank = int(args.lora_rank)
+            model.lora_alpha = float(args.lora_alpha)
+            model.lora_block_indices = apply_lora_to_vit(
+                dav2_module.pretrained,
+                block_mode=args.lora_block_mode,
+                tap_layers=args.bridge_layers or DEFAULT_BRIDGE_LAYERS_BY_ENCODER[args.encoder],
+                rank=args.lora_rank,
+                alpha=args.lora_alpha,
+            )
     elif args.input_type in RAW_PACKED_INPUT_TYPES:
         model = build_dav2_raw_naive_depth_model(
             model,
@@ -851,6 +886,17 @@ def build_model(args):
             sensor_hw=sensor_hw,
             backbone_hw=None,
         )
+        if args.input_type in RAW_RAM_RGB_LORA_INPUT_TYPES:
+            model.lora_block_mode = str(args.lora_block_mode)
+            model.lora_rank = int(args.lora_rank)
+            model.lora_alpha = float(args.lora_alpha)
+            model.lora_block_indices = apply_lora_to_vit(
+                model.dav2.pretrained,
+                block_mode=args.lora_block_mode,
+                tap_layers=args.bridge_layers or DEFAULT_BRIDGE_LAYERS_BY_ENCODER[args.encoder],
+                rank=args.lora_rank,
+                alpha=args.lora_alpha,
+            )
     elif args.input_type in (*RAW_RAM_BRIDGE_INPUT_TYPES, *RAW_RAM_RGB_BRIDGE_INPUT_TYPES):
         model = build_raw_ram_bridge_depth_model(
             model,
@@ -885,6 +931,8 @@ def build_model(args):
     if (
         args.input_type
         in (
+            *RGB_LORA_INPUT_TYPES,
+            *RAW_RAM_RGB_LORA_INPUT_TYPES,
             *RAW_RAM_BRIDGE_LORA_INPUT_TYPES,
             *RAW_RAM_RGB_BRIDGE_LORA_INPUT_TYPES,
             *RAW_RAM_BRIDGE_FEATURE_ADAPTER_LORA_INPUT_TYPES,
@@ -1132,7 +1180,7 @@ def build_datasets(args):
     size = (args.input_height, args.input_width)
     stf_eval_size = get_stf_eval_size(args)
     raw_mix_sources = set(args.train_sources) if args.stage == "raw_mix" else set()
-    stf_dataset_cls = STF if args.input_type == "rgb" else STF_RAW
+    stf_dataset_cls = STF if args.input_type in RGB_INPUT_TYPES else STF_RAW
     stf_val_kwargs = {
         "stf_root": args.stf_root,
         "size": stf_eval_size,
@@ -1160,13 +1208,12 @@ def build_datasets(args):
     if args.stage in ("stf_only", "mixed", "vkitti_only"):
         stf_train_kwargs = dict(stf_val_kwargs)
         stf_train_kwargs["size"] = size
-        if args.input_type in RAW_MODEL_INPUT_TYPES:
-            stf_train_kwargs["stf_train_target_mode"] = args.stf_train_target_mode
-            stf_train_kwargs["stf_pseudo_manifest"] = args.stf_pseudo_manifest
+        stf_train_kwargs["stf_train_target_mode"] = args.stf_train_target_mode
+        stf_train_kwargs["stf_pseudo_manifest"] = args.stf_pseudo_manifest
         datasets["stf_train"] = stf_dataset_cls("train", merge_test_into_train=True, **stf_train_kwargs)
     if args.stage in ("lod_only", "vkitti_lod") or "lod" in raw_mix_sources:
         lod_manifests = resolve_lod_manifest_paths(args)
-        if args.input_type == "rgb":
+        if args.input_type in RGB_INPUT_TYPES:
             datasets["lod_train"] = LODRGB(
                 lod_root=args.lod_root,
                 manifest_path=lod_manifests,
@@ -1227,7 +1274,7 @@ def build_datasets(args):
             max_depth=args.nyu_max_depth,
         )
     if args.eval_eth3d:
-        if args.input_type == "rgb":
+        if args.input_type in RGB_INPUT_TYPES:
             eth3d_dataset_cls = ETH3DValRGB
             eth3d_kwargs = {
                 "fast_eval_backend": args.eth3d_fast_eval_backend,
@@ -1251,7 +1298,7 @@ def build_datasets(args):
                 **eth3d_kwargs,
             )
     if args.eval_robotcar:
-        if args.input_type == "rgb":
+        if args.input_type in RGB_INPUT_TYPES:
             robotcar_dataset_cls = RobotCarValRGB
             robotcar_kwargs = {
                 "fast_eval_backend": args.robotcar_fast_eval_backend,
@@ -1276,7 +1323,7 @@ def build_datasets(args):
                 **robotcar_kwargs,
             )
     if args.eval_robotcar_night:
-        if args.input_type == "rgb":
+        if args.input_type in RGB_INPUT_TYPES:
             robotcar_night_dataset_cls = RobotCarValRGB
             robotcar_night_kwargs = {
                 "fast_eval_backend": args.robotcar_night_fast_eval_backend,
@@ -1824,6 +1871,8 @@ def summarize_loss_terms(loss_info, total_loss, lambda_grad):
     if "loss_ssi" in loss_info:
         metrics["loss_ssi"] = float(loss_info["loss_ssi"])
     if "loss_grad" in loss_info:
+        if lambda_grad is None:
+            raise ValueError("loss_grad was reported but lambda_grad is None")
         loss_grad = float(loss_info["loss_grad"])
         metrics["loss_grad"] = loss_grad
         metrics["loss_grad_weighted"] = float(lambda_grad) * loss_grad
@@ -1985,15 +2034,23 @@ def log_setup(logger, args, datasets, train_state, model):
             SENSOR_INPUT_HW,
             BACKBONE_INPUT_HW,
         )
-    logger.info(
-        "[LOSS] type=%s lambda_grad=%.2f grad_scales=%d mask_downsample=%s target_norm=%s norm_min_scale=%.2e",
-        args.loss_type,
-        args.loss_lambda_grad,
-        args.loss_grad_scales,
-        args.loss_mask_downsample,
-        args.loss_target_normalization,
-        args.loss_norm_min_scale,
-    )
+    if args.loss_type == "ssi_grad":
+        logger.info(
+            "[LOSS] type=%s lambda_grad=%.2f grad_scales=%d mask_downsample=%s target_norm=%s norm_min_scale=%.2e",
+            args.loss_type,
+            args.loss_lambda_grad,
+            args.loss_grad_scales,
+            args.loss_mask_downsample,
+            args.loss_target_normalization,
+            args.loss_norm_min_scale,
+        )
+    else:
+        logger.info(
+            "[LOSS] type=%s target_norm=%s norm_min_scale=%.2e",
+            args.loss_type,
+            args.loss_target_normalization,
+            args.loss_norm_min_scale,
+        )
     if args.input_type in RAW_MODEL_INPUT_TYPES:
         logger.info(
             "[STF_RAW] decode_mode=%s norm_mode=%s train_target_mode=%s pseudo_manifest=%s fast_eval_backend=%s raw_ram_rgb_tail=%s",
@@ -2003,6 +2060,12 @@ def log_setup(logger, args, datasets, train_state, model):
             args.stf_pseudo_manifest,
             args.stf_fast_eval_backend,
             args.raw_ram_rgb_tail,
+        )
+    elif args.input_type in RGB_INPUT_TYPES:
+        logger.info(
+            "[STF_RGB] train_target_mode=%s pseudo_manifest=%s",
+            args.stf_train_target_mode,
+            args.stf_pseudo_manifest,
         )
     lod_manifests = resolve_lod_manifest_paths(args)
     if "stf_train" in datasets:
@@ -2071,7 +2134,7 @@ def log_setup(logger, args, datasets, train_state, model):
             args.eth3d_min_depth,
             args.eth3d_max_depth,
             args.input_type,
-            args.eth3d_norm_mode if args.input_type != "rgb" else "n/a",
+            args.eth3d_norm_mode if args.input_type not in RGB_INPUT_TYPES else "n/a",
             args.eth3d_fast_eval_backend,
             train_state.get(f"{dataset_key}_num_workers", "n/a"),
         )
@@ -2087,7 +2150,7 @@ def log_setup(logger, args, datasets, train_state, model):
             args.robotcar_min_depth,
             args.robotcar_max_depth,
             args.input_type,
-            args.robotcar_norm_mode if args.input_type != "rgb" else "n/a",
+            args.robotcar_norm_mode if args.input_type not in RGB_INPUT_TYPES else "n/a",
             getattr(getattr(datasets[dataset_key], "raw_domain_config", None), "describe", lambda: "n/a")(),
             args.robotcar_fast_eval_backend,
             train_state.get(f"{dataset_key}_num_workers", "n/a"),
@@ -2105,7 +2168,7 @@ def log_setup(logger, args, datasets, train_state, model):
             args.robotcar_night_min_depth,
             args.robotcar_night_max_depth,
             args.input_type,
-            args.robotcar_night_norm_mode if args.input_type != "rgb" else "n/a",
+            args.robotcar_night_norm_mode if args.input_type not in RGB_INPUT_TYPES else "n/a",
             getattr(getattr(datasets[dataset_key], "raw_domain_config", None), "describe", lambda: "n/a")(),
             args.robotcar_night_fast_eval_backend,
             train_state.get(f"{dataset_key}_num_workers", "n/a"),
@@ -2139,7 +2202,7 @@ def log_setup(logger, args, datasets, train_state, model):
             "[DATASET] lod_train_crop_hw=%s lod_crop_mode=%s lod_input=%s lod_root=%s raw_domain=%s target_space=inverse_relative",
             (args.input_height, args.input_width),
             args.lod_crop_mode,
-            "rgb" if args.input_type == "rgb" else "raw",
+            "rgb" if args.input_type in RGB_INPUT_TYPES else "raw",
             args.lod_root,
             getattr(getattr(datasets["lod_train"], "raw_domain_config", None), "describe", lambda: "n/a")(),
         )
@@ -2381,6 +2444,19 @@ def log_setup(logger, args, datasets, train_state, model):
         trainable_params,
         total_params - trainable_params,
     )
+    if args.input_type in (*RGB_LORA_INPUT_TYPES, *RAW_RAM_RGB_LORA_INPUT_TYPES):
+        logger.info(
+            "[MODEL] %s dav2_train_mode=%s base_lr=%.2e lora_block_mode=%s lora_blocks=%s "
+            "lora_rank=%d lora_alpha=%.1f lora_lr=%.2e",
+            args.input_type,
+            args.dav2_train_mode,
+            args.lr,
+            args.lora_block_mode,
+            getattr(model_ref, "lora_block_indices", ()),
+            args.lora_rank,
+            args.lora_alpha,
+            args.lora_lr,
+        )
 
 
 def prepare_model_input(sample, args, *, input_type_override=None):
@@ -2744,6 +2820,9 @@ def _build_layer_decay_param_groups(args, model):
     max_layer_id = num_blocks + 2
     lora_group_lr = args.bridge_lr if args.lora_lr is None else args.lora_lr
     adapter_prefixes = (
+        "ram_core.",
+        "rgb_head.",
+        "residual_head.",
         "bridge_adapter.",
         "image_bridge.",
         "feature_projector.",
@@ -2788,6 +2867,23 @@ def _build_layer_decay_param_groups(args, model):
 def build_optimizer(args, model):
     if args.backbone_layer_decay < 1.0:
         param_groups = _build_layer_decay_param_groups(args, model)
+    elif args.input_type in (*RGB_LORA_INPUT_TYPES, *RAW_RAM_RGB_LORA_INPUT_TYPES):
+        base_params = []
+        lora_params = []
+        for name, param in model.named_parameters():
+            if not param.requires_grad:
+                continue
+            if ".lora_A." in name or ".lora_B." in name:
+                lora_params.append(param)
+            else:
+                base_params.append(param)
+
+        param_groups = []
+        if base_params:
+            param_groups.append({"params": base_params, "lr": args.lr, "initial_lr": args.lr})
+        if lora_params:
+            lora_lr = args.bridge_lr if args.lora_lr is None else args.lora_lr
+            param_groups.append({"params": lora_params, "lr": lora_lr, "initial_lr": lora_lr})
     elif (
         args.input_type in (
             *RAW_RAM_BRIDGE_INPUT_TYPES,
@@ -2827,6 +2923,8 @@ def build_training_criterion(args, device):
             **kwargs,
         )
     elif args.loss_type == "ssi_grad":
+        if args.loss_lambda_grad is None:
+            raise ValueError("loss_lambda_grad is required for loss_type='ssi_grad'")
         criterion = DAv2RelativeLoss(
             lambda_grad=args.loss_lambda_grad,
             n_scales=args.loss_grad_scales,
@@ -3459,14 +3557,21 @@ def main():
                     tuple(valid_mask.shape),
                     preview_batch_ids(sample),
                 )
-                if source in {"lod", "lod_day", "lod_night", "vkitti", "hypersim"}:
+                if source in {"stf", "lod", "lod_day", "lod_night", "vkitti", "hypersim"}:
                     source_tag = source.upper()
                     raw_stats = summarize_tensor(img)
                     valid_count = int(valid_mask.sum().item())
                     target_stats = summarize_tensor(depth[valid_mask]) if valid_count > 0 else {"mean": 0.0, "p99": 0.0, "max": 0.0}
+                    target_source = sample.get("target_source", "n/a")
+                    if isinstance(target_source, (list, tuple)):
+                        unique_sources = sorted({str(item) for item in target_source})
+                        target_source = unique_sources[0] if len(unique_sources) == 1 else ",".join(unique_sources)
+                    else:
+                        target_source = str(target_source)
                     logger.info(
-                        "[%s][STATS] raw_mean=%.6f raw_p99=%.6f raw_max=%.6f target_mean=%.3f target_p99=%.3f target_max=%.3f valid_pixels=%d",
+                        "[%s][STATS] target_source=%s raw_mean=%.6f raw_p99=%.6f raw_max=%.6f target_mean=%.3f target_p99=%.3f target_max=%.3f valid_pixels=%d",
                         source_tag,
+                        target_source,
                         raw_stats["mean"],
                         raw_stats["p99"],
                         raw_stats["max"],

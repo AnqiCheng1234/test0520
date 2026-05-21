@@ -78,7 +78,7 @@ export PHASE1_BNCLEAN_REVIEWED=1
   echo "[START] \$(date -Iseconds)"
   echo "[GPU] CUDA_VISIBLE_DEVICES=${GPU}"
   echo "[NOTICE] Phase-1 BN-clean: ${INPUT_TYPE} uses RamCore3 BN output directly; no clamp and no ImageNet norm after x3."
-  echo "[CMD] PHASE1_BNCLEAN_REVIEWED=1 CUDA_VISIBLE_DEVICES=${GPU} ${CONDA_BIN} run -n dav3 torchrun --nproc_per_node=1 --master_port=${PORT} finetune_stf/train.py --encoder vits --stage raw_mix --train-sources lod_night --train-source-ratios 1.0 --train-steps-per-epoch 200 --input-type ${INPUT_TYPE} --norm-mode sensor_linear --dav2-train-mode full --backbone-layer-decay 0.9 --lod-day-manifest ${LOD_DAY_MANIFEST} --lod-night-manifest ${LOD_NIGHT_MANIFEST} --lod-crop-mode random --input-height 518 --input-width 812 --bs 8 --accum-steps 1 --epochs 1 --lr 1e-5 --loss-type ssi --loss-target-normalization --loss-lambda-grad 2.0 --amp --amp-dtype bf16 --seed 42 --num-workers 8 --log-interval 50 --no-eval-stf --eval-robotcar-night --robotcar-night-fast-eval-backend sparse --robotcar-night-max-samples 30 --best-metric robotcar_night --save-best-checkpoint --pretrained-from ${PRETRAINED} --heavy-save-root ${HEAVY_ROOT} --save-path ${SAVE}"
+  echo "[CMD] PHASE1_BNCLEAN_REVIEWED=1 CUDA_VISIBLE_DEVICES=${GPU} ${CONDA_BIN} run -n dav3 torchrun --nproc_per_node=1 --master_port=${PORT} finetune_stf/train.py --encoder vits --stage raw_mix --train-sources lod_night --train-source-ratios 1.0 --train-steps-per-epoch 200 --input-type ${INPUT_TYPE} --norm-mode sensor_linear --dav2-train-mode full --backbone-layer-decay 0.9 --lod-day-manifest ${LOD_DAY_MANIFEST} --lod-night-manifest ${LOD_NIGHT_MANIFEST} --lod-crop-mode random --input-height 518 --input-width 812 --bs 8 --accum-steps 1 --epochs 1 --lr 1e-5 --loss-type ssi --loss-target-normalization --amp --amp-dtype bf16 --seed 42 --num-workers 8 --log-interval 50 --no-eval-stf --eval-robotcar-night --robotcar-night-fast-eval-backend sparse --robotcar-night-max-samples 30 --best-metric robotcar_night --save-best-checkpoint --pretrained-from ${PRETRAINED} --heavy-save-root ${HEAVY_ROOT} --save-path ${SAVE}"
 } 2>&1 | tee -a "${LOG}"
 
 set +e
@@ -103,7 +103,6 @@ CUDA_VISIBLE_DEVICES="${GPU}" "${CONDA_BIN}" run -n dav3 torchrun --nproc_per_no
   --lr 1e-5 \\
   --loss-type ssi \\
   --loss-target-normalization \\
-  --loss-lambda-grad 2.0 \\
   --amp \\
   --amp-dtype bf16 \\
   --seed 42 \\

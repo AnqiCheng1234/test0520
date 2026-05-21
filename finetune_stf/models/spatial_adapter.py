@@ -129,7 +129,21 @@ class DAV2PaddedRGBDepthModel(nn.Module):
         return self.spatial_adapter.crop_depth(depth)
 
     def load_base_dav2_state_dict(self, state_dict: dict[str, torch.Tensor]):
-        return self.dav2.load_state_dict(state_dict, strict=True)
+        from finetune_stf.models.lora_bridge import _remap_state_dict_for_lora_modules
+
+        compatible = _remap_state_dict_for_lora_modules(self.dav2, state_dict)
+        status = self.dav2.load_state_dict(compatible, strict=False)
+        missing = [
+            key
+            for key in status.missing_keys
+            if ".lora_A." not in key and ".lora_B." not in key
+        ]
+        if missing or status.unexpected_keys:
+            raise RuntimeError(
+                "Failed to load compatible DAv2 base weights for RGB wrapper: "
+                f"missing_non_lora={missing}, unexpected={status.unexpected_keys}"
+            )
+        return status
 
     def load_compatible_state_dict(self, state_dict: dict[str, torch.Tensor], *, strict: bool = False):
         return self.load_state_dict(state_dict, strict=strict)

@@ -2,6 +2,7 @@
 __pycache__/
 *.pyc
 *.log
+logs/
 assets/
 checkpoints/
 anqi_eval/results/

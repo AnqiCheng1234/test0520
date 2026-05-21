@@ -89,7 +89,6 @@ for idx in "${!ABLS[@]}"; do
         --lr "${LR}" \
         --loss-type ssi \
         --loss-target-normalization \
-        --loss-lambda-grad 2.0 \
         --amp \
         --amp-dtype bf16 \
         --seed 42 \

@@ -335,6 +335,13 @@ def fmt_num(value: Any, n: int = 4) -> str:
     return "—" if value is None else f"{float(value):.{n}f}"
 
 
+def _format_loss_label(cfg: dict[str, Any]) -> str:
+    loss_type = str(cfg.get("loss_type"))
+    if loss_type == "ssi_grad" and cfg.get("loss_lambda_grad") is not None:
+        return f"{loss_type}+lambda_grad={cfg.get('loss_lambda_grad')}"
+    return loss_type
+
+
 def fmt_epochs(epochs: list[int]) -> str:
     if not epochs:
         return ""
@@ -362,7 +369,7 @@ def setup_lines(cfg: dict[str, Any], parsed: dict[str, Any], params: dict[str, i
         f"- Input type: `{cfg.get('input_type')}` at `{size}`",
         f"- Interface: `{cfg.get('rgb_interface_mode')}`; bridge keys: {feature_keys}; bridge layers: `[{bridge_layers}]`",
         f"- DAv2 train mode: `{cfg.get('dav2_train_mode')}`",
-        f"- Loss: `{cfg.get('loss_type')}`; `lambda_grad={cfg.get('loss_lambda_grad')}`; target normalization `{cfg.get('loss_target_normalization')}`",
+        f"- Loss: `{_format_loss_label(cfg)}`; target normalization `{cfg.get('loss_target_normalization')}`",
         epoch_line,
         f"- Batch: `bs={bs}`, `accum={accum}`, `effective_bs={eff_bs}`",
         f"- LR: base `{cfg.get('lr')}`, bridge/adapter `{cfg.get('bridge_lr')}`, LoRA `{cfg.get('lora_lr')}`",

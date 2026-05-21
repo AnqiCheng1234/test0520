@@ -24,6 +24,7 @@ from finetune_stf.util.loss import (
     build_training_target,
     robust_normalize_target_per_sample,
 )
+from finetune_stf.dataset.stf import build_da3_sparse_metric_target
 from finetune_stf.models.raw_ram import phase1b_tanh_tail_squash
 from foundation.engine.transforms import packed_bayer_to_base_rgb
 
@@ -512,25 +513,108 @@ def _load_stf_pseudo_manifest(manifest_path):
                 sample_name = row.get("sample_name")
                 pseudo_path = row.get("pseudo_depth_npy")
                 if sample_name and pseudo_path:
-                    rows[str(sample_name)] = str(pseudo_path)
+                    rows[str(sample_name)] = {
+                        "pseudo_depth_npy": str(pseudo_path),
+                        "sparse_depth_path": str(row.get("sparse_depth_path") or ""),
+                        "split": str(row.get("split") or ""),
+                    }
     _STF_PSEUDO_MANIFEST_CACHE[manifest_path] = rows
     return rows
 
 
-def _fixed_train_target_view_from_sample(sample, args, target_hw):
-    """Training target paired with a fixed eval sample, usually STF DAv2-L pseudo target."""
-    direct = _load_depth_array(sample.get("pseudo_depth_path"))
-    if direct is not None:
-        return _valid_positive_view(direct, target_hw, resize_mode="bilinear")
-
+def _fixed_train_manifest_record(sample, args):
     manifest_path = getattr(args, "stf_pseudo_manifest", None)
     sample_name = _sample_name_value(sample)
     if not manifest_path or not sample_name:
-        return None
-    pseudo_path = _load_stf_pseudo_manifest(manifest_path).get(sample_name)
+        return {}
+    return _load_stf_pseudo_manifest(manifest_path).get(sample_name, {})
+
+
+def _sample_path(sample, *keys):
+    for key in keys:
+        value = _first_value(sample.get(key))
+        if value:
+            return str(value)
+    return ""
+
+
+def _masked_depth_array_view(depth, valid_mask, target_hw=None, *, resize_mode="nearest"):
+    depth = np.asarray(depth, dtype=np.float32)
+    valid_mask = np.asarray(valid_mask, dtype=bool)
+    if target_hw is not None and tuple(depth.shape) != tuple(target_hw):
+        if resize_mode == "bilinear":
+            depth = _resize_2d_bilinear(depth, target_hw)
+        else:
+            depth = _resize_2d_nearest(depth, target_hw)
+        valid_mask = _resize_2d_nearest(valid_mask.astype(np.float32), target_hw) > 0.5
+    valid = valid_mask & np.isfinite(depth) & (depth > 0)
+    view = depth.astype(np.float32, copy=True)
+    view[~valid] = np.nan
+    return view
+
+
+def _fixed_train_target_from_sample(sample, args, target_hw):
+    """Training target paired with a fixed eval sample.
+
+    DAv2 pseudo labels are already inverse-relative targets on disk. DA3 pseudo
+    labels are affine-invariant depth, so fixed viz must rebuild the same
+    sparse-metric aligned depth target that the training dataset uses.
+    """
+    target_mode = str(getattr(args, "stf_train_target_mode", ""))
+    record = _fixed_train_manifest_record(sample, args)
+    pseudo_path = (
+        _sample_path(sample, "pseudo_depth_path")
+        or str(record.get("pseudo_depth_npy") or "")
+    )
     if not pseudo_path:
         return None
-    return _valid_positive_view(_load_depth_array(pseudo_path), target_hw, resize_mode="bilinear")
+
+    if target_mode == "da3_pseudo_sparse_metric":
+        sparse_path = (
+            _sample_path(sample, "sparse_depth_path", "depth_path")
+            or str(record.get("sparse_depth_path") or "")
+        )
+        if not sparse_path:
+            return None
+        try:
+            depth, valid_mask, meta = build_da3_sparse_metric_target(
+                pseudo_path,
+                sparse_path,
+                float(getattr(args, "min_depth", 1.0)),
+                float(getattr(args, "max_depth", 80.0)),
+            )
+        except (OSError, RuntimeError, ValueError, KeyError):
+            return None
+        resize_mode = "nearest" if meta.get("target_source") == "sparse_fallback" else "bilinear"
+        payload = {
+            "view": _masked_depth_array_view(depth, valid_mask, target_hw, resize_mode=resize_mode),
+            "target_space": "metric_depth",
+            "target_source": str(meta.get("target_source", "")),
+            "label": "Train target metric depth",
+            "cmap_name": "Spectral",
+            "file_suffix": "train_target_metric_depth",
+            "extra_key": "train_target_metric_depth",
+            "pseudo_depth_path": str(pseudo_path),
+            "sparse_depth_path": str(sparse_path),
+        }
+        for key in ("scale", "shift", "valid_points", "inlier_points", "inlier_threshold"):
+            if key in meta:
+                payload[key] = meta[key]
+        return payload
+
+    direct = _load_depth_array(pseudo_path)
+    if direct is None:
+        return None
+    return {
+        "view": _valid_positive_view(direct, target_hw, resize_mode="bilinear"),
+        "target_space": "inverse_relative",
+        "target_source": "dense_pseudo",
+        "label": "Train target rel inv",
+        "cmap_name": "Spectral_r",
+        "file_suffix": "train_target_rel_inv",
+        "extra_key": "train_target_rel_inv",
+        "pseudo_depth_path": str(pseudo_path),
+    }
 
 
 def _write_fixed_panel_extras(
@@ -662,24 +746,41 @@ def _write_fixed_panel_extras(
             }
         )
 
-    fixed_train_target_view = _fixed_train_target_view_from_sample(
+    fixed_train_target = _fixed_train_target_from_sample(
         sample,
         args,
         target_view.shape if target_view is not None else _sample_hw(sample),
     )
+    fixed_train_target_view = fixed_train_target["view"] if fixed_train_target is not None else None
     if fixed_train_target_view is not None:
-        train_target_npz_path = split_dir / f"{stem}_train_target_rel_inv.npz"
-        np.savez_compressed(
-            train_target_npz_path,
-            target=fixed_train_target_view.astype(np.float32, copy=False),
-            target_space=np.array("inverse_relative"),
-        )
-        extra["train_target_rel_inv"] = str(train_target_npz_path)
+        train_target_npz_path = split_dir / f"{stem}_{fixed_train_target['file_suffix']}.npz"
+        target_space = str(fixed_train_target["target_space"])
+        train_target_npz_payload = {
+            "target": fixed_train_target_view.astype(np.float32, copy=False),
+            "target_space": np.array(target_space),
+            "target_source": np.array(str(fixed_train_target.get("target_source", ""))),
+            "pseudo_depth_path": np.array(str(fixed_train_target.get("pseudo_depth_path", ""))),
+        }
+        if fixed_train_target.get("sparse_depth_path"):
+            train_target_npz_payload["sparse_depth_path"] = np.array(str(fixed_train_target["sparse_depth_path"]))
+        for key in ("scale", "shift", "valid_points", "inlier_points", "inlier_threshold"):
+            if key in fixed_train_target:
+                train_target_npz_payload[key] = np.array(fixed_train_target[key], dtype=np.float32)
+        np.savez_compressed(train_target_npz_path, **train_target_npz_payload)
+        extra[str(fixed_train_target["extra_key"])] = str(train_target_npz_path)
         metrics_json["train_target"] = {
             "available": True,
-            "target_space": "inverse_relative",
+            "target_space": target_space,
+            "target_source": str(fixed_train_target.get("target_source", "")),
             "target": str(train_target_npz_path),
+            "label": str(fixed_train_target.get("label", "")),
+            "pseudo_depth_path": str(fixed_train_target.get("pseudo_depth_path", "")),
         }
+        if fixed_train_target.get("sparse_depth_path"):
+            metrics_json["train_target"]["sparse_depth_path"] = str(fixed_train_target["sparse_depth_path"])
+        for key in ("scale", "shift", "valid_points", "inlier_points", "inlier_threshold"):
+            if key in fixed_train_target:
+                metrics_json["train_target"][key] = _json_float(fixed_train_target[key])
     else:
         metrics_json["train_target"] = {
             "available": False,
@@ -809,6 +910,12 @@ def _write_fixed_panel_extras(
         metrics_payload=metrics_payload,
         ram_rgb_pre_norm=ram_rgb_pre_norm[0] if torch.is_tensor(ram_rgb_pre_norm) and ram_rgb_pre_norm.ndim == 4 else ram_rgb_pre_norm,
         train_target_view=fixed_train_target_view,
+        train_target_label=(
+            str(fixed_train_target.get("label", "Train target")) if fixed_train_target is not None else "Train target"
+        ),
+        train_target_cmap=(
+            str(fixed_train_target.get("cmap_name", "Spectral")) if fixed_train_target is not None else "Spectral"
+        ),
         show_rgb_baseline=show_rgb_baseline,
         rgb_baseline_view=rgb_baseline_view,
         rgb_baseline_title=rgb_baseline_title,
@@ -1248,6 +1355,9 @@ def _compute_sample_viz_loss(pred_disp, depth, valid_mask, args, target_space):
     if str(args.loss_type) == "ssi":
         metrics["loss_total"] = metrics["loss_ssi"]
     elif str(args.loss_type) == "ssi_grad":
+        lambda_grad = getattr(args, "loss_lambda_grad", None)
+        if lambda_grad is None:
+            raise ValueError("loss_lambda_grad is required when loss_type='ssi_grad'")
         loss_grad = _grad_matching_from_aligned(
             pred_aligned,
             target_for_loss,
@@ -1257,7 +1367,7 @@ def _compute_sample_viz_loss(pred_disp, depth, valid_mask, args, target_space):
             min_valid=min_valid,
         )
         metrics["loss_grad"] = float(loss_grad.detach().item())
-        metrics["loss_grad_weighted"] = float(getattr(args, "loss_lambda_grad", 2.0)) * metrics["loss_grad"]
+        metrics["loss_grad_weighted"] = float(lambda_grad) * metrics["loss_grad"]
         metrics["loss_total"] = metrics["loss_ssi"] + metrics["loss_grad_weighted"]
     else:
         raise ValueError(f"Unsupported loss_type={args.loss_type!r}")
@@ -1460,6 +1570,16 @@ def _preview_percentile_stretch(image_rgb, *, lower=1.0, upper=99.0, gamma=1.0):
     return np.clip(stretched, 0.0, 1.0)
 
 
+def _imagenet_norm_rgb_preview(image_rgb):
+    if image_rgb is None:
+        return None
+    image = np.asarray(image_rgb, dtype=np.float32)
+    if image.ndim != 3 or image.shape[-1] != 3:
+        return None
+    image = np.clip(image, 0.0, 1.0)
+    return (image - _IMAGENET_MEAN.reshape(1, 1, 3)) / _IMAGENET_STD.reshape(1, 1, 3)
+
+
 def _ram_core_input_channels(ram_core):
     encoder = getattr(ram_core, "encoder", None)
     features = getattr(encoder, "features", None)
@@ -1564,7 +1684,7 @@ def _color_limits(arrays):
     return float(lo), float(hi)
 
 
-def _colorize_array_rgb(array, lo, hi):
+def _colorize_array_rgb(array, lo, hi, *, cmap_name="Spectral"):
     array = np.asarray(array, dtype=np.float32)
     finite = np.isfinite(array)
     norm = np.zeros(array.shape, dtype=np.uint8)
@@ -1572,7 +1692,7 @@ def _colorize_array_rgb(array, lo, hi):
         clipped = np.clip(array, lo, hi)
         clipped = np.where(np.isfinite(clipped), clipped, lo)
         norm = ((clipped - lo) / (hi - lo) * 255.0).astype(np.uint8)
-    cmap = matplotlib.colormaps.get_cmap("Spectral")
+    cmap = matplotlib.colormaps.get_cmap(cmap_name)
     rgb = (cmap(norm)[:, :, :3] * 255.0).astype(np.uint8)
     rgb[~finite] = 0
     return rgb
@@ -1680,6 +1800,12 @@ def _nice_upper_bound(value):
 def _distribution_axis_limits(image, axis_mode):
     if axis_mode == "unit":
         return 0.0, 1.0, (0.0, 0.5, 1.0), "x-axis fixed 0..1"
+    if axis_mode == "imagenet_norm":
+        min_values = (0.0 - _IMAGENET_MEAN) / _IMAGENET_STD
+        max_values = (1.0 - _IMAGENET_MEAN) / _IMAGENET_STD
+        lo = float(np.min(min_values))
+        hi = float(np.max(max_values))
+        return lo, hi, (lo, 0.0, hi), "x-axis ImageNet norm"
 
     finite_values = np.asarray(image, dtype=np.float32)
     finite_values = finite_values[np.isfinite(finite_values)]
@@ -1774,7 +1900,7 @@ def _draw_distribution_block(canvas, image_rgb, title, x0, y0, width, height, *,
         lo,
         hi,
         tick_values,
-        zero_center=(axis_mode == "zero_center"),
+        zero_center=(axis_mode in {"zero_center", "imagenet_norm"}),
     )
     channel_colors = [(230, 80, 80), (80, 220, 100), (80, 150, 255)]
     bins = 80
@@ -1830,13 +1956,21 @@ def _distribution_strip(rgb_preview, raw_preview, ram_preview, width, *, height=
     strip = np.zeros((height, width, 3), dtype=np.uint8)
     strip[:, :, :] = (14, 14, 14)
     gap = 8
-    block_w = (width - gap * 4) // 3
-    x_positions = [gap, gap * 2 + block_w, gap * 3 + block_w * 2]
+    rgb_after_imagenet_norm = _imagenet_norm_rgb_preview(rgb_preview)
+    images = (rgb_preview, rgb_after_imagenet_norm, raw_preview, ram_preview)
+    block_count = len(images)
+    block_w = (width - gap * (block_count + 1)) // block_count
+    x_positions = [gap + idx * (block_w + gap) for idx in range(block_count)]
     if titles is None:
-        titles = ("RGB value distribution", "RAW preview distribution", "RAM output distribution")
+        titles = (
+            "RGB value distribution",
+            "RGB after ImageNet norm",
+            "RAW preview distribution",
+            "RAM output distribution",
+        )
     if axis_modes is None:
-        axis_modes = ("unit", "unit", "zero_center")
-    items = zip(x_positions, (rgb_preview, raw_preview, ram_preview), titles)
+        axis_modes = ("unit", "imagenet_norm", "unit", "zero_center")
+    items = zip(x_positions, images, titles)
     for idx, (x0, image, title) in enumerate(items):
         axis_mode = axis_modes[min(len(axis_modes) - 1, idx)]
         _draw_distribution_block(strip, image, title, x0, 8, block_w, height - 16, axis_mode=axis_mode)
@@ -1889,7 +2023,18 @@ def _make_train_viz_panel(
         [
             image_row,
             _metadata_strip(record, current_metrics, image_row.shape[1]),
-            _distribution_strip(rgb_preview, raw_preview, ram_preview, image_row.shape[1]),
+            _distribution_strip(
+                rgb_preview,
+                raw_preview,
+                ram_preview,
+                image_row.shape[1],
+                titles=(
+                    "RGB preview distribution",
+                    "RGB after ImageNet norm",
+                    "RAW preview distribution",
+                    "RAM output distribution",
+                ),
+            ),
         ],
         axis=0,
     )
@@ -1987,6 +2132,8 @@ def _make_fixed_viz_panel(
     metrics_payload,
     ram_rgb_pre_norm=None,
     train_target_view=None,
+    train_target_label="Train target",
+    train_target_cmap="Spectral",
     show_rgb_baseline=False,
     rgb_baseline_view=None,
     rgb_baseline_title="RGB DAv2",
@@ -2003,7 +2150,7 @@ def _make_fixed_viz_panel(
     target_rgb = _colorize_array_rgb(target_display, lo, hi) if target_display is not None else None
     train_lo, train_hi = _color_limits([train_target_view])
     train_target_rgb = (
-        _colorize_array_rgb(train_target_view, train_lo, train_hi)
+        _colorize_array_rgb(train_target_view, train_lo, train_hi, cmap_name=train_target_cmap)
         if train_target_view is not None
         else None
     )
@@ -2020,7 +2167,7 @@ def _make_fixed_viz_panel(
         _make_tile(target_rgb, "GT depth", f"range {lo:.3g}..{hi:.3g}"),
     ]
     if train_target_view is not None:
-        tiles.append(_make_tile(train_target_rgb, "Train target rel inv", f"range {train_lo:.3g}..{train_hi:.3g}"))
+        tiles.append(_make_tile(train_target_rgb, train_target_label, f"range {train_lo:.3g}..{train_hi:.3g}"))
     if show_rgb_baseline:
         tiles.append(_make_tile(rgb_baseline_rgb, rgb_baseline_title, rgb_baseline_subtitle))
     tiles.append(_make_tile(current_rgb, current_title, current_subtitle))
@@ -2034,7 +2181,12 @@ def _make_fixed_viz_panel(
                 input_preview,
                 ram_preview,
                 image_row.shape[1],
-                titles=("RGB preview distribution", "Input preview distribution", "RAM output distribution"),
+                titles=(
+                    "RGB preview distribution",
+                    "RGB after ImageNet norm",
+                    "Input preview distribution",
+                    "RAM output distribution",
+                ),
             ),
         ],
         axis=0,

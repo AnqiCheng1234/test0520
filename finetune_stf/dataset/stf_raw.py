@@ -30,8 +30,12 @@ from finetune_stf.dataset.raw_utils import (
 from finetune_stf.dataset.stf import (
     DEFAULT_STF_ROOT,
     REQUIRED_COLUMNS,
+    STF_PSEUDO_TRAIN_TARGET_MODES,
+    STF_TRAIN_TARGET_MODES,
+    build_da3_sparse_metric_target,
     _load_depth_npz,
     _resolve_data_path,
+    validate_stf_pseudo_manifest_for_target_mode,
 )
 from finetune_stf.dataset.transform import NormalizeImage, PrepareForNet, Resize
 
@@ -42,7 +46,6 @@ DEFAULT_STF_PSEUDO_MANIFEST = (
     "pseudo_depth_dav2_official_vitl_rgb_lut_6216_20260417/"
     "stf_rgb_lut_manifest_6216.csv"
 )
-STF_TRAIN_TARGET_MODES = ("gt_sparse", "dav2_pseudo")
 STF_FAST_EVAL_BACKENDS = ("proxy", "sparse")
 
 
@@ -76,7 +79,7 @@ def _resolve_manifest_data_path(path_str):
     return Path(path_str.strip()).expanduser().resolve()
 
 
-def _load_pseudo_manifest_rows(manifest_path, raw_npz_root, split_names):
+def _load_pseudo_manifest_rows(manifest_path, raw_npz_root, split_names, target_kind="dav2_pseudo"):
     split_names = set(split_names)
     rows = []
     with Path(manifest_path).open(newline="", encoding="utf-8") as f:
@@ -99,7 +102,7 @@ def _load_pseudo_manifest_rows(manifest_path, raw_npz_root, split_names):
                     "sparse_depth_path": _resolve_manifest_data_path(row["sparse_depth_path"]),
                     "lut_preview": _resolve_manifest_data_path(row["rgb_path"]),
                     "split": row["split"],
-                    "target_kind": "dav2_pseudo",
+                    "target_kind": target_kind,
                 }
             )
     return rows
@@ -172,14 +175,19 @@ class STF_RAW(Dataset):
         _validate_raw_root_decode_mode(self.raw_npz_root, self.stf_raw_decode_mode)
 
         manifest_dir = self.stf_root / "manifests"
-        if split == "train" and self.stf_train_target_mode == "dav2_pseudo":
+        if split == "train" and self.stf_train_target_mode in STF_PSEUDO_TRAIN_TARGET_MODES:
             if not self.stf_pseudo_manifest.is_file():
                 raise FileNotFoundError(f"Missing STF pseudo manifest: {self.stf_pseudo_manifest}")
+            validate_stf_pseudo_manifest_for_target_mode(
+                self.stf_pseudo_manifest,
+                self.stf_train_target_mode,
+            )
             pseudo_splits = ("train", "test") if merge_test_into_train else ("train",)
             self.rows = _load_pseudo_manifest_rows(
                 self.stf_pseudo_manifest,
                 self.raw_npz_root,
                 pseudo_splits,
+                target_kind=self.stf_train_target_mode,
             )
         else:
             if split == "train" and merge_test_into_train:
@@ -265,12 +273,26 @@ class STF_RAW(Dataset):
             depth = np.where(valid_mask, depth, 0.0).astype(np.float32, copy=False)
             if tuple(depth.shape[:2]) != self.size:
                 depth, valid_mask = self._resize_dense_target_and_mask(depth, valid_mask)
+            target_meta = {"target_source": "dense_pseudo"}
+        elif target_kind == "da3_pseudo_sparse_metric":
+            depth, valid_mask, target_meta = build_da3_sparse_metric_target(
+                depth_path,
+                row["sparse_depth_path"],
+                self.min_depth,
+                self.max_depth,
+            )
+            if tuple(depth.shape[:2]) != self.size:
+                if target_meta["target_source"] == "sparse_fallback":
+                    depth, valid_mask = self._resize_depth_and_mask(depth, valid_mask)
+                else:
+                    depth, valid_mask = self._resize_dense_target_and_mask(depth, valid_mask)
         else:
             depth = _load_depth_npz(depth_path)
             valid_mask = np.isfinite(depth) & (depth >= self.min_depth) & (depth <= self.max_depth)
             depth = np.where(valid_mask, depth, 0.0).astype(np.float32, copy=False)
             if self.mode == "train":
                 depth, valid_mask = self._resize_depth_and_mask(depth, valid_mask)
+            target_meta = {"target_source": "sparse_gt"}
 
         sample = self.transform(
             {"image": image, "depth": depth, "mask": valid_mask.astype(np.float32)}
@@ -290,6 +312,8 @@ class STF_RAW(Dataset):
         sample["rgb_src_path"] = str(row["lut_preview"])
         sample["rgb_eval_path"] = str(row["lut_preview"])
         sample["target_space"] = "inverse_relative" if target_kind == "dav2_pseudo" else "metric_depth"
+        sample["target_kind"] = target_kind
+        sample["target_source"] = target_meta["target_source"]
         sample["stf_raw_decode_mode"] = self.stf_raw_decode_mode
         sample["norm_mode"] = self.norm_mode
         if "sparse_depth_path" in row:

@@ -80,7 +80,7 @@
   - `--eval-stf --best-metric stf --save-best-checkpoint`
   - `--dav2-train-mode none`
   - `--raw-ram-rgb-tail identity`
-  - 其他训练参数沿用 `0519_2256_phase1_lodnight_raw_ram_rgb_bnclean_e5`：`epochs=5, bs=8, accum_steps=1, lr=1e-5, loss_type=ssi, loss_lambda_grad=2, loss_grad_scales=4, loss_target_normalization=true, amp_dtype=bf16`。
+  - 其他训练参数沿用 `0519_2256_phase1_lodnight_raw_ram_rgb_bnclean_e5`：`epochs=5, bs=8, accum_steps=1, lr=1e-5, loss_type=ssi, loss_target_normalization=true, amp_dtype=bf16`。
 
 - 正式训练用 tmux：
   - session：`stf_pseudovitl_bnclean_$(date +%m%d_%H%M)`

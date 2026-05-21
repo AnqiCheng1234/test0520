@@ -343,8 +343,8 @@ def build_summary(config: dict, parsed: dict, exp_dir: Path, checkpoint_root: Pa
         "accum_steps": config.get("accum_steps"),
         "effective_batch_size": (config.get("bs") or 0) * (config.get("accum_steps") or 0),
         "loss_type": config.get("loss_type"),
-        "loss_lambda_grad": config.get("loss_lambda_grad"),
-        "loss_grad_scales": config.get("loss_grad_scales"),
+        "loss_lambda_grad": config.get("loss_lambda_grad") if config.get("loss_type") == "ssi_grad" else None,
+        "loss_grad_scales": config.get("loss_grad_scales") if config.get("loss_type") == "ssi_grad" else None,
         "loss_mask_downsample": config.get("loss_mask_downsample"),
         "loss_target_normalization": config.get("loss_target_normalization"),
         "best_metric": config.get("best_metric"),
@@ -373,7 +373,7 @@ def build_summary(config: dict, parsed: dict, exp_dir: Path, checkpoint_root: Pa
 def write_summary_md(path: Path, exp_name: str, summary: dict, parsed: dict) -> None:
     cfg = summary["config"]
     loss_label = cfg["loss_type"]
-    if cfg.get("loss_lambda_grad") is not None:
+    if cfg.get("loss_type") == "ssi_grad" and cfg.get("loss_lambda_grad") is not None:
         loss_label = f"{loss_label}+lambda_grad={cfg['loss_lambda_grad']}"
 
     lines = [
@@ -474,7 +474,7 @@ def main() -> None:
     summary = build_summary(config, parsed, exp_dir, args.checkpoint_root.expanduser())
 
     loss_type = config.get("loss_type", "loss")
-    loss_lambda = config.get("loss_lambda_grad")
+    loss_lambda = config.get("loss_lambda_grad") if loss_type == "ssi_grad" else None
     loss_label = f"{loss_type} + {loss_lambda} * grad" if loss_lambda is not None else str(loss_type)
 
     save_epoch_csv(output_dir / "epoch_metrics_full.csv", parsed["epochs"])

@@ -112,7 +112,6 @@ run_robotcar_randomccm() {
     --bridge-lr 5e-5 \
     --loss-type ssi \
     --loss-target-normalization \
-    --loss-lambda-grad 2.0 \
     --amp \
     --amp-dtype bf16 \
     --seed 42 \
@@ -175,7 +174,6 @@ run_rgb_vkitti_lod() {
     --lr 1e-5 \
     --loss-type ssi \
     --loss-target-normalization \
-    --loss-lambda-grad 2.0 \
     --amp \
     --amp-dtype bf16 \
     --seed 42 \

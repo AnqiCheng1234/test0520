@@ -455,13 +455,13 @@ class GradientMatchingLoss(nn.Module):
 class DAv2RelativeLoss(nn.Module):
     """Combined SSI + lambda * gradient-matching loss with shared per-image alignment.
 
-    Toggles `use_ssi` / `use_grad` for ablation. `lambda_grad` follows the DAv2
-    paper recommendation of 2.0.
+    Toggles `use_ssi` / `use_grad` for ablation. `lambda_grad` is only meaningful
+    when `use_grad=True` and should be provided explicitly by the caller.
     """
 
     def __init__(
         self,
-        lambda_grad=2.0,
+        lambda_grad=None,
         n_scales=4,
         use_ssi=True,
         use_grad=True,
@@ -476,7 +476,9 @@ class DAv2RelativeLoss(nn.Module):
             raise ValueError("DAv2RelativeLoss requires at least one of use_ssi/use_grad to be enabled.")
         if mask_downsample not in {"strict", "loose"}:
             raise ValueError(f"Unsupported mask_downsample={mask_downsample!r}")
-        self.lambda_grad = float(lambda_grad)
+        if use_grad and lambda_grad is None:
+            raise ValueError("lambda_grad must be provided when use_grad=True")
+        self.lambda_grad = float(lambda_grad) if lambda_grad is not None else 0.0
         self.n_scales = int(n_scales)
         self.use_ssi = bool(use_ssi)
         self.use_grad = bool(use_grad)

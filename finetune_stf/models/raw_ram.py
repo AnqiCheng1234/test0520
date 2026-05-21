@@ -178,7 +178,8 @@ RAW_RAM_BRIDGE_FEATURE_CHANNELS = {
     "ffm_mid": 64,
     "x4": 4,
 }
-RAW_RAM_RGB_INPUT_TYPES = ("raw_ram_rgb",)
+RAW_RAM_RGB_LORA_INPUT_TYPES = ("raw_ram_rgb_lora",)
+RAW_RAM_RGB_INPUT_TYPES = ("raw_ram_rgb", *RAW_RAM_RGB_LORA_INPUT_TYPES)
 RAW_RAM_RGB_BRIDGE_FEATURE_CHANNELS = {
     "x_cat": 12,
     "ffm_mid": 64,
@@ -524,7 +525,21 @@ class RawRamDepthModel(nn.Module):
         return self.spatial_adapter.crop_depth(depth)
 
     def load_base_dav2_state_dict(self, state_dict):
-        return self.dav2.load_state_dict(state_dict, strict=True)
+        from finetune_stf.models.lora_bridge import _remap_state_dict_for_lora_modules
+
+        compatible = _remap_state_dict_for_lora_modules(self.dav2, state_dict)
+        status = self.dav2.load_state_dict(compatible, strict=False)
+        missing = [
+            key
+            for key in status.missing_keys
+            if ".lora_A." not in key and ".lora_B." not in key
+        ]
+        if missing or status.unexpected_keys:
+            raise RuntimeError(
+                "Failed to load compatible DAv2 base weights for raw_ram_rgb model: "
+                f"missing_non_lora={missing}, unexpected={status.unexpected_keys}"
+            )
+        return status
 
 
 class RawRamRgbDepthModel(nn.Module):
@@ -571,7 +586,21 @@ class RawRamRgbDepthModel(nn.Module):
         return self.spatial_adapter.crop_depth(depth)
 
     def load_base_dav2_state_dict(self, state_dict):
-        return self.dav2.load_state_dict(state_dict, strict=True)
+        from finetune_stf.models.lora_bridge import _remap_state_dict_for_lora_modules
+
+        compatible = _remap_state_dict_for_lora_modules(self.dav2, state_dict)
+        status = self.dav2.load_state_dict(compatible, strict=False)
+        missing = [
+            key
+            for key in status.missing_keys
+            if ".lora_A." not in key and ".lora_B." not in key
+        ]
+        if missing or status.unexpected_keys:
+            raise RuntimeError(
+                "Failed to load compatible DAv2 base weights for raw_ram_rgb model: "
+                f"missing_non_lora={missing}, unexpected={status.unexpected_keys}"
+            )
+        return status
 
 
 class RawRamResidualDepthModel(nn.Module):
@@ -628,7 +657,7 @@ def build_raw_ram_depth_model(
     sensor_hw=SENSOR_INPUT_HW,
     backbone_hw=BACKBONE_INPUT_HW,
 ):
-    if input_type == "raw_ram_rgb":
+    if input_type in RAW_RAM_RGB_INPUT_TYPES:
         return RawRamRgbDepthModel(
             dav2_model,
             sensor_hw=sensor_hw,

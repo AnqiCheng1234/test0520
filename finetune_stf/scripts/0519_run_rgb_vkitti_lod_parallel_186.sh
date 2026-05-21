@@ -39,7 +39,7 @@ cd "${ROOT}"
   echo "[HOST] \$(hostname) [USER] \$(whoami) [PWD] \$(pwd)"
   echo "[START] \$(date -Iseconds)"
   echo "[GPU] CUDA_VISIBLE_DEVICES=${gpu}"
-  echo "[CMD] CUDA_VISIBLE_DEVICES=${gpu} ${CONDA_BIN} run -n dav3 torchrun --nproc_per_node=1 --master_port=${port} finetune_stf/train.py --encoder vits --stage vkitti_lod --lod-per-vkitti 1 ${lod_fraction_arg} --lod-day-manifest ${LOD_DAY_MANIFEST} --lod-night-manifest ${LOD_NIGHT_MANIFEST} --lod-crop-mode random --input-type rgb --input-height 518 --input-width 812 --bs 8 --accum-steps 1 --epochs 10 --lr 1e-5 --loss-type ssi --loss-target-normalization --loss-lambda-grad 2.0 --amp --amp-dtype bf16 --seed 42 --num-workers 8 --log-interval 250 --no-eval-stf --eval-kitti --kitti-eval-protocol rgb_checkpoint_decoder --eval-nyu --eval-eth3d --eth3d-eval-mode fast --eth3d-fast-eval-backend proxy --eth3d-max-samples 150 --eval-robotcar --robotcar-eval-mode fast --robotcar-fast-eval-backend sparse --eval-robotcar-night --robotcar-night-fast-eval-backend sparse --best-metric robotcar_night --save-best-checkpoint --pretrained-from ${PRETRAINED} --heavy-save-root ${HEAVY_ROOT} --save-path ${save}"
+  echo "[CMD] CUDA_VISIBLE_DEVICES=${gpu} ${CONDA_BIN} run -n dav3 torchrun --nproc_per_node=1 --master_port=${port} finetune_stf/train.py --encoder vits --stage vkitti_lod --lod-per-vkitti 1 ${lod_fraction_arg} --lod-day-manifest ${LOD_DAY_MANIFEST} --lod-night-manifest ${LOD_NIGHT_MANIFEST} --lod-crop-mode random --input-type rgb --input-height 518 --input-width 812 --bs 8 --accum-steps 1 --epochs 10 --lr 1e-5 --loss-type ssi --loss-target-normalization --amp --amp-dtype bf16 --seed 42 --num-workers 8 --log-interval 250 --no-eval-stf --eval-kitti --kitti-eval-protocol rgb_checkpoint_decoder --eval-nyu --eval-eth3d --eth3d-eval-mode fast --eth3d-fast-eval-backend proxy --eth3d-max-samples 150 --eval-robotcar --robotcar-eval-mode fast --robotcar-fast-eval-backend sparse --eval-robotcar-night --robotcar-night-fast-eval-backend sparse --best-metric robotcar_night --save-best-checkpoint --pretrained-from ${PRETRAINED} --heavy-save-root ${HEAVY_ROOT} --save-path ${save}"
 } 2>&1 | tee -a "${log}"
 
 set +e
@@ -60,7 +60,6 @@ CUDA_VISIBLE_DEVICES="${gpu}" "${CONDA_BIN}" run -n dav3 torchrun --nproc_per_no
   --lr 1e-5 \\
   --loss-type ssi \\
   --loss-target-normalization \\
-  --loss-lambda-grad 2.0 \\
   --amp \\
   --amp-dtype bf16 \\
   --seed 42 \\
