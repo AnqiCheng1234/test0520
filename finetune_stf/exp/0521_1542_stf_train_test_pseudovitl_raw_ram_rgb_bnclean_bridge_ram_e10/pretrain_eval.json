@@ -1,0 +1,19 @@
+{
+  "checkpoint_source": "/home/caq/333_cvpr/da_ours/checkpoints/depth_anything_v2_vits.pth",
+  "metrics": {
+    "abs_rel": 0.28984211320351316,
+    "d1": 0.5216318830592771,
+    "d2": 0.7649624358974656,
+    "d3": 0.8798932712484229,
+    "edge_overlap_iou": NaN,
+    "edge_sobel_l1": NaN,
+    "log10": 0.1369298135112658,
+    "rmse": 12.324324004195644,
+    "rmse_log": 0.4336984704016512,
+    "silog": 0.43049791409900595,
+    "silog_x100": 43.049791409900614,
+    "sq_rel": 3.868811350703277
+  },
+  "split": "stf_val",
+  "stage": "stf_only"
+}
