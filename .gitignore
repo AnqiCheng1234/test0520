@@ -8,7 +8,13 @@ checkpoints/
 anqi_eval/results/
 codex_debug/
 codex_smoke/
-finetune_stf/exp/
+finetune_stf/exp/**
+!finetune_stf/exp/**/
+!finetune_stf/exp/**/*.json
+!finetune_stf/exp/**/*.jsonl
+!finetune_stf/exp/**/*.csv
+!finetune_stf/exp/**/*.log
+!finetune_stf/exp/cross_exp_panels_best/**/*.png
 finetune_stf/logs/
 scripts/verify_output/
 metric_depth/

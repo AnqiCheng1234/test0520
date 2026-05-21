@@ -1,0 +1,212 @@
+[2026-05-21 01:12:45,923][    INFO] {'accum_steps': 1,
+ 'amp': True,
+ 'amp_dtype': 'bf16',
+ 'backbone_layer_decay': 1.0,
+ 'best_metric': 'stf',
+ 'bridge_feature_keys': ['x_cat', 'ffm_mid', 'x4'],
+ 'bridge_init_from': None,
+ 'bridge_layers': None,
+ 'bridge_lr': 5e-05,
+ 'bridge_source': 'ram_core',
+ 'bs': 8,
+ 'channel_mode': 'rgb_avg_g',
+ 'dav2_train_mode': 'decoder',
+ 'debug_max_kitti_samples': None,
+ 'debug_max_train_steps': None,
+ 'debug_max_val_samples': None,
+ 'enable_fixed_viz_dump': True,
+ 'enable_train_source_viz_dump': True,
+ 'encoder': 'vits',
+ 'epochs': 5,
+ 'eth3d_eval_mode': 'fast',
+ 'eth3d_fast_eval_backend': 'proxy',
+ 'eth3d_max_depth': 80.0,
+ 'eth3d_max_samples': None,
+ 'eth3d_min_depth': 0.1,
+ 'eth3d_norm_mode': 'sensor_linear',
+ 'eth3d_root': '/mnt/drive/3333_raw/eth3d_raw_depth_640960',
+ 'eval_eth3d': False,
+ 'eval_kitti': False,
+ 'eval_nyu': False,
+ 'eval_only': False,
+ 'eval_robotcar': False,
+ 'eval_robotcar_night': False,
+ 'eval_stf': True,
+ 'heavy_save_path': '/mnt/drive/3333_raw/0000_exp_ckpt/0521_0112_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_decoder_e5',
+ 'heavy_save_root': '/mnt/drive/3333_raw/0000_exp_ckpt',
+ 'hypersim_max_depth': 80.0,
+ 'hypersim_min_depth': 0.1,
+ 'hypersim_processed_base': '/mnt/drive/1111_new_works/hypersim_marigold_processed/hypersim',
+ 'hypersim_train_list': None,
+ 'hypersim_train_meta': None,
+ 'hypersim_train_root': None,
+ 'input_height': 512,
+ 'input_type': 'raw_ram_rgb',
+ 'input_width': 960,
+ 'kitti_base': '/mnt/drive/kitti',
+ 'kitti_eval_protocol': 'rgb_pretrained_ref',
+ 'kitti_max_depth': 80.0,
+ 'kitti_min_depth': 0.1,
+ 'kitti_val_split': '/home/caq/6666_raw/dav2_raw_0520/metric_depth/dataset/splits/kitti/val.txt',
+ 'lod_crop_mode': 'random',
+ 'lod_day_manifest': '/mnt/drive/3333_raw/LOD/pseudo_depth_dav2_day_rel_1440x928/lod_day_dav2_rel_manifest.csv',
+ 'lod_fraction': None,
+ 'lod_night_manifest': None,
+ 'lod_per_vkitti': 1,
+ 'lod_raw_domain_config': 'identity',
+ 'lod_root': '/mnt/drive/3333_raw/LOD',
+ 'log_interval': 500,
+ 'lora_alpha': 16.0,
+ 'lora_block_mode': 'tap',
+ 'lora_lr': 5e-05,
+ 'lora_rank': 8,
+ 'loss_grad_scales': 4,
+ 'loss_lambda_grad': 2.0,
+ 'loss_mask_downsample': 'strict',
+ 'loss_norm_min_scale': 0.001,
+ 'loss_target_normalization': True,
+ 'loss_type': 'ssi',
+ 'lr': 1e-05,
+ 'max_depth': 80.0,
+ 'min_depth': 1.0,
+ 'ngpus': 1,
+ 'norm_mode': 'passthrough',
+ 'num_workers': 4,
+ 'nyu_dir': '/mnt/drive/nyu/nyu_test',
+ 'nyu_max_depth': 10.0,
+ 'nyu_max_samples': None,
+ 'nyu_min_depth': 0.001,
+ 'port': None,
+ 'pretrained_from': '/home/caq/333_cvpr/da_ours/checkpoints/depth_anything_v2_vits.pth',
+ 'raw_npz_root': '/mnt/drive/3333_raw/seeing_through_fog/cam_stereo_left_bayer_rect/npz',
+ 'raw_ram_rgb_tail': 'identity',
+ 'resume_from': None,
+ 'rgb_interface_mode': 'residual_tanh',
+ 'rgb_residual_scale': 0.1,
+ 'robotcar_eval_mode': 'fast',
+ 'robotcar_fast_eval_backend': 'sparse',
+ 'robotcar_max_depth': 50.0,
+ 'robotcar_max_samples': None,
+ 'robotcar_min_depth': 0.1,
+ 'robotcar_night_fast_eval_backend': 'sparse',
+ 'robotcar_night_manifest_name': 'robotcar_raw_depth_v1_val_balanced250_scene_interleaved.csv',
+ 'robotcar_night_max_depth': 50.0,
+ 'robotcar_night_max_samples': None,
+ 'robotcar_night_min_depth': 0.1,
+ 'robotcar_night_norm_mode': 'sensor_linear',
+ 'robotcar_night_raw_domain_config': 'identity',
+ 'robotcar_night_root': '/mnt/drive/3333_raw/robotcar_raw_depth_lms_front_480640_night_2runs_vo',
+ 'robotcar_norm_mode': 'sensor_linear',
+ 'robotcar_raw_domain_config': 'identity',
+ 'robotcar_root': '/mnt/drive/3333_raw/robotcar_raw_depth_lms_front_480640_subset100',
+ 'save_best_checkpoint': True,
+ 'save_best_stf_only': False,
+ 'save_path': '/home/caq/6666_raw/dav2_raw_0520/finetune_stf/exp/0521_0112_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_decoder_e5',
+ 'seed': 42,
+ 'stage': 'stf_only',
+ 'stf_fast_eval_backend': 'sparse',
+ 'stf_pseudo_manifest': '/mnt/drive/3333_raw/seeing_through_fog/pseudo_depth_dav2_official_vitl_rgb_lut_6216_20260417/stf_rgb_lut_manifest_6216.csv',
+ 'stf_raw_decode_mode': 'legacy_online_decomp16',
+ 'stf_repeat': 7,
+ 'stf_root': '/home/caq/6666_raw/seeingthroughfog',
+ 'stf_train_target_mode': 'dav2_pseudo',
+ 'train_source_ratios': (),
+ 'train_sources': (),
+ 'train_steps_per_epoch': 6696,
+ 'train_viz_n_per_source': 8,
+ 'train_viz_rgb_baseline': True,
+ 'train_viz_rgb_baseline_checkpoint': None,
+ 'train_viz_rgb_baseline_label': None,
+ 'train_viz_seed': 42,
+ 'train_viz_sources': 'auto',
+ 'use_imagenet_norm': True,
+ 'vkitti_cache_root': None,
+ 'vkitti_hflip_prob': 0.5,
+ 'vkitti_randomize_unprocessing': True,
+ 'vkitti_train_list': '/home/caq/6666_raw/dav2_raw_0520/finetune_stf/dataset/splits/vkitti2/train.txt',
+ 'vkitti_unprocessing_mix_weights': None,
+ 'vkitti_unprocessing_preset': 'sensor_linear_dual'}
+
+[2026-05-21 01:12:45,923][    INFO] [OUTPUT] save_path=/home/caq/6666_raw/dav2_raw_0520/finetune_stf/exp/0521_0112_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_decoder_e5 heavy_save_path=/mnt/drive/3333_raw/0000_exp_ckpt/0521_0112_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_decoder_e5
+[2026-05-21 01:12:47,681][    INFO] [TRAIN_VIZ] fixed samples={'stf': 8} baseline=enabled root=/home/caq/6666_raw/dav2_raw_0520/finetune_stf/exp/0521_0112_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_decoder_e5/train_viz
+[2026-05-21 01:12:48,410][    INFO] [SETUP] stage=stf_only input_type=raw_ram_rgb encoder=vits dav2_train_mode=decoder epochs=5 bs=8 accum_steps=1 effective_bs=8 lr=1.00e-05 num_workers=4
+[2026-05-21 01:12:48,410][    INFO] [SETUP] optimizer_steps_per_epoch=676 micro_steps_per_epoch=676
+[2026-05-21 01:12:48,410][    INFO] [SETUP] default_sensor_hw=(512, 960) default_backbone_hw=(518, 966) allow_dynamic_hw=True patch_size=14
+[2026-05-21 01:12:48,410][    INFO] [LOSS] type=ssi lambda_grad=2.00 grad_scales=4 mask_downsample=strict target_norm=True norm_min_scale=1.00e-03
+[2026-05-21 01:12:48,410][    INFO] [STF_RAW] decode_mode=legacy_online_decomp16 norm_mode=passthrough train_target_mode=dav2_pseudo pseudo_manifest=/mnt/drive/3333_raw/seeing_through_fog/pseudo_depth_dav2_official_vitl_rgb_lut_6216_20260417/stf_rgb_lut_manifest_6216.csv fast_eval_backend=sparse raw_ram_rgb_tail=identity
+[2026-05-21 01:12:48,410][    INFO] [DATASET] stf_train=5408 val=808 merge_test_into_train=True
+[2026-05-21 01:12:48,410][    INFO] [DATASET] raw_npz_root=/mnt/drive/3333_raw/seeing_through_fog/cam_stereo_left_bayer_rect/npz norm_mode=passthrough channel_mode=rgb_avg_g imagenet_norm=True rgb_interface_mode=residual_tanh rgb_residual_scale=0.1
+[2026-05-21 01:12:48,410][    INFO] [MODEL] raw_ram_rgb functions=['wb', 'ccm', 'gamma', 'brightness'] ram_core_out_channels=3 dav2_input=ramcore_bn_no_clamp_no_imagenet_norm
+[2026-05-21 01:12:48,410][    INFO] [DATALOADER] mode=single source=stf train_steps_per_epoch=676 val_steps=808 kitti_val_steps=n/a
+[2026-05-21 01:12:48,410][    INFO] [MODEL] total_params=24925992 trainable_params=2869416 frozen_params=22056576
+[2026-05-21 01:12:48,411][    INFO] [VIZ] fixed RGB pred baseline splits=('stf', 'eth3d', 'robotcar', 'robotcar_night') weights=/home/caq/333_cvpr/da_ours/checkpoints/depth_anything_v2_vits.pth label=RGB DAv2-S pred
+[2026-05-21 01:12:48,411][    INFO] [TRAIN_VIZ] rgb_baseline weights=/home/caq/333_cvpr/da_ours/checkpoints/depth_anything_v2_vits.pth label=RGB DAv2-S pred
+[2026-05-21 01:12:48,411][    INFO] [EVAL][pretrain_stf] start epoch=init max_samples=None min_depth=1 max_depth=80
+[2026-05-21 01:13:02,267][    INFO] [EVAL][pretrain_stf] done epoch=init samples=808 abs_rel=0.2898 rmse=12.3202 silog=0.4303 d1=0.5218 edge_l1=n/a edge_iou=n/a elapsed=00:00:14
+[2026-05-21 01:13:02,267][    INFO] [EVAL][pretrain_stf] abs_rel=0.2898 rmse=12.3202 silog=0.4303 d1=0.5218 d2=0.7651 d3=0.8800 edge_l1=n/a edge_iou=n/a
+[2026-05-21 01:13:02,312][    INFO] [EPOCH] start epoch=0/5 best_stf_abs_rel=inf
+[2026-05-21 01:13:06,523][    INFO] [BATCH] source=stf target_space=inverse_relative input_shape=(8, 4, 512, 960) depth_shape=(8, 512, 960) valid_shape=(8, 512, 960) sample_preview=2018-02-10_17-21-07_00200, 2018-12-21_09-39-08_02200
+[2026-05-21 01:19:16,847][    INFO] [TRAIN] epoch=0 micro_step=500/676 opt_step=500/676 lr=0.0000087 loss=2.496557e-02 running_avg=2.736938e-02 stf_avg=2.736938e-02 (500) terms=n/a used=8 skipped=0 step_per_sec=1.33 elapsed=00:06:15 eta=00:02:12 max_mem_mb=8541
+[2026-05-21 01:21:19,860][    INFO] [EVAL][val] start epoch=0 max_samples=None min_depth=1 max_depth=80
+[2026-05-21 01:21:34,440][    INFO] [EVAL][val] done epoch=0 samples=808 abs_rel=0.1383 rmse=8.2229 silog=0.2666 d1=0.8317 edge_l1=n/a edge_iou=n/a elapsed=00:00:15
+[2026-05-21 01:21:34,440][    INFO] [EPOCH] done epoch=0 avg_loss=2.526987e-02 used_steps=676 elapsed=00:08:32
+[2026-05-21 01:21:34,440][    INFO] [EPOCH][stf] avg_loss=0.0253 steps=676 raw_pred_valid_mean=2.7000 raw_pred_valid_max=11.1250
+[2026-05-21 01:21:34,440][    INFO] [EVAL][val] abs_rel=0.1383 rmse=8.2229 silog=0.2666 d1=0.8317 d2=0.9237 d3=0.9585 edge_l1=n/a edge_iou=n/a
+[2026-05-21 01:21:34,440][    INFO] [CHECKPOINT] best_stf improved to 0.1383
+[2026-05-21 01:21:34,516][    INFO] [CHECKPOINT] saved best=/mnt/drive/3333_raw/0000_exp_ckpt/0521_0112_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_decoder_e5/best_model.pth metric=stf value=0.1383 epoch=0
+[2026-05-21 01:21:34,589][    INFO] [CHECKPOINT] saved current=/mnt/drive/3333_raw/0000_exp_ckpt/0521_0112_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_decoder_e5/current_model.pth epoch=0
+[2026-05-21 01:21:40,371][    INFO] [TRAIN_VIZ] dumped epoch=0 sources={'stf': 8} root=/home/caq/6666_raw/dav2_raw_0520/finetune_stf/exp/0521_0112_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_decoder_e5/train_viz/epoch_00
+[2026-05-21 01:21:55,420][    INFO] [VIZ] dumped fixed samples epoch=0 splits={'stf': 8} root=/home/caq/6666_raw/dav2_raw_0520/finetune_stf/exp/0521_0112_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_decoder_e5/viz_fixed/epoch_00
+[2026-05-21 01:21:55,423][    INFO] [EPOCH] start epoch=1/5 best_stf_abs_rel=0.1383
+[2026-05-21 01:21:57,541][    INFO] [BATCH] source=stf target_space=inverse_relative input_shape=(8, 4, 512, 960) depth_shape=(8, 512, 960) valid_shape=(8, 512, 960) sample_preview=2018-12-09_10-52-24_01200, 2018-02-06_17-35-28_00000
+[2026-05-21 01:27:50,625][    INFO] [TRAIN] epoch=1 micro_step=500/676 opt_step=500/676 lr=0.0000068 loss=2.144096e-02 running_avg=1.761427e-02 stf_avg=1.761427e-02 (500) terms=n/a used=8 skipped=0 step_per_sec=1.41 elapsed=00:05:55 eta=00:02:05 max_mem_mb=9265
+[2026-05-21 01:30:23,668][    INFO] [EVAL][val] start epoch=1 max_samples=None min_depth=1 max_depth=80
+[2026-05-21 01:30:49,432][    INFO] [EVAL][val] done epoch=1 samples=808 abs_rel=0.1364 rmse=8.1587 silog=0.2658 d1=0.8366 edge_l1=n/a edge_iou=n/a elapsed=00:00:26
+[2026-05-21 01:30:49,432][    INFO] [EPOCH] done epoch=1 avg_loss=1.722886e-02 used_steps=676 elapsed=00:08:54
+[2026-05-21 01:30:49,432][    INFO] [EPOCH][stf] avg_loss=0.0172 steps=676 raw_pred_valid_mean=2.7198 raw_pred_valid_max=10.6250
+[2026-05-21 01:30:49,432][    INFO] [EVAL][val] abs_rel=0.1364 rmse=8.1587 silog=0.2658 d1=0.8366 d2=0.9252 d3=0.9589 edge_l1=n/a edge_iou=n/a
+[2026-05-21 01:30:49,432][    INFO] [CHECKPOINT] best_stf improved to 0.1364
+[2026-05-21 01:30:50,935][    INFO] [CHECKPOINT] saved best=/mnt/drive/3333_raw/0000_exp_ckpt/0521_0112_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_decoder_e5/best_model.pth metric=stf value=0.1364 epoch=1
+[2026-05-21 01:30:51,646][    INFO] [CHECKPOINT] saved current=/mnt/drive/3333_raw/0000_exp_ckpt/0521_0112_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_decoder_e5/current_model.pth epoch=1
+[2026-05-21 01:30:57,230][    INFO] [TRAIN_VIZ] dumped epoch=1 sources={'stf': 8} root=/home/caq/6666_raw/dav2_raw_0520/finetune_stf/exp/0521_0112_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_decoder_e5/train_viz/epoch_01
+[2026-05-21 01:31:21,193][    INFO] [VIZ] dumped fixed samples epoch=1 splits={'stf': 8} root=/home/caq/6666_raw/dav2_raw_0520/finetune_stf/exp/0521_0112_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_decoder_e5/viz_fixed/epoch_01
+[2026-05-21 01:31:21,195][    INFO] [EPOCH] start epoch=2/5 best_stf_abs_rel=0.1364
+[2026-05-21 01:31:24,335][    INFO] [BATCH] source=stf target_space=inverse_relative input_shape=(8, 4, 512, 960) depth_shape=(8, 512, 960) valid_shape=(8, 512, 960) sample_preview=2019-05-02_16-50-12_00690, 2018-02-09_17-26-21_00300
+[2026-05-21 01:39:37,472][    INFO] [TRAIN] epoch=2 micro_step=500/676 opt_step=500/676 lr=0.0000049 loss=1.857992e-02 running_avg=1.569861e-02 stf_avg=1.569861e-02 (500) terms=n/a used=8 skipped=0 step_per_sec=1.01 elapsed=00:08:16 eta=00:02:55 max_mem_mb=9265
+[2026-05-21 01:42:29,754][    INFO] [EVAL][val] start epoch=2 max_samples=None min_depth=1 max_depth=80
+[2026-05-21 01:43:30,238][    INFO] [EVAL][val] done epoch=2 samples=808 abs_rel=0.1351 rmse=8.1284 silog=0.2645 d1=0.8391 edge_l1=n/a edge_iou=n/a elapsed=00:01:00
+[2026-05-21 01:43:30,239][    INFO] [EPOCH] done epoch=2 avg_loss=1.542771e-02 used_steps=676 elapsed=00:12:09
+[2026-05-21 01:43:30,239][    INFO] [EPOCH][stf] avg_loss=0.0154 steps=676 raw_pred_valid_mean=2.7026 raw_pred_valid_max=10.5000
+[2026-05-21 01:43:30,239][    INFO] [EVAL][val] abs_rel=0.1351 rmse=8.1284 silog=0.2645 d1=0.8391 d2=0.9263 d3=0.9592 edge_l1=n/a edge_iou=n/a
+[2026-05-21 01:43:30,239][    INFO] [CHECKPOINT] best_stf improved to 0.1351
+[2026-05-21 01:43:30,851][    INFO] [CHECKPOINT] saved best=/mnt/drive/3333_raw/0000_exp_ckpt/0521_0112_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_decoder_e5/best_model.pth metric=stf value=0.1351 epoch=2
+[2026-05-21 01:43:33,060][    INFO] [CHECKPOINT] saved current=/mnt/drive/3333_raw/0000_exp_ckpt/0521_0112_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_decoder_e5/current_model.pth epoch=2
+[2026-05-21 01:43:41,096][    INFO] [TRAIN_VIZ] dumped epoch=2 sources={'stf': 8} root=/home/caq/6666_raw/dav2_raw_0520/finetune_stf/exp/0521_0112_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_decoder_e5/train_viz/epoch_02
+[2026-05-21 01:44:10,343][    INFO] [VIZ] dumped fixed samples epoch=2 splits={'stf': 8} root=/home/caq/6666_raw/dav2_raw_0520/finetune_stf/exp/0521_0112_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_decoder_e5/viz_fixed/epoch_02
+[2026-05-21 01:44:10,346][    INFO] [EPOCH] start epoch=3/5 best_stf_abs_rel=0.1351
+[2026-05-21 01:44:13,080][    INFO] [BATCH] source=stf target_space=inverse_relative input_shape=(8, 4, 512, 960) depth_shape=(8, 512, 960) valid_shape=(8, 512, 960) sample_preview=2018-02-09_19-09-08_00700, 2018-12-09_10-37-29_04300
+[2026-05-21 01:52:10,076][    INFO] [TRAIN] epoch=3 micro_step=500/676 opt_step=500/676 lr=0.0000029 loss=1.104448e-02 running_avg=1.441128e-02 stf_avg=1.441128e-02 (500) terms=n/a used=8 skipped=0 step_per_sec=1.04 elapsed=00:08:00 eta=00:02:49 max_mem_mb=9265
+[2026-05-21 01:55:15,835][    INFO] [EVAL][val] start epoch=3 max_samples=None min_depth=1 max_depth=80
+[2026-05-21 01:56:27,171][    INFO] [EVAL][val] done epoch=3 samples=808 abs_rel=0.1346 rmse=8.0942 silog=0.2633 d1=0.8394 edge_l1=n/a edge_iou=n/a elapsed=00:01:11
+[2026-05-21 01:56:27,171][    INFO] [EPOCH] done epoch=3 avg_loss=1.443453e-02 used_steps=676 elapsed=00:12:17
+[2026-05-21 01:56:27,171][    INFO] [EPOCH][stf] avg_loss=0.0144 steps=676 raw_pred_valid_mean=2.6758 raw_pred_valid_max=9.6875
+[2026-05-21 01:56:27,171][    INFO] [EVAL][val] abs_rel=0.1346 rmse=8.0942 silog=0.2633 d1=0.8394 d2=0.9269 d3=0.9597 edge_l1=n/a edge_iou=n/a
+[2026-05-21 01:56:27,171][    INFO] [CHECKPOINT] best_stf improved to 0.1346
+[2026-05-21 01:56:28,195][    INFO] [CHECKPOINT] saved best=/mnt/drive/3333_raw/0000_exp_ckpt/0521_0112_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_decoder_e5/best_model.pth metric=stf value=0.1346 epoch=3
+[2026-05-21 01:56:30,761][    INFO] [CHECKPOINT] saved current=/mnt/drive/3333_raw/0000_exp_ckpt/0521_0112_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_decoder_e5/current_model.pth epoch=3
+[2026-05-21 01:56:47,494][    INFO] [TRAIN_VIZ] dumped epoch=3 sources={'stf': 8} root=/home/caq/6666_raw/dav2_raw_0520/finetune_stf/exp/0521_0112_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_decoder_e5/train_viz/epoch_03
+[2026-05-21 01:57:41,234][    INFO] [VIZ] dumped fixed samples epoch=3 splits={'stf': 8} root=/home/caq/6666_raw/dav2_raw_0520/finetune_stf/exp/0521_0112_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_decoder_e5/viz_fixed/epoch_03
+[2026-05-21 01:57:41,236][    INFO] [EPOCH] start epoch=4/5 best_stf_abs_rel=0.1346
+[2026-05-21 01:57:44,949][    INFO] [BATCH] source=stf target_space=inverse_relative input_shape=(8, 4, 512, 960) depth_shape=(8, 512, 960) valid_shape=(8, 512, 960) sample_preview=2018-02-09_20-37-44_00000, 2018-12-21_17-40-53_02900
+[2026-05-21 02:06:43,578][    INFO] [TRAIN] epoch=4 micro_step=500/676 opt_step=500/676 lr=0.0000007 loss=8.438947e-03 running_avg=1.419155e-02 stf_avg=1.419155e-02 (500) terms=n/a used=8 skipped=0 step_per_sec=0.92 elapsed=00:09:02 eta=00:03:11 max_mem_mb=9265
+[2026-05-21 02:09:24,472][    INFO] [EVAL][val] start epoch=4 max_samples=None min_depth=1 max_depth=80
+[2026-05-21 02:10:56,272][    INFO] [EVAL][val] done epoch=4 samples=808 abs_rel=0.1346 rmse=8.1073 silog=0.2642 d1=0.8392 edge_l1=n/a edge_iou=n/a elapsed=00:01:32
+[2026-05-21 02:10:56,272][    INFO] [EPOCH] done epoch=4 avg_loss=1.401617e-02 used_steps=676 elapsed=00:13:15
+[2026-05-21 02:10:56,273][    INFO] [EPOCH][stf] avg_loss=0.0140 steps=676 raw_pred_valid_mean=2.6610 raw_pred_valid_max=9.6875
+[2026-05-21 02:10:56,273][    INFO] [EVAL][val] abs_rel=0.1346 rmse=8.1073 silog=0.2642 d1=0.8392 d2=0.9266 d3=0.9594 edge_l1=n/a edge_iou=n/a
+[2026-05-21 02:10:56,273][    INFO] [CHECKPOINT] best_stf improved to 0.1346
+[2026-05-21 02:10:56,908][    INFO] [CHECKPOINT] saved best=/mnt/drive/3333_raw/0000_exp_ckpt/0521_0112_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_decoder_e5/best_model.pth metric=stf value=0.1346 epoch=4
+[2026-05-21 02:10:57,700][    INFO] [CHECKPOINT] saved current=/mnt/drive/3333_raw/0000_exp_ckpt/0521_0112_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_decoder_e5/current_model.pth epoch=4
+[2026-05-21 02:10:57,830][    INFO] [CHECKPOINT] saved last_epoch=/mnt/drive/3333_raw/0000_exp_ckpt/0521_0112_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_decoder_e5/last_epoch_model.pth epoch=4
+[2026-05-21 02:11:03,289][    INFO] [TRAIN_VIZ] dumped epoch=4 sources={'stf': 8} root=/home/caq/6666_raw/dav2_raw_0520/finetune_stf/exp/0521_0112_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_decoder_e5/train_viz/epoch_04
+[2026-05-21 02:11:14,027][    INFO] [VIZ] dumped fixed samples epoch=4 splits={'stf': 8} root=/home/caq/6666_raw/dav2_raw_0520/finetune_stf/exp/0521_0112_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_decoder_e5/viz_fixed/epoch_04
