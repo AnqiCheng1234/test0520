@@ -16,10 +16,11 @@
 | `dav2_train_mode=full` | 训练 DINOv2 backbone + DAv2 depth head；`backbone_layer_decay=0.9` 的 run 使用 backbone layer-wise LR decay。 |
 | `*_lora` | 在 DAv2 tap blocks `(2,5,8,11)` 加 LoRA；当前 `lora_rank=8`, `lora_alpha=16`, `lora_lr=5e-5`, `lora_block_mode=tap`。 |
 | `*_bridge*` | RAW/RAM feature bridge 接入 DAv2 tap blocks；当前 `bridge_source=ram_core`, `bridge_layers=[2,5,8,11]`, `bridge_feature_keys=[x_cat,ffm_mid,x3]`, `bridge_lr=5e-5`。 |
+| `*_feature_adapter*` | RAW/RAM features 额外接入 decoder-side feature adapter；当前 `bridge_feature_keys=[x_cat,ffm_mid,x4]`，decoder fusion 为 `path_4,path_3,path_2`。 |
 | `stf_only` | STF-only training/eval path，使用 STF pseudo depth targets。 |
 | `dav2_pseudo` | 训练 target 来自 DAv2 pseudo labels，而不是 sparse GT depth。 |
 | `da3_pseudo_sparse_metric` | 训练 target 来自 DA3 Mono large RGB LUT pseudo labels；loader 对 sparse metric target 做 aligned/dense target 训练。 |
-| `ssi` | Scale-shift invariant loss；当前正式 runs 只用 target normalization，不启用 gradient regularization。 |
+| `ssi` | Scale-shift invariant loss；除特别注明外只用 target normalization；`0521_1308` config/log 额外启用 `loss_lambda_grad=2`, `loss_grad_scales=4`。 |
 
 ## 当前共同设置
 
@@ -58,9 +59,12 @@
 | `0521_0522_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_lora_decoder_e10` | completed；queue tmux `0521_0402_stf_0521_exp2_to_exp8_seq` | STF train+test DAv2 pseudo-label training；`stf_train=5408`，val `808`，`stf_repeat=7`，每 epoch `676` steps | `raw_ram_rgb_lora`；`legacy_online_decomp16`；`norm_mode=passthrough`；`channel_mode=rgb_avg_g`；`raw_ram_rgb_tail=identity`；model log `dav2_input=ramcore_bn_no_clamp_no_imagenet_norm`；functions `wb,ccm,gamma,brightness`；`rgb_interface_mode=residual_tanh`，`rgb_residual_scale=0.1` | `decoder` + LoRA；RAW/RAM front-end trainable | `ssi`, target norm | 10 | `8/1/8` | base `1e-5`；LoRA `5e-5` | 2,943,144 | total params `24,999,720`；frozen `22,056,576`；best STF checkpoint epoch 8, value `0.1303`；last checkpoint epoch 9 |
 | `0521_0656_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_full_lrd09_e10` | completed；queue tmux `0521_0402_stf_0521_exp2_to_exp8_seq` | STF train+test DAv2 pseudo-label training；`stf_train=5408`，val `808`，`stf_repeat=7`，每 epoch `676` steps | `raw_ram_rgb`；`legacy_online_decomp16`；`norm_mode=passthrough`；`channel_mode=rgb_avg_g`；`raw_ram_rgb_tail=identity`；model log `dav2_input=ramcore_bn_no_clamp_no_imagenet_norm`；functions `wb,ccm,gamma,brightness`；`rgb_interface_mode=residual_tanh`，`rgb_residual_scale=0.1` | `full`; RAW/RAM front-end trainable；`backbone_layer_decay=0.9` | `ssi`, target norm | 10 | `8/1/8` | base `1e-5` | 24,925,992 | total params `24,925,992`；frozen `0`；best STF checkpoint epoch 4, value `0.1280`；last checkpoint epoch 9 |
 | `0521_0835_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_bridge_lora_decoder_e10` | completed；queue tmux `0521_0402_stf_0521_exp2_to_exp8_seq` | STF train+test DAv2 pseudo-label training；`stf_train=5408`，val `808`，`stf_repeat=7`，每 epoch `676` steps | `raw_ram_rgb_bridge_lora`；RAW path同上；bridge `source=ram_core`, layers `[2,5,8,11]`, keys `[x_cat,ffm_mid,x3]`；`rgb_interface_head=ramcore_bn_tanh25_no_clamp_no_imagenet_norm` | `decoder` + LoRA + bridge；RAW/RAM front-end trainable | `ssi`, target norm | 10 | `8/1/8` | base `1e-5`；LoRA `5e-5`；bridge `5e-5` | 3,078,316 | total params `25,134,892`；frozen `22,056,576`；best STF checkpoint epoch 1, value `0.1294`；last checkpoint epoch 9 |
+| `0521_1606_stf_train_test_pseudovitl_raw_ram_bridge_feature_adapter_lora_decoder_e10_from_0521_0835` | completed on 186；launched with `WAIT_FOR_GPU_IDLE=0` | STF train+test DAv2 pseudo-label training；`stf_train=5408`，val `808`，`stf_repeat=7`，每 epoch `676` steps | `raw_ram_bridge_feature_adapter_lora`；`legacy_online_decomp16`；`norm_mode=passthrough`；`channel_mode=rgb_avg_g`；`raw_ram_rgb_tail=identity`；bridge/features `source=ram_core`, layers `[2,5,8,11]`, keys `[x_cat,ffm_mid,x4]`；decoder fusion `path_4,path_3,path_2`；image bridge `base_rgb+0.1*tanh(1x1_conv(x4))` | `decoder` + LoRA + bridge + decoder-side feature adapter；RAW/RAM front-end trainable | `ssi`, target norm | 10 | `8/1/8` | base `1e-5`；adapter/bridge `5e-5`；LoRA `5e-5` | 3,673,638 | total params `25,730,214`；frozen `22,056,576`；best STF checkpoint epoch 2, value `0.1293`；last checkpoint epoch 9；follows `0521_0835` setting, no `resume_from`/`bridge_init_from` |
 | `0521_1004_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_bridge_full_lrd09_e10` | completed；queue tmux `0521_0402_stf_0521_exp2_to_exp8_seq` | STF train+test DAv2 pseudo-label training；`stf_train=5408`，val `808`，`stf_repeat=7`，每 epoch `676` steps | `raw_ram_rgb_bridge`；RAW path同上；bridge `source=ram_core`, layers `[2,5,8,11]`, keys `[x_cat,ffm_mid,x3]`；`rgb_interface_head=ramcore_bn_tanh25_no_clamp_no_imagenet_norm` | `full` + bridge；RAW/RAM front-end trainable；`backbone_layer_decay=0.9` | `ssi`, target norm | 10 | `8/1/8` | base `1e-5`；bridge `5e-5` | 25,061,164 | total params `25,061,164`；frozen `0`；best STF checkpoint epoch 4, value `0.1282`；last checkpoint epoch 9 |
+| `0521_1606_stf_train_test_pseudovitl_raw_ram_bridge_feature_adapter_full_lrd09_e10_from_0521_1004` | completed on 186；launched with `WAIT_FOR_GPU_IDLE=0` | STF train+test DAv2 pseudo-label training；`stf_train=5408`，val `808`，`stf_repeat=7`，每 epoch `676` steps | `raw_ram_bridge_feature_adapter`；`legacy_online_decomp16`；`norm_mode=passthrough`；`channel_mode=rgb_avg_g`；`raw_ram_rgb_tail=identity`；bridge/features `source=ram_core`, layers `[2,5,8,11]`, keys `[x_cat,ffm_mid,x4]`；decoder fusion `path_4,path_3,path_2`；image bridge `base_rgb+0.1*tanh(1x1_conv(x4))` | `full` + bridge + decoder-side feature adapter；RAW/RAM front-end trainable；`backbone_layer_decay=0.9` | `ssi`, target norm | 10 | `8/1/8` | base `1e-5`；adapter/bridge `5e-5` | 25,656,486 | total params `25,656,486`；frozen `0`；best STF checkpoint epoch 5, value `0.1279`；last checkpoint epoch 9；follows `0521_1004` setting, no `resume_from`/`bridge_init_from` |
 | `0521_1137_stf_train_test_pseudoda3_sparse_metric_rgb_lora_decoder_e5` | completed；queue tmux `0521_0402_stf_0521_exp2_to_exp8_seq` | STF train+test DA3 sparse metric pseudo-label training；`stf_train=5408`，val `808`，`stf_repeat=7`，每 epoch `676` steps | `rgb_lora` direct RGB；LoRA tap blocks `(2,5,8,11)`；rank `8`，alpha `16` | `decoder` + LoRA | `ssi`, target norm | 5 | `8/1/8` | base `1e-5`；LoRA `5e-5` | 2,802,241 | total params `24,858,817`；frozen `22,056,576`；best STF checkpoint epoch 0, value `0.1327`；last checkpoint epoch 4 |
-| `0521_1308_stf_train_test_pseudoda3_sparse_metric_raw_ram_rgb_bnclean_identity_lora_decoder_e10` | running；queue tmux `0521_0402_stf_0521_exp2_to_exp8_seq`；last observed `2026-05-21 13:52:21`, epoch 4 batch logged | STF train+test DA3 sparse metric pseudo-label training；`stf_train=5408`，val `808`，`stf_repeat=7`，每 epoch `676` steps | `raw_ram_rgb_lora`；`legacy_online_decomp16`；`norm_mode=passthrough`；`channel_mode=rgb_avg_g`；`raw_ram_rgb_tail=identity`；model log `dav2_input=ramcore_bn_no_clamp_no_imagenet_norm`；functions `wb,ccm,gamma,brightness`；`rgb_interface_mode=residual_tanh`，`rgb_residual_scale=0.1` | `decoder` + LoRA；RAW/RAM front-end trainable | `ssi`, target norm | 10 | `8/1/8` | base `1e-5`；LoRA `5e-5` | 2,943,144 | total params `24,999,720`；frozen `22,056,576`；best observed STF checkpoint epoch 0, value `0.1359`；current checkpoint epoch 3 |
+| `0521_1308_stf_train_test_pseudoda3_sparse_metric_raw_ram_rgb_bnclean_identity_lora_decoder_e10` | completed；queue tmux `0521_0402_stf_0521_exp2_to_exp8_seq` | STF train+test DA3 sparse metric pseudo-label training；`stf_train=5408`，val `808`，`stf_repeat=7`，每 epoch `676` steps | `raw_ram_rgb_lora`；`legacy_online_decomp16`；`norm_mode=passthrough`；`channel_mode=rgb_avg_g`；`raw_ram_rgb_tail=identity`；model log `dav2_input=ramcore_bn_no_clamp_no_imagenet_norm`；functions `wb,ccm,gamma,brightness`；`rgb_interface_mode=residual_tanh`，`rgb_residual_scale=0.1` | `decoder` + LoRA；RAW/RAM front-end trainable | `ssi + grad`, target norm；`lambda_grad=2`, `grad_scales=4` | 10 | `8/1/8` | base `1e-5`；LoRA `5e-5` | 2,943,144 | total params `24,999,720`；frozen `22,056,576`；best STF checkpoint epoch 0, value `0.1359`；last checkpoint epoch 9 |
+| `0521_1542_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_bridge_ram_e10` | completed | STF train+test DAv2 pseudo-label training；`stf_train=5408`，val `808`，`stf_repeat=7`，每 epoch `676` steps | `raw_ram_rgb_bridge`；RAW path同上；bridge `source=ram_core`, layers `[2,5,8,11]`, keys `[x_cat,ffm_mid,x3]`；`rgb_interface_head=ramcore_bn_tanh25_no_clamp_no_imagenet_norm`；`rgb_interface_mode=residual_tanh`，`rgb_residual_scale=0.1` | `none` + bridge；DAv2 frozen；RAW/RAM front-end + bridge trainable | `ssi`, target norm | 10 | `8/1/8` | base `1e-5`；bridge `5e-5` | 276,075 | total params `25,061,164`；frozen `24,785,089`；best STF checkpoint epoch 7, value `0.1327`；last checkpoint epoch 9 |
 
 ## Eval 设置记录
 
@@ -282,6 +286,40 @@
 - last checkpoint: `/mnt/drive/3333_raw/0000_exp_ckpt/0521_0835_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_bridge_lora_decoder_e10/last_epoch_model.pth`, epoch `9`.
 - light artifacts: `/home/caq/6666_raw/dav2_raw_0520/finetune_stf/exp/0521_0835_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_bridge_lora_decoder_e10/`.
 
+### `0521_1606...raw_ram_bridge_feature_adapter_lora_decoder_e10_from_0521_0835`
+
+| epoch | avg_loss | STF val abs_rel | used steps | raw_pred_valid_mean | raw_pred_valid_max | elapsed |
+|---:|---:|---:|---:|---:|---:|---:|
+| 0 | 0.016143 | 0.1315 | 676 | 2.8707 | 10.3125 | 00:18:54 |
+| 1 | 0.009660 | 0.1302 | 676 | 2.8413 | 10.5625 | 00:18:57 |
+| 2 | 0.008296 | 0.1293 | 676 | 2.8485 | 11.1250 | 00:18:32 |
+| 3 | 0.007532 | 0.1312 | 676 | 2.8883 | 10.9375 | 00:18:50 |
+| 4 | 0.007071 | 0.1295 | 676 | 2.9074 | 11.3125 | 00:18:55 |
+| 5 | 0.006682 | 0.1309 | 676 | 2.9082 | 11.5625 | 00:18:53 |
+| 6 | 0.006363 | 0.1299 | 676 | 2.9321 | 11.5625 | 00:18:51 |
+| 7 | 0.006191 | 0.1299 | 676 | 2.9528 | 11.5625 | 00:18:47 |
+| 8 | 0.006039 | 0.1296 | 676 | 2.9315 | 11.6250 | 00:19:01 |
+| 9 | 0.005886 | 0.1294 | 676 | 2.9416 | 11.5000 | 00:18:59 |
+
+运行摘录：
+
+- status: completed on 186；launched with `WAIT_FOR_GPU_IDLE=0`; final tmux log ended `2026-05-21T19:23:56+08:00 status=0`.
+- setup: `stage=stf_only`, `input_type=raw_ram_bridge_feature_adapter_lora`, `encoder=vits`, `dav2_train_mode=decoder`, `epochs=10`, `bs=8`, `accum_steps=1`, `effective_bs=8`, `num_workers=4`.
+- scheduler counters: `optimizer_steps_per_epoch=676`, `micro_steps_per_epoch=676`.
+- LoRA: `lora_block_mode=tap`, `lora_blocks=(2,5,8,11)`, `lora_rank=8`, `lora_alpha=16.0`, `lora_lr=5e-5`; base `lr=1e-5`.
+- RAW/data path: `raw_npz_root=/mnt/drive/3333_raw/seeing_through_fog/cam_stereo_left_bayer_rect/npz`, `stf_raw_decode_mode=legacy_online_decomp16`, `norm_mode=passthrough`, `channel_mode=rgb_avg_g`, `raw_ram_rgb_tail=identity`.
+- feature adapter / bridge: `bridge_source=ram_core`, `bridge_layers=[2,5,8,11]`, `bridge_feature_keys=[x_cat,ffm_mid,x4]`, `bridge_lr=5e-5`; decoder fusion `path_4,path_3,path_2`; image bridge `base_rgb+0.1*tanh(1x1_conv(x4))`.
+- dataset: `stf_train=5408`, `val=808`, `merge_test_into_train=True`; target mode `dav2_pseudo`; batch log `target_space=inverse_relative`, `target_source=dense_pseudo`.
+- pseudo target manifest: `/mnt/drive/3333_raw/seeing_through_fog/pseudo_depth_dav2_official_vitl_rgb_lut_6216_20260417/stf_rgb_lut_manifest_6216.csv`.
+- pretrained init: `/mnt/drive/3333_raw/checkpoints/depth_anything_v2_vits.pth`; no `resume_from` / no `bridge_init_from`.
+- pretrain eval: STF val abs_rel `0.1458`, RMSE `8.3949`, silog `0.2647`, d1 `0.8126`.
+- model: total params `25,730,214`, trainable `3,673,638`, frozen `22,056,576`.
+- train-viz: fixed samples `{'stf': 8}`, RGB baseline panel enabled, root `/home/a5000/6666_raw/dav2_raw_0520/finetune_stf/exp/0521_1606_stf_train_test_pseudovitl_raw_ram_bridge_feature_adapter_lora_decoder_e10_from_0521_0835_setting_retry1/train_viz`.
+- train log 记录的 max GPU memory：`13205 MB`.
+- best checkpoint: `/mnt/drive/3333_raw/0000_exp_ckpt/0521_1606_stf_train_test_pseudovitl_raw_ram_bridge_feature_adapter_lora_decoder_e10_from_0521_0835_setting_retry1/best_model.pth`, metric `stf`, value `0.1293`, epoch `2`.
+- last checkpoint: `/mnt/drive/3333_raw/0000_exp_ckpt/0521_1606_stf_train_test_pseudovitl_raw_ram_bridge_feature_adapter_lora_decoder_e10_from_0521_0835_setting_retry1/last_epoch_model.pth`, epoch `9`.
+- light artifacts: `/home/a5000/6666_raw/dav2_raw_0520/finetune_stf/exp/0521_1606_stf_train_test_pseudovitl_raw_ram_bridge_feature_adapter_lora_decoder_e10_from_0521_0835_setting_retry1/`.
+
 ### `0521_1004...raw_ram_rgb_bnclean_bridge_full_lrd09_e10`
 
 | epoch | avg_loss | STF val abs_rel | used steps | raw_pred_valid_mean | raw_pred_valid_max | elapsed |
@@ -311,6 +349,39 @@
 - best checkpoint: `/mnt/drive/3333_raw/0000_exp_ckpt/0521_1004_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_bridge_full_lrd09_e10/best_model.pth`, metric `stf`, value `0.1282`, epoch `4`.
 - last checkpoint: `/mnt/drive/3333_raw/0000_exp_ckpt/0521_1004_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_bridge_full_lrd09_e10/last_epoch_model.pth`, epoch `9`.
 - light artifacts: `/home/caq/6666_raw/dav2_raw_0520/finetune_stf/exp/0521_1004_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_bridge_full_lrd09_e10/`.
+
+### `0521_1606...raw_ram_bridge_feature_adapter_full_lrd09_e10_from_0521_1004`
+
+| epoch | avg_loss | STF val abs_rel | used steps | raw_pred_valid_mean | raw_pred_valid_max | elapsed |
+|---:|---:|---:|---:|---:|---:|---:|
+| 0 | 0.012427 | 0.1301 | 676 | 2.9076 | 11.2500 | 00:18:54 |
+| 1 | 0.006853 | 0.1311 | 676 | 3.0671 | 12.5000 | 00:18:53 |
+| 2 | 0.005434 | 0.1294 | 676 | 3.2190 | 12.6875 | 00:18:32 |
+| 3 | 0.004542 | 0.1303 | 676 | 3.3070 | 13.0625 | 00:18:48 |
+| 4 | 0.003969 | 0.1291 | 676 | 3.4089 | 13.6250 | 00:18:49 |
+| 5 | 0.003597 | 0.1279 | 676 | 3.4943 | 14.1250 | 00:18:50 |
+| 6 | 0.003150 | 0.1291 | 676 | 3.6035 | 14.3750 | 00:18:48 |
+| 7 | 0.002793 | 0.1280 | 676 | 3.6227 | 14.3125 | 00:18:46 |
+| 8 | 0.002534 | 0.1291 | 676 | 3.6652 | 14.9375 | 00:19:01 |
+| 9 | 0.002333 | 0.1285 | 676 | 3.6893 | 14.6875 | 00:18:55 |
+
+运行摘录：
+
+- status: completed on 186；launched with `WAIT_FOR_GPU_IDLE=0`; final tmux log ended `2026-05-21T19:23:56+08:00 status=0`.
+- setup: `stage=stf_only`, `input_type=raw_ram_bridge_feature_adapter`, `encoder=vits`, `dav2_train_mode=full`, `backbone_layer_decay=0.9`, `epochs=10`, `bs=8`, `accum_steps=1`, `effective_bs=8`, `num_workers=4`.
+- scheduler counters: `optimizer_steps_per_epoch=676`, `micro_steps_per_epoch=676`.
+- RAW/data path: `raw_npz_root=/mnt/drive/3333_raw/seeing_through_fog/cam_stereo_left_bayer_rect/npz`, `stf_raw_decode_mode=legacy_online_decomp16`, `norm_mode=passthrough`, `channel_mode=rgb_avg_g`, `raw_ram_rgb_tail=identity`.
+- feature adapter / bridge: `bridge_source=ram_core`, `bridge_layers=[2,5,8,11]`, `bridge_feature_keys=[x_cat,ffm_mid,x4]`, `bridge_lr=5e-5`; decoder fusion `path_4,path_3,path_2`; image bridge `base_rgb+0.1*tanh(1x1_conv(x4))`.
+- dataset: `stf_train=5408`, `val=808`, `merge_test_into_train=True`; target mode `dav2_pseudo`; batch log `target_space=inverse_relative`, `target_source=dense_pseudo`.
+- pseudo target manifest: `/mnt/drive/3333_raw/seeing_through_fog/pseudo_depth_dav2_official_vitl_rgb_lut_6216_20260417/stf_rgb_lut_manifest_6216.csv`.
+- pretrained init: `/mnt/drive/3333_raw/checkpoints/depth_anything_v2_vits.pth`; no `resume_from` / no `bridge_init_from`.
+- pretrain eval: STF val abs_rel `0.1458`, RMSE `8.3948`, silog `0.2647`, d1 `0.8126`.
+- model: total params `25,656,486`, trainable `25,656,486`, frozen `0`.
+- train-viz: fixed samples `{'stf': 8}`, RGB baseline panel enabled, root `/home/a5000/6666_raw/dav2_raw_0520/finetune_stf/exp/0521_1606_stf_train_test_pseudovitl_raw_ram_bridge_feature_adapter_full_lrd09_e10_from_0521_1004_setting_retry1/train_viz`.
+- train log 记录的 max GPU memory：`14667 MB`.
+- best checkpoint: `/mnt/drive/3333_raw/0000_exp_ckpt/0521_1606_stf_train_test_pseudovitl_raw_ram_bridge_feature_adapter_full_lrd09_e10_from_0521_1004_setting_retry1/best_model.pth`, metric `stf`, value `0.1279`, epoch `5`.
+- last checkpoint: `/mnt/drive/3333_raw/0000_exp_ckpt/0521_1606_stf_train_test_pseudovitl_raw_ram_bridge_feature_adapter_full_lrd09_e10_from_0521_1004_setting_retry1/last_epoch_model.pth`, epoch `9`.
+- light artifacts: `/home/a5000/6666_raw/dav2_raw_0520/finetune_stf/exp/0521_1606_stf_train_test_pseudovitl_raw_ram_bridge_feature_adapter_full_lrd09_e10_from_0521_1004_setting_retry1/`.
 
 ### `0521_1137...pseudoda3_sparse_metric_rgb_lora_decoder_e5`
 
@@ -345,11 +416,18 @@
 | 1 | 0.033459 | 0.1360 | 676 | 2.5191 | 9.4375 | 00:10:21 |
 | 2 | 0.030348 | 0.1388 | 676 | 2.3745 | 9.2500 | 00:09:59 |
 | 3 | 0.028238 | 0.1404 | 676 | 2.2307 | 8.6250 | 00:09:46 |
+| 4 | 0.026982 | 0.1398 | 676 | 2.1643 | 8.3125 | 00:10:30 |
+| 5 | 0.026033 | 0.1392 | 676 | 2.1047 | 8.3125 | 00:09:59 |
+| 6 | 0.025179 | 0.1388 | 676 | 2.0474 | 8.1875 | 00:09:00 |
+| 7 | 0.024646 | 0.1392 | 676 | 2.0173 | 7.8125 | 00:09:44 |
+| 8 | 0.024158 | 0.1394 | 676 | 1.9974 | 8.1250 | 00:12:09 |
+| 9 | 0.023859 | 0.1396 | 676 | 1.9761 | 7.9375 | 00:12:17 |
 
 运行摘录：
 
-- status: still running in tmux queue `0521_0402_stf_0521_exp2_to_exp8_seq`; latest tmux/exp log line observed `2026-05-21 13:52:21`, epoch `4` batch logged.
+- status: completed via tmux queue `0521_0402_stf_0521_exp2_to_exp8_seq`.
 - setup: `stage=stf_only`, `input_type=raw_ram_rgb_lora`, `encoder=vits`, `dav2_train_mode=decoder`, `epochs=10`, `bs=8`, `accum_steps=1`, `effective_bs=8`, `num_workers=4`.
+- loss: `ssi`, `loss_target_normalization=true`, `loss_lambda_grad=2`, `loss_grad_scales=4`, `loss_mask_downsample=strict`, `loss_norm_min_scale=1e-3`.
 - LoRA: `lora_block_mode=tap`, `lora_blocks=(2,5,8,11)`, `lora_rank=8`, `lora_alpha=16.0`, `lora_lr=5e-5`; base `lr=1e-5`.
 - RAW/data path: `raw_npz_root=/mnt/drive/3333_raw/seeing_through_fog/cam_stereo_left_bayer_rect/npz`, `stf_raw_decode_mode=legacy_online_decomp16`, `norm_mode=passthrough`, `channel_mode=rgb_avg_g`, `raw_ram_rgb_tail=identity`.
 - model log: `functions=['wb','ccm','gamma','brightness']`, `dav2_input=ramcore_bn_no_clamp_no_imagenet_norm`, `rgb_interface_mode=residual_tanh`, `rgb_residual_scale=0.1`.
@@ -358,7 +436,40 @@
 - pretrain eval: STF val abs_rel `0.2898`, RMSE `12.3202`, silog `0.4303`, d1 `0.5218`.
 - model: total params `24,999,720`, trainable `2,943,144`, frozen `22,056,576`.
 - train-viz: fixed samples `{'stf': 8}`, RGB baseline panel enabled, root `/home/caq/6666_raw/dav2_raw_0520/finetune_stf/exp/0521_1308_stf_train_test_pseudoda3_sparse_metric_raw_ram_rgb_bnclean_identity_lora_decoder_e10/train_viz`.
-- train log 记录的 max GPU memory so far：`9267 MB`.
-- best observed checkpoint: `/mnt/drive/3333_raw/0000_exp_ckpt/0521_1308_stf_train_test_pseudoda3_sparse_metric_raw_ram_rgb_bnclean_identity_lora_decoder_e10/best_model.pth`, metric `stf`, value `0.1359`, epoch `0`.
-- current observed checkpoint: `/mnt/drive/3333_raw/0000_exp_ckpt/0521_1308_stf_train_test_pseudoda3_sparse_metric_raw_ram_rgb_bnclean_identity_lora_decoder_e10/current_model.pth`, epoch `3`.
+- train log 记录的 max GPU memory：`9267 MB`.
+- best checkpoint: `/mnt/drive/3333_raw/0000_exp_ckpt/0521_1308_stf_train_test_pseudoda3_sparse_metric_raw_ram_rgb_bnclean_identity_lora_decoder_e10/best_model.pth`, metric `stf`, value `0.1359`, epoch `0`.
+- last checkpoint: `/mnt/drive/3333_raw/0000_exp_ckpt/0521_1308_stf_train_test_pseudoda3_sparse_metric_raw_ram_rgb_bnclean_identity_lora_decoder_e10/last_epoch_model.pth`, epoch `9`.
 - light artifacts: `/home/caq/6666_raw/dav2_raw_0520/finetune_stf/exp/0521_1308_stf_train_test_pseudoda3_sparse_metric_raw_ram_rgb_bnclean_identity_lora_decoder_e10/`.
+
+### `0521_1542...pseudovitl_raw_ram_rgb_bnclean_bridge_ram_e10`
+
+| epoch | avg_loss | STF val abs_rel | used steps | raw_pred_valid_mean | raw_pred_valid_max | elapsed |
+|---:|---:|---:|---:|---:|---:|---:|
+| 0 | 0.029993 | 0.1390 | 676 | 2.6887 | 10.5625 | 00:09:13 |
+| 1 | 0.019055 | 0.1358 | 676 | 2.7284 | 9.8125 | 00:09:10 |
+| 2 | 0.016186 | 0.1345 | 676 | 2.7282 | 10.1875 | 00:10:23 |
+| 3 | 0.014349 | 0.1335 | 676 | 2.7263 | 9.9375 | 00:08:38 |
+| 4 | 0.013473 | 0.1334 | 676 | 2.7308 | 10.0000 | 00:09:49 |
+| 5 | 0.012845 | 0.1331 | 676 | 2.7369 | 9.8750 | 00:09:44 |
+| 6 | 0.012291 | 0.1329 | 676 | 2.7439 | 9.6250 | 00:09:50 |
+| 7 | 0.012061 | 0.1327 | 676 | 2.7419 | 10.0000 | 00:08:35 |
+| 8 | 0.011836 | 0.1328 | 676 | 2.7438 | 9.8750 | 00:10:33 |
+| 9 | 0.011633 | 0.1328 | 676 | 2.7479 | 10.0000 | 00:06:52 |
+
+运行摘录：
+
+- status: completed.
+- setup: `stage=stf_only`, `input_type=raw_ram_rgb_bridge`, `encoder=vits`, `dav2_train_mode=none`, `epochs=10`, `bs=8`, `accum_steps=1`, `effective_bs=8`, `num_workers=4`.
+- scheduler counters: `optimizer_steps_per_epoch=676`, `micro_steps_per_epoch=676`.
+- loss: `ssi`, `loss_target_normalization=true`, `loss_mask_downsample=strict`, `loss_norm_min_scale=1e-3`; no gradient regularization in config.
+- RAW/data path: `raw_npz_root=/mnt/drive/3333_raw/seeing_through_fog/cam_stereo_left_bayer_rect/npz`, `stf_raw_decode_mode=legacy_online_decomp16`, `norm_mode=passthrough`, `channel_mode=rgb_avg_g`, `raw_ram_rgb_tail=identity`.
+- bridge: `bridge_source=ram_core`, `bridge_layers=[2,5,8,11]`, `bridge_feature_keys=[x_cat,ffm_mid,x3]`, `bridge_lr=5e-5`; model log `rgb_interface_head=ramcore_bn_tanh25_no_clamp_no_imagenet_norm`.
+- dataset: `stf_train=5408`, `val=808`, `merge_test_into_train=True`; target mode `dav2_pseudo`; batch log `target_space=inverse_relative`, `target_source=dense_pseudo`.
+- pseudo target manifest: `/mnt/drive/3333_raw/seeing_through_fog/pseudo_depth_dav2_official_vitl_rgb_lut_6216_20260417/stf_rgb_lut_manifest_6216.csv`.
+- pretrain eval: STF val abs_rel `0.2898`, RMSE `12.3243`, silog `0.4305`, d1 `0.5216`.
+- model: total params `25,061,164`, trainable `276,075`, frozen `24,785,089`.
+- train-viz: fixed samples `{'stf': 8}`, RGB baseline panel enabled, root `/home/caq/6666_raw/dav2_raw_0520/finetune_stf/exp/0521_1542_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_bridge_ram_e10/train_viz`.
+- train log 记录的 max GPU memory：`9237 MB`.
+- best checkpoint: `/mnt/drive/3333_raw/0000_exp_ckpt/0521_1542_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_bridge_ram_e10/best_model.pth`, metric `stf`, value `0.1327`, epoch `7`.
+- last checkpoint: `/mnt/drive/3333_raw/0000_exp_ckpt/0521_1542_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_bridge_ram_e10/last_epoch_model.pth`, epoch `9`.
+- light artifacts: `/home/caq/6666_raw/dav2_raw_0520/finetune_stf/exp/0521_1542_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_bridge_ram_e10/`.
