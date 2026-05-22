@@ -28,6 +28,21 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from anqi_eval.eval_rel_depth_strict import affine_align_disp, compute_metrics
 from depth_anything_v2.dpt import DepthAnythingV2
+from finetune_stf.config import (
+    ADAPTER_FEATURE_SOURCE_CHANNEL_CHOICES,
+    BRIDGE_CHOICES,
+    BRIDGE_FEATURE_SOURCE_CHANNEL_CHOICES,
+    DATASET_FAMILY_CHOICES,
+    DATASET_INPUT_MODE_CHOICES,
+    DECODER_FEATURE_ADAPTER_CHOICES,
+    FRONT_END_CHOICES,
+    INPUT_DOMAIN_CHOICES,
+    LORA_CHOICES,
+    MODEL_INPUT_TENSOR_CHOICES,
+    RAW_STORAGE_FORMAT_CHOICES,
+    ensure_resolved_config,
+    resolve_config_from_args,
+)
 from finetune_stf.dataset.eth3d import (
     DEFAULT_ETH3D_ROOT,
     ETH3D_FAST_EVAL_BACKENDS,
@@ -39,8 +54,6 @@ from finetune_stf.dataset.lod_raw import (
     DEFAULT_LOD_DAY_MANIFEST,
     DEFAULT_LOD_NIGHT_MANIFEST,
     DEFAULT_LOD_ROOT,
-    LODRGB,
-    LODRaw,
 )
 from finetune_stf.dataset.nyu_eval import DEFAULT_NYU_DIR, NYUv2Eval
 from finetune_stf.dataset.robotcar import (
@@ -63,8 +76,6 @@ from finetune_stf.dataset.stf_raw import (
     STF_RAW_NATIVE_HW,
     STF_TRAIN_TARGET_MODES,
 )
-from finetune_stf.dataset.raw_storage import RAW_STORAGE_FORMAT_CHOICES, get_raw_storage_spec
-from finetune_stf.dataset.vkitti2 import DEFAULT_TRAIN_LIST as DEFAULT_VKITTI_TRAIN_LIST, VKITTI2
 from finetune_stf.models.lora_bridge import (
     DEFAULT_BRIDGE_FEATURE_KEYS,
     DEFAULT_RGB_BRIDGE_FEATURE_KEYS,
@@ -109,6 +120,7 @@ from finetune_stf.util.loss import (
     DAv2RelativeLoss,
     ScaleShiftInvariantLoss,
 )
+from finetune_stf.util.model_input import coerce_model_input_tensor, select_model_input
 from finetune_stf.util.utils import init_log
 from finetune_stf.util.viz_dump import (
     collect_fixed_samples,
@@ -116,7 +128,6 @@ from finetune_stf.util.viz_dump import (
     dump_fixed_samples,
     dump_train_source_samples,
 )
-from foundation.engine.datasets import DEFAULT_HYPERSIM_PROCESSED_BASE, CachedVKITTI2Raw, HypersimProcessedRaw, VKITTI2Raw
 from foundation.engine.models import build_dav2_raw_naive_depth_model
 
 
@@ -126,13 +137,6 @@ MODEL_CONFIGS = {
     "vitl": {"encoder": "vitl", "features": 256, "out_channels": [256, 512, 1024, 1024]},
     "vitg": {"encoder": "vitg", "features": 384, "out_channels": [1536, 1536, 1536, 1536]},
 }
-DEFAULT_BRIDGE_LAYERS_BY_ENCODER = {
-    "vits": [2, 5, 8, 11],
-    "vitb": [2, 5, 8, 11],
-    "vitl": [4, 11, 17, 23],
-    "vitg": [9, 19, 29, 39],
-}
-
 METRIC_KEYS = (
     "abs_rel",
     "sq_rel",
@@ -181,9 +185,8 @@ ROBOTCAR_EVAL_MODE_CHOICES = ("fast", "full", "both")
 ROBOTCAR_FAST_EVAL_BACKEND_CHOICES = ROBOTCAR_FAST_EVAL_BACKENDS
 DEFAULT_ROBOTCAR_NIGHT_ROOT = "/mnt/drive/3333_raw/robotcar_raw_depth_lms_front_480640_night_2runs_vo"
 DEFAULT_ROBOTCAR_NIGHT_MANIFEST_NAME = "robotcar_raw_depth_v1_val_balanced250_scene_interleaved.csv"
-KITTI_EVAL_PROTOCOL_CHOICES = ("rgb_pretrained_ref", "rgb_checkpoint_decoder")
+KITTI_EVAL_PROTOCOL_CHOICES = ("rgb_pretrained_ref", "rgb_checkpoint_decoder", "live_raw_model")
 BEST_METRIC_CHOICES = ("stf", "kitti", "eth3d", "robotcar", "robotcar_day", "robotcar_night", "avg4")
-RAW_MIX_SOURCE_CHOICES = ("vkitti", "hypersim", "lod", "lod_day", "lod_night")
 DEFAULT_HEAVY_SAVE_ROOT = "/mnt/drive/3333_raw/0000_exp_ckpt"
 FIXED_VIZ_RGB_BASELINE_SPLITS = ("stf", "eth3d", "robotcar", "robotcar_night")
 FIXED_VIZ_SPLIT_CHOICES = (
@@ -202,12 +205,39 @@ DAV2_VARIANT_NAMES = {
     "vitl": "DAv2-L",
     "vitg": "DAv2-G",
 }
-FRONT_END_CHOICES = (
-    "dav2_rgb",
-    "raw_to_rgb_head",
-    "raw_ram4",
-    "raw_to_base_rgb_ram3",
-)
+
+
+def resolved_config(args):
+    return ensure_resolved_config(args)
+
+
+def uses_stf_raw_dataset(args):
+    return resolved_config(args).dataset_family == "stf_raw"
+
+
+def uses_stf_rgb_dataset(args):
+    return resolved_config(args).dataset_family == "stf_rgb"
+
+
+def uses_raw_model_tensor(args):
+    return resolved_config(args).model_input_tensor == "raw"
+
+
+def uses_bridge(args):
+    return resolved_config(args).bridge != "none"
+
+
+def uses_decoder_feature_adapter(args):
+    return resolved_config(args).decoder_feature_adapter != "none"
+
+
+def uses_lora(args):
+    return resolved_config(args).lora != "none"
+
+
+def supports_rgb_eval_inputs(args):
+    cfg = resolved_config(args)
+    return cfg.dataset_family == "stf_rgb" or cfg.dataset_input_mode == "raw_ram"
 
 
 def resolve_heavy_save_path(save_path, heavy_save_root):
@@ -217,21 +247,6 @@ def resolve_heavy_save_path(save_path, heavy_save_root):
     if not exp_name:
         raise ValueError(f"Could not derive experiment name from save_path={save_path!r}")
     return os.path.join(heavy_save_root, exp_name)
-
-
-def parse_csv_list(value, *, field_name):
-    if value is None:
-        return []
-    if isinstance(value, (list, tuple)):
-        return [str(item).strip() for item in value if str(item).strip()]
-    return [item.strip() for item in str(value).split(",") if item.strip()]
-
-
-def parse_float_csv(value, *, field_name):
-    try:
-        return [float(item) for item in parse_csv_list(value, field_name=field_name)]
-    except ValueError as exc:
-        raise ValueError(f"{field_name} must contain comma-separated floats: {value!r}") from exc
 
 
 def _validate_dav2_train_mode(mode):
@@ -250,17 +265,36 @@ def _validate_dav2_train_mode(mode):
     )
 
 
+def _collect_explicit_cli_args(parser, argv):
+    option_to_dest = {}
+    for action in parser._actions:
+        for option in action.option_strings:
+            option_to_dest[option] = action.dest
+
+    explicit = set()
+    for token in argv:
+        if token == "--":
+            break
+        if not token.startswith("-"):
+            continue
+        option = token.split("=", 1)[0]
+        dest = option_to_dest.get(option)
+        if dest:
+            explicit.add(dest)
+    return sorted(explicit)
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Fine-tune DAv2 relative depth on STF")
     parser.add_argument("--encoder", default="vitl", choices=["vits", "vitb", "vitl", "vitg"])
     parser.add_argument(
         "--stage",
         default="stf_only",
-        choices=["stf_only", "mixed", "vkitti_only", "lod_only", "vkitti_lod", "raw_mix"],
+        choices=["stf_only", "eval_only"],
     )
     parser.add_argument(
         "--input-type",
-        default="rgb",
+        default=None,
         choices=[
             *RGB_INPUT_TYPES,
             "raw",
@@ -271,40 +305,39 @@ def parse_args():
             *RAW_RAM_RGB_BRIDGE_INPUT_TYPES,
             *RAW_RAM_FEATURE_ADAPTER_INPUT_TYPES,
         ],
+        help="Legacy compatibility alias. New scripts should prefer the orthogonal resolved-config fields below.",
+    )
+    parser.add_argument("--input-domain", default=None, choices=INPUT_DOMAIN_CHOICES)
+    parser.add_argument("--front-end", default=None, choices=FRONT_END_CHOICES)
+    parser.add_argument("--dataset-family", default=None, choices=DATASET_FAMILY_CHOICES)
+    parser.add_argument("--dataset-input-mode", default=None, choices=DATASET_INPUT_MODE_CHOICES)
+    parser.add_argument("--model-input-tensor", default=None, choices=MODEL_INPUT_TENSOR_CHOICES)
+    parser.add_argument("--bridge", default=None, choices=BRIDGE_CHOICES)
+    parser.add_argument("--decoder-feature-adapter", default=None, choices=DECODER_FEATURE_ADAPTER_CHOICES)
+    parser.add_argument("--lora", default=None, choices=LORA_CHOICES)
+    parser.add_argument(
+        "--bridge-feature-source-channels",
+        default=None,
+        choices=BRIDGE_FEATURE_SOURCE_CHANNEL_CHOICES,
     )
     parser.add_argument(
-        "--front-end",
+        "--adapter-feature-source-channels",
         default=None,
-        choices=FRONT_END_CHOICES,
-        help=(
-            "Explicit front-end selection. If omitted, derived from --input-type. "
-            "Use dav2_rgb/raw_to_rgb_head/raw_ram4/raw_to_base_rgb_ram3."
-        ),
+        choices=ADAPTER_FEATURE_SOURCE_CHANNEL_CHOICES,
     )
+    parser.add_argument("--feature-adapter-keys", nargs="+", default=None, choices=list(BRIDGE_FEATURE_KEY_CHOICES))
+    parser.add_argument("--raw-storage-format", default=None, choices=RAW_STORAGE_FORMAT_CHOICES)
     parser.add_argument("--stf-root", default=DEFAULT_STF_ROOT)
     parser.add_argument("--raw-npz-root", default=DEFAULT_RAW_NPZ_ROOT)
-    parser.add_argument(
-        "--raw-storage-format",
-        default="legacy_bggR_decomp16",
-        choices=RAW_STORAGE_FORMAT_CHOICES,
-        help="Explicit STF raw storage interpretation. Avoids raw root path inference coupling.",
-    )
     parser.add_argument("--stf-train-target-mode", default="gt_sparse", choices=STF_TRAIN_TARGET_MODES)
     parser.add_argument("--stf-pseudo-manifest", default=DEFAULT_STF_PSEUDO_MANIFEST)
-    parser.add_argument("--vkitti-train-list", default=str(DEFAULT_VKITTI_TRAIN_LIST))
-    parser.add_argument("--hypersim-processed-base", default=str(DEFAULT_HYPERSIM_PROCESSED_BASE))
-    parser.add_argument("--hypersim-train-root", default=None)
-    parser.add_argument("--hypersim-train-list", default=None)
-    parser.add_argument("--hypersim-train-meta", default=None)
-    parser.add_argument("--hypersim-min-depth", default=0.1, type=float)
-    parser.add_argument("--hypersim-max-depth", default=80.0, type=float)
     parser.add_argument("--lod-root", default=DEFAULT_LOD_ROOT)
     parser.add_argument("--lod-day-manifest", default=DEFAULT_LOD_DAY_MANIFEST)
     parser.add_argument(
         "--lod-night-manifest",
         default=None,
         help=(
-            "Optional night-split LOD manifest; when provided, concatenated with --lod-day-manifest. "
+            "Optional night-split LOD manifest for fixed visualization samples. "
             f"Example: {DEFAULT_LOD_NIGHT_MANIFEST}"
         ),
     )
@@ -344,38 +377,6 @@ def parse_args():
         type=float,
         help="Layer-wise lr decay for DAv2 backbone params; 1.0 disables decay.",
     )
-    parser.add_argument("--stf-repeat", default=7, type=int)
-    parser.add_argument(
-        "--lod-per-vkitti",
-        default=1,
-        type=int,
-        help="[vkitti_lod stage] LOD batches between two VKITTI batches",
-    )
-    parser.add_argument(
-        "--lod-fraction",
-        default=None,
-        type=float,
-        help=(
-            "[vkitti_lod stage] Optional LOD sampling fraction in (0, 1). "
-            "When set, keeps the baseline total steps from --lod-per-vkitti and changes only the LOD/VKITTI mix."
-        ),
-    )
-    parser.add_argument(
-        "--train-sources",
-        default="",
-        help="[raw_mix stage] comma-separated sources, e.g. lod_day,lod_night,vkitti,hypersim",
-    )
-    parser.add_argument(
-        "--train-source-ratios",
-        default="",
-        help="[raw_mix stage] comma-separated non-negative source weights matching --train-sources",
-    )
-    parser.add_argument(
-        "--train-steps-per-epoch",
-        default=6696,
-        type=int,
-        help="[raw_mix stage] fixed micro-step budget per epoch; 6696 matches existing vkitti_lod baselines",
-    )
     parser.add_argument("--num-workers", default=4, type=int)
     parser.add_argument("--log-interval", default=200, type=int)
     parser.add_argument("--norm-mode", default="companded")
@@ -414,6 +415,7 @@ def parse_args():
         choices=list(BRIDGE_FEATURE_KEY_CHOICES),
     )
     parser.add_argument("--bridge-layers", nargs="+", type=int, default=None)
+    parser.add_argument("--lora-tap-layers", nargs="+", type=int, default=None)
     parser.add_argument("--lora-block-mode", default=DEFAULT_LORA_BLOCK_MODE, choices=LORA_BLOCK_MODE_CHOICES)
     parser.add_argument("--lora-rank", default=8, type=int)
     parser.add_argument("--lora-alpha", default=16.0, type=float)
@@ -485,44 +487,6 @@ def parse_args():
     parser.add_argument("--debug-max-kitti-samples", default=None, type=int)
     parser.add_argument("--port", default=None, type=int)
     parser.add_argument("--seed", default=42, type=int)
-    parser.add_argument(
-        "--vkitti-cache-root",
-        default=None,
-        help="Optional offline VKITTI pseudo-RAW cache root generated by cache_vkitti2_pseudoraw.py.",
-    )
-    parser.add_argument("--vkitti-hflip-prob", default=0.5, type=float)
-    parser.add_argument(
-        "--lod-crop-mode",
-        default="random",
-        choices=("random", "center"),
-        help="LOD train crop mode. random=per-sample random crop; center=fixed center crop (legacy).",
-    )
-    parser.add_argument("--vkitti-randomize-unprocessing", action="store_true", default=True)
-    parser.add_argument("--no-vkitti-randomize-unprocessing", action="store_false", dest="vkitti_randomize_unprocessing")
-    parser.add_argument(
-        "--vkitti-unprocessing-preset",
-        default="sensor_linear_dual",
-        help=(
-            "Pseudo-raw preset for VKITTI2Raw. "
-            "Supported presets include: stf_legacy, eth3d_sensor_linear, "
-            "robotcar_public_gbrg_generic (public GBRG + generic ranges), "
-            "robotcar_subset100_sensor_linear, robotcar_subset100_sensor_linear_fixccm, "
-            "robotcar_night_sensor_linear, sensor_linear_dual, "
-            "robotcar_day_night_sensor_linear_dual. The robotcar_subset100*, "
-            "robotcar_night_sensor_linear, sensor_linear_dual, and "
-            "robotcar_day_night_sensor_linear_dual presets use RobotCar statistics "
-            "and are not public-only."
-        ),
-    )
-    parser.add_argument(
-        "--vkitti-unprocessing-mix-weights",
-        default=None,
-        help=(
-            "Optional mix weights for dual preset. "
-            "Examples: '0.3,0.7' or "
-            "'eth3d_sensor_linear=0.3,robotcar_subset100_sensor_linear=0.7'."
-        ),
-    )
     parser.add_argument("--eval-kitti", action="store_true")
     parser.add_argument("--kitti-base", default=DEFAULT_KITTI_BASE)
     parser.add_argument("--kitti-val-split", default=str(DEFAULT_KITTI_VAL_SPLIT))
@@ -580,7 +544,8 @@ def parse_args():
         help=(
             "rgb_pretrained_ref: load --pretrained-from RGB DAv2 weights once, never updated (existing behavior). "
             "rgb_checkpoint_decoder: build a separate RGB wrapper and sync DAv2/spatial_adapter weights from the live "
-            "training model before each KITTI eval."
+            "training model before each KITTI eval. "
+            "live_raw_model is reserved and rejected until a raw KITTI eval path is implemented."
         ),
     )
     parser.add_argument(
@@ -600,20 +565,9 @@ def parse_args():
     parser.add_argument("--no-amp", action="store_false", dest="amp")
     parser.add_argument("--amp-dtype", choices=["fp16", "bf16"], default="bf16")
     parser.set_defaults(use_imagenet_norm=True)
+    explicit_cli_args = _collect_explicit_cli_args(parser, sys.argv[1:])
     args = parser.parse_args()
-    args.input_type = str(args.input_type)
-    if args.front_end is None:
-        try:
-            args.front_end = _infer_front_end(args.input_type)
-        except ValueError as exc:
-            parser.error(str(exc))
-    else:
-        args.front_end = str(args.front_end)
-    if not _validate_front_end_and_input_type(args.front_end, args.input_type):
-        parser.error(
-            f"--front-end {args.front_end!r} is not compatible with --input-type {args.input_type!r}; "
-            "please pass a matching combination."
-        )
+    args._explicit_cli_args = explicit_cli_args
     try:
         _validate_dav2_train_mode(args.dav2_train_mode)
     except ValueError as exc:
@@ -626,29 +580,26 @@ def parse_args():
     else:
         args.loss_lambda_grad = None
         args.loss_grad_scales = None
-    if args.lod_per_vkitti < 1:
-        parser.error("--lod-per-vkitti must be >= 1")
-    if args.lod_fraction is not None:
-        if args.stage != "vkitti_lod":
-            parser.error("--lod-fraction is only valid with --stage vkitti_lod")
-        if not (0.0 < args.lod_fraction < 1.0):
-            parser.error("--lod-fraction must be in (0, 1)")
-    if args.train_steps_per_epoch < 1:
-        parser.error("--train-steps-per-epoch must be >= 1")
+    if args.eval_only:
+        args.stage = "eval_only"
+    if args.stage == "eval_only":
+        args.eval_only = True
     try:
-        raw_storage_spec = get_raw_storage_spec(args.raw_storage_format)
+        args.resolved_config = resolve_config_from_args(args)
     except ValueError as exc:
         parser.error(str(exc))
-    if raw_storage_spec.name == "raw_future":
-        parser.error(
-            "raw_storage_format=raw_future is not supported yet. "
-            "Please use legacy_bggR_decomp16 for current experiments."
-        )
-    args.raw_storage_channel_order = tuple(raw_storage_spec.storage_channel_order)
-    args.raw_model_channel_order = tuple(raw_storage_spec.model_channel_order)
-    args.raw_decompand = str(raw_storage_spec.decompand)
-    args.raw_post_decode_norm = str(raw_storage_spec.post_decode_norm)
-    args.raw_channel_count = 4
+    args.input_type = args.resolved_config.input_type_alias
+    args.bridge_feature_keys = (
+        list(args.resolved_config.bridge_feature_keys) if args.resolved_config.bridge_feature_keys else None
+    )
+    args.feature_adapter_keys = (
+        list(args.resolved_config.feature_adapter_keys) if args.resolved_config.feature_adapter_keys else None
+    )
+    args.bridge_layers = list(args.resolved_config.bridge_layers) if args.resolved_config.bridge_layers else None
+    args.lora_tap_layers = (
+        list(args.resolved_config.lora_tap_layers) if args.resolved_config.lora_tap_layers else None
+    )
+    args.raw_storage_format = args.resolved_config.raw_storage_format
     if args.stf_train_target_mode in STF_PSEUDO_TRAIN_TARGET_MODES:
         pseudo_manifest = Path(args.stf_pseudo_manifest).expanduser()
         if not pseudo_manifest.is_file():
@@ -663,32 +614,13 @@ def parse_args():
         args.stf_pseudo_manifest = str(pseudo_manifest.resolve())
     if (
         args.stage == "stf_only"
-        and args.input_type in RAW_MODEL_INPUT_TYPES
+        and uses_stf_raw_dataset(args)
         and (args.input_height, args.input_width) != STF_RAW_NATIVE_HW
     ):
         parser.error(
             f"STF RAW stf_only runs must use native input size {STF_RAW_NATIVE_HW}; "
             f"got {(args.input_height, args.input_width)}"
         )
-    try:
-        args.train_sources = tuple(parse_csv_list(args.train_sources, field_name="--train-sources"))
-        args.train_source_ratios = tuple(parse_float_csv(args.train_source_ratios, field_name="--train-source-ratios"))
-    except ValueError as exc:
-        parser.error(str(exc))
-    if args.stage == "raw_mix":
-        if not args.train_sources:
-            parser.error("--stage raw_mix requires --train-sources")
-        unknown_sources = [source for source in args.train_sources if source not in RAW_MIX_SOURCE_CHOICES]
-        if unknown_sources:
-            parser.error(f"Unknown raw_mix source(s): {unknown_sources}; choices={RAW_MIX_SOURCE_CHOICES}")
-        if len(args.train_source_ratios) != len(args.train_sources):
-            parser.error("--train-source-ratios must have the same length as --train-sources")
-        if any(weight < 0 for weight in args.train_source_ratios) or sum(args.train_source_ratios) <= 0:
-            parser.error("--train-source-ratios must be non-negative and sum to > 0")
-        if len(set(args.train_sources)) != len(args.train_sources):
-            parser.error(f"--train-sources must not contain duplicates: {args.train_sources}")
-    elif args.train_sources or args.train_source_ratios:
-        parser.error("--train-sources / --train-source-ratios are only valid with --stage raw_mix")
     if args.lora_rank < 1:
         parser.error("--lora-rank must be >= 1")
     if args.lora_alpha <= 0:
@@ -720,10 +652,6 @@ def parse_args():
         args.train_viz_rgb_baseline_checkpoint = str(baseline_path.resolve())
         if not args.train_viz_rgb_baseline_label:
             args.train_viz_rgb_baseline_label = baseline_path.parent.name or baseline_path.stem
-    if not (0.0 <= args.vkitti_hflip_prob <= 1.0):
-        parser.error("--vkitti-hflip-prob must be in [0, 1]")
-    if args.vkitti_cache_root and args.input_type not in RAW_MODEL_INPUT_TYPES:
-        parser.error("--vkitti-cache-root is only valid with raw-like --input-type")
     if args.kitti_min_depth <= 0 or args.kitti_max_depth <= args.kitti_min_depth:
         parser.error("--kitti-max-depth must be greater than --kitti-min-depth > 0")
     if args.nyu_min_depth <= 0 or args.nyu_max_depth <= args.nyu_min_depth:
@@ -742,28 +670,10 @@ def parse_args():
         parser.error("--robotcar-night-max-depth must be greater than --robotcar-night-min-depth > 0")
     if args.robotcar_night_max_samples is not None and args.robotcar_night_max_samples < 1:
         parser.error("--robotcar-night-max-samples must be >= 1")
-    if args.hypersim_min_depth <= 0 or args.hypersim_max_depth <= args.hypersim_min_depth:
-        parser.error("--hypersim-max-depth must be greater than --hypersim-min-depth > 0")
-    if args.stage in ("lod_only", "vkitti_lod") and args.input_type not in (
-        *RGB_INPUT_TYPES,
-        *RAW_PACKED_INPUT_TYPES,
-        *RAW_RAM_INPUT_TYPES,
-        *RAW_RAM_BRIDGE_INPUT_TYPES,
-        *RAW_RAM_RGB_INPUT_TYPES,
-        *RAW_RAM_RGB_BRIDGE_INPUT_TYPES,
-        *RAW_RAM_FEATURE_ADAPTER_INPUT_TYPES,
+    if (
+        args.resolved_config.front_end == "raw_to_base_rgb_ram3"
+        and os.environ.get("PHASE1_BNCLEAN_REVIEWED") != "1"
     ):
-        parser.error("--stage lod_only / vkitti_lod requires --input-type rgb or a 4-channel packed-raw input type")
-    if args.stage == "raw_mix" and args.input_type not in (
-        *RAW_PACKED_INPUT_TYPES,
-        *RAW_RAM_INPUT_TYPES,
-        *RAW_RAM_BRIDGE_INPUT_TYPES,
-        *RAW_RAM_RGB_INPUT_TYPES,
-        *RAW_RAM_RGB_BRIDGE_INPUT_TYPES,
-        *RAW_RAM_FEATURE_ADAPTER_INPUT_TYPES,
-    ):
-        parser.error("--stage raw_mix requires a 4-channel packed-raw --input-type")
-    if args.input_type in PHASE1_BNCLEAN_GUARDED_INPUT_TYPES and os.environ.get("PHASE1_BNCLEAN_REVIEWED") != "1":
         parser.error(
             "Phase-1 BN-clean guard: raw_ram_rgb/raw_ram_rgb_bridge/raw_ram_rgb_bridge_lora "
             "now feed RamCore3 BN output to DAv2, optionally with --raw-ram-rgb-tail tanh2p5, "
@@ -796,37 +706,6 @@ def parse_args():
             parser.error("--best-metric stf requires --eval-stf when --save-best-checkpoint is enabled")
     if args.eval_nyu and args.eval_kitti and args.kitti_eval_protocol != "rgb_checkpoint_decoder":
         parser.error("--eval-nyu with --eval-kitti requires --kitti-eval-protocol rgb_checkpoint_decoder")
-    if args.bridge_feature_keys is None:
-        if args.input_type in (*RAW_RAM_RGB_BRIDGE_INPUT_TYPES, *RAW_RAM_RGB_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES):
-            args.bridge_feature_keys = list(DEFAULT_RGB_BRIDGE_FEATURE_KEYS)
-        elif args.input_type in RAW_RAM_FEATURE_ADAPTER_INPUT_TYPES:
-            args.bridge_feature_keys = list(DEFAULT_FEATURE_ADAPTER_KEYS)
-        else:
-            args.bridge_feature_keys = list(DEFAULT_BRIDGE_FEATURE_KEYS)
-    args.bridge_feature_keys = list(dict.fromkeys(args.bridge_feature_keys))
-    if args.input_type in (*RAW_RAM_RGB_BRIDGE_INPUT_TYPES, *RAW_RAM_RGB_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES):
-        invalid_keys = [key for key in args.bridge_feature_keys if key == "x4"]
-        if invalid_keys:
-            parser.error(
-                f"--input-type {args.input_type} does not support bridge feature key(s): {invalid_keys}. "
-                f"Use {list(DEFAULT_RGB_BRIDGE_FEATURE_KEYS)}"
-            )
-    elif args.input_type in (*RAW_RAM_BRIDGE_INPUT_TYPES, *RAW_RAM_FEATURE_ADAPTER_INPUT_TYPES):
-        invalid_keys = [key for key in args.bridge_feature_keys if key == "x3"]
-        if invalid_keys:
-            parser.error(
-                f"--input-type {args.input_type} does not support bridge feature key(s): {invalid_keys}. "
-                f"Use {list(DEFAULT_BRIDGE_FEATURE_KEYS)}"
-            )
-    if args.bridge_layers is not None:
-        args.bridge_layers = list(dict.fromkeys(args.bridge_layers))
-    elif args.input_type in (
-        *RAW_RAM_BRIDGE_INPUT_TYPES,
-        *RAW_RAM_RGB_BRIDGE_INPUT_TYPES,
-        *RAW_RAM_BRIDGE_FEATURE_ADAPTER_INPUT_TYPES,
-        *RAW_RAM_RGB_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES,
-    ):
-        args.bridge_layers = list(DEFAULT_BRIDGE_LAYERS_BY_ENCODER[args.encoder])
     args.heavy_save_path = resolve_heavy_save_path(args.save_path, args.heavy_save_root)
     return args
 
@@ -917,49 +796,6 @@ def resolve_stf_raw_input_mode(input_type):
     return "raw_naive"
 
 
-def _infer_front_end(input_type):
-    if input_type in RGB_INPUT_TYPES:
-        return "dav2_rgb"
-    if input_type in ("raw", *RAW_PACKED_INPUT_TYPES):
-        return "raw_to_rgb_head"
-    if input_type in (
-        *RAW_RAM_RGB_INPUT_TYPES,
-        *RAW_RAM_RGB_BRIDGE_INPUT_TYPES,
-        *RAW_RAM_RGB_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES,
-    ):
-        return "raw_to_base_rgb_ram3"
-    if input_type in (
-        *RAW_RAM_INPUT_TYPES,
-        *RAW_RAM_BRIDGE_INPUT_TYPES,
-        *RAW_RAM_FEATURE_ADAPTER_ONLY_INPUT_TYPES,
-        *RAW_RAM_BRIDGE_FEATURE_ADAPTER_INPUT_TYPES,
-    ):
-        return "raw_ram4"
-    raise ValueError(f"Unsupported input_type for front-end inference: {input_type!r}")
-
-
-def _validate_front_end_and_input_type(front_end, input_type):
-    front_end = str(front_end)
-    if front_end == "dav2_rgb":
-        return input_type in RGB_INPUT_TYPES
-    if front_end == "raw_to_rgb_head":
-        return input_type in ("raw", *RAW_PACKED_INPUT_TYPES)
-    if front_end == "raw_ram4":
-        return input_type in (
-            *RAW_RAM_INPUT_TYPES,
-            *RAW_RAM_BRIDGE_INPUT_TYPES,
-            *RAW_RAM_FEATURE_ADAPTER_ONLY_INPUT_TYPES,
-            *RAW_RAM_BRIDGE_FEATURE_ADAPTER_INPUT_TYPES,
-        )
-    if front_end == "raw_to_base_rgb_ram3":
-        return input_type in (
-            *RAW_RAM_RGB_INPUT_TYPES,
-            *RAW_RAM_RGB_BRIDGE_INPUT_TYPES,
-            *RAW_RAM_RGB_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES,
-        )
-    return False
-
-
 def iter_requested_eth3d_modes(args):
     if args.eth3d_eval_mode == "both":
         return ("fast", "full")
@@ -972,76 +808,91 @@ def iter_requested_robotcar_modes(args):
     return (args.robotcar_eval_mode,)
 
 
+def _raw_ram_base_input_type(cfg):
+    if cfg.front_end == "raw_ram4":
+        return "raw_ram"
+    if cfg.front_end == "raw_to_base_rgb_ram3":
+        return "raw_ram_rgb"
+    raise ValueError(f"front_end={cfg.front_end!r} has no RAW-RAM base input type")
+
+
+def _bridge_input_type(cfg):
+    if cfg.front_end == "raw_ram4":
+        return "raw_ram_bridge"
+    if cfg.front_end == "raw_to_base_rgb_ram3":
+        return "raw_ram_rgb_bridge"
+    raise ValueError(f"front_end={cfg.front_end!r} has no bridge input type")
+
+
+def _feature_adapter_input_type(cfg):
+    if cfg.front_end == "raw_ram4":
+        return "raw_ram_bridge_feature_adapter" if cfg.bridge != "none" else "raw_ram_feature_adapter"
+    if cfg.front_end == "raw_to_base_rgb_ram3":
+        return "raw_ram_rgb_bridge_feature_adapter" if cfg.bridge != "none" else "raw_ram_rgb_feature_adapter"
+    raise ValueError(f"front_end={cfg.front_end!r} has no decoder feature adapter input type")
+
+
+def apply_lora_from_resolved(model, args):
+    cfg = resolved_config(args)
+    dav2_module = model.dav2 if hasattr(model, "dav2") else model
+    if not hasattr(dav2_module, "pretrained"):
+        raise ValueError("LoRA requires a model wrapper exposing dav2.pretrained")
+    model.lora_block_mode = str(args.lora_block_mode)
+    model.lora_rank = int(args.lora_rank)
+    model.lora_alpha = float(args.lora_alpha)
+    model.lora_block_indices = apply_lora_to_vit(
+        dav2_module.pretrained,
+        block_mode=args.lora_block_mode,
+        tap_layers=tuple(cfg.lora_tap_layers),
+        rank=args.lora_rank,
+        alpha=args.lora_alpha,
+    )
+
+
 def build_model(args):
+    cfg = resolved_config(args)
     model = DepthAnythingV2(**MODEL_CONFIGS[args.encoder])
     sensor_hw = (args.input_height, args.input_width)
-    if args.input_type in (*RAW_RAM_BRIDGE_INPUT_TYPES, *RAW_RAM_RGB_BRIDGE_INPUT_TYPES):
-        model = build_raw_ram_bridge_depth_model(
-            model,
-            input_type=args.input_type,
-            bridge_source=args.bridge_source,
-            bridge_feature_keys=args.bridge_feature_keys,
-            bridge_layers=args.bridge_layers,
-            rgb_interface_mode=args.rgb_interface_mode,
-            rgb_residual_scale=args.rgb_residual_scale,
-            lora_block_mode=args.lora_block_mode,
-            lora_rank=args.lora_rank,
-            lora_alpha=args.lora_alpha,
-            sensor_hw=sensor_hw,
-            backbone_hw=None,
-        )
-    elif args.input_type in RAW_RAM_FEATURE_ADAPTER_INPUT_TYPES:
-        model = build_raw_ram_feature_adapter_depth_model(
-            model,
-            input_type=args.input_type,
-            feature_keys=args.bridge_feature_keys,
-            bridge_source=args.bridge_source,
-            bridge_layers=args.bridge_layers,
-            rgb_interface_mode=args.rgb_interface_mode,
-            rgb_residual_scale=args.rgb_residual_scale,
-            lora_block_mode=args.lora_block_mode,
-            lora_rank=args.lora_rank,
-            lora_alpha=args.lora_alpha,
-            sensor_hw=sensor_hw,
-            backbone_hw=None,
-        )
-    elif args.front_end == "dav2_rgb":
+    if cfg.front_end == "dav2_rgb":
         model = build_dav2_padded_rgb_depth_model(model, sensor_hw=sensor_hw, backbone_hw=None)
-        if args.input_type in RGB_LORA_INPUT_TYPES:
-            dav2_module = model.dav2 if hasattr(model, "dav2") else model
-            model.lora_block_mode = str(args.lora_block_mode)
-            model.lora_rank = int(args.lora_rank)
-            model.lora_alpha = float(args.lora_alpha)
-            model.lora_block_indices = apply_lora_to_vit(
-                dav2_module.pretrained,
-                block_mode=args.lora_block_mode,
-                tap_layers=args.bridge_layers or DEFAULT_BRIDGE_LAYERS_BY_ENCODER[args.encoder],
-                rank=args.lora_rank,
-                alpha=args.lora_alpha,
-            )
-    elif args.front_end == "raw_to_rgb_head":
+    elif cfg.front_end == "raw_to_rgb_head":
         model = build_dav2_raw_naive_depth_model(
             model,
             freeze_backbone=False,
             sensor_hw=sensor_hw,
             backbone_hw=None,
         )
-    elif args.front_end == "raw_ram4":
+    elif not uses_bridge(args) and not uses_decoder_feature_adapter(args):
         model = build_raw_ram_depth_model(
             model,
-            front_end="raw_ram4",
-            input_type=args.input_type,
+            front_end=cfg.front_end,
+            input_type=_raw_ram_base_input_type(cfg),
             rgb_interface_mode=args.rgb_interface_mode,
             rgb_residual_scale=args.rgb_residual_scale,
             raw_ram_rgb_tail=args.raw_ram_rgb_tail,
             sensor_hw=sensor_hw,
             backbone_hw=None,
         )
-    elif args.front_end == "raw_to_base_rgb_ram3":
-        model = build_raw_ram_depth_model(
+    elif uses_bridge(args) and not uses_decoder_feature_adapter(args):
+        model = build_raw_ram_bridge_depth_model(
             model,
-            front_end="raw_to_base_rgb_ram3",
-            input_type=args.input_type,
+            input_type=_bridge_input_type(cfg),
+            bridge_source=args.bridge_source,
+            bridge_feature_keys=list(cfg.bridge_feature_keys),
+            bridge_layers=list(cfg.bridge_layers),
+            rgb_interface_mode=args.rgb_interface_mode,
+            rgb_residual_scale=args.rgb_residual_scale,
+            sensor_hw=sensor_hw,
+            backbone_hw=None,
+        )
+    elif uses_decoder_feature_adapter(args):
+        model = build_raw_ram_feature_adapter_depth_model(
+            model,
+            input_type=_feature_adapter_input_type(cfg),
+            feature_keys=list(cfg.feature_adapter_keys),
+            bridge_feature_keys=list(cfg.bridge_feature_keys),
+            bridge_source=args.bridge_source,
+            bridge_layers=list(cfg.bridge_layers) if cfg.bridge_layers else None,
             rgb_interface_mode=args.rgb_interface_mode,
             rgb_residual_scale=args.rgb_residual_scale,
             raw_ram_rgb_tail=args.raw_ram_rgb_tail,
@@ -1049,29 +900,11 @@ def build_model(args):
             backbone_hw=None,
         )
     else:
-        raise ValueError(f"Unsupported --front-end: {args.front_end!r}")
-    if args.input_type in RAW_RAM_RGB_LORA_INPUT_TYPES and hasattr(model, "dav2"):
-        model.lora_block_mode = str(args.lora_block_mode)
-        model.lora_rank = int(args.lora_rank)
-        model.lora_alpha = float(args.lora_alpha)
-        model.lora_block_indices = apply_lora_to_vit(
-            model.dav2.pretrained,
-            block_mode=args.lora_block_mode,
-            tap_layers=args.bridge_layers or DEFAULT_BRIDGE_LAYERS_BY_ENCODER[args.encoder],
-            rank=args.lora_rank,
-            alpha=args.lora_alpha,
-        )
+        raise ValueError(f"Unsupported resolved front_end={cfg.front_end!r}")
+    if uses_lora(args):
+        apply_lora_from_resolved(model, args)
     configure_dav2_train_mode(model, args.dav2_train_mode)
-    if (
-        args.input_type
-        in (
-            *RGB_LORA_INPUT_TYPES,
-            *RAW_RAM_RGB_LORA_INPUT_TYPES,
-            *RAW_RAM_BRIDGE_LORA_INPUT_TYPES,
-            *RAW_RAM_RGB_BRIDGE_LORA_INPUT_TYPES,
-            *RAW_RAM_BRIDGE_FEATURE_ADAPTER_LORA_INPUT_TYPES,
-        )
-    ):
+    if uses_lora(args):
         enable_lora_params(model)
     return model
 
@@ -1275,21 +1108,60 @@ def load_optional_bridge_init_weights(model, path):
 
 def save_args(args):
     os.makedirs(args.save_path, exist_ok=True)
+    payload = dict(vars(args))
+    resolved = resolved_config(args)
+    payload["resolved_config"] = resolved.to_dict()
     with open(os.path.join(args.save_path, "config.json"), "w", encoding="utf-8") as f:
-        json.dump(vars(args), f, indent=2, sort_keys=True)
+        json.dump(payload, f, indent=2, sort_keys=True)
+    with open(os.path.join(args.save_path, "resolved_config.json"), "w", encoding="utf-8") as f:
+        json.dump(resolved.to_dict(), f, indent=2, sort_keys=True)
+
+
+def log_resolved_summary(logger, args):
+    cfg = resolved_config(args)
+    logger.info(
+        "[RESOLVED] input_domain=%s front_end=%s model_input_tensor=%s",
+        cfg.input_domain,
+        cfg.front_end,
+        cfg.model_input_tensor,
+    )
+    logger.info(
+        "[RESOLVED] bridge=%s bridge_feature_source_channels=%s decoder_feature_adapter=%s adapter_feature_source_channels=%s lora=%s",
+        cfg.bridge,
+        cfg.bridge_feature_source_channels,
+        cfg.decoder_feature_adapter,
+        cfg.adapter_feature_source_channels,
+        cfg.lora,
+    )
+    logger.info(
+        "[RESOLVED] raw_storage_format=%s storage_channel_order=%s model_channel_order=%s norm=%s",
+        cfg.raw_storage_format,
+        cfg.raw_storage_channel_order,
+        getattr(cfg, "raw_model_channel_order", "n/a"),
+        cfg.raw_post_decode_norm,
+    )
+    if cfg.kitti_eval_protocol != "none":
+        logger.info(
+            "[RESOLVED] kitti_eval_protocol=%s kitti_model_source=%s eval_input_domain=%s",
+            cfg.kitti_eval_protocol,
+            cfg.kitti_model_source,
+            cfg.eval_input_domain,
+        )
+    if cfg.optimizer_param_groups:
+        for group in cfg.optimizer_param_groups:
+            logger.info(
+                "[RESOLVED][optimizer] group=%s lr=%.2e trainable_params=%d trainable_tensors=%d",
+                group["group_name"],
+                group["lr"],
+                group["trainable_param_count"],
+                group["trainable_tensor_count"],
+            )
 
 
 def get_stf_eval_size(args):
-    if args.input_type in RAW_MODEL_INPUT_TYPES:
+    if uses_stf_raw_dataset(args):
         return STF_RAW_NATIVE_HW
     return (args.input_height, args.input_width)
-
-
-def resolve_lod_manifest_paths(args):
-    manifests = [args.lod_day_manifest]
-    if args.lod_night_manifest:
-        manifests.append(args.lod_night_manifest)
-    return manifests
 
 
 def describe_rgb_interface(mode, residual_scale):
@@ -1311,23 +1183,24 @@ def dav2_rgb_pred_label(args):
 
 
 def build_datasets(args):
+    cfg = resolved_config(args)
     size = (args.input_height, args.input_width)
     stf_eval_size = get_stf_eval_size(args)
-    raw_mix_sources = set(args.train_sources) if args.stage == "raw_mix" else set()
-    stf_dataset_cls = STF if args.input_type in RGB_INPUT_TYPES else STF_RAW
+    stf_dataset_cls = STF if cfg.dataset_family == "stf_rgb" else STF_RAW
     stf_val_kwargs = {
         "stf_root": args.stf_root,
         "size": stf_eval_size,
         "min_depth": args.min_depth,
         "max_depth": args.max_depth,
     }
-    if args.input_type in RAW_MODEL_INPUT_TYPES:
+    if cfg.dataset_family == "stf_raw":
         stf_val_kwargs.update(
             {
                 "raw_npz_root": args.raw_npz_root,
                 "raw_storage_format": args.raw_storage_format,
+                "channel_mode": args.channel_mode,
                 "use_imagenet_norm": args.use_imagenet_norm,
-                "input_mode": resolve_stf_raw_input_mode(args.input_type),
+                "input_mode": cfg.dataset_input_mode,
                 "depth_mode": "fast",
                 "fast_eval_backend": args.stf_fast_eval_backend,
             }
@@ -1337,56 +1210,14 @@ def build_datasets(args):
     if args.eval_stf:
         stf_val = stf_dataset_cls("val", merge_test_into_train=False, **stf_val_kwargs)
         datasets["val"] = stf_val
-    if args.stage in ("stf_only", "mixed", "vkitti_only"):
+    if not args.eval_only:
         stf_train_kwargs = dict(stf_val_kwargs)
         stf_train_kwargs["size"] = size
         stf_train_kwargs["stf_train_target_mode"] = args.stf_train_target_mode
         stf_train_kwargs["stf_pseudo_manifest"] = args.stf_pseudo_manifest
         datasets["stf_train"] = stf_dataset_cls("train", merge_test_into_train=True, **stf_train_kwargs)
-    if args.stage in ("lod_only", "vkitti_lod") or "lod" in raw_mix_sources:
-        lod_manifests = resolve_lod_manifest_paths(args)
-        if args.input_type in RGB_INPUT_TYPES:
-            datasets["lod_train"] = LODRGB(
-                lod_root=args.lod_root,
-                manifest_path=lod_manifests,
-                size=size,
-                mode="train",
-                crop_mode=args.lod_crop_mode,
-            )
-        else:
-            datasets["lod_train"] = LODRaw(
-                lod_root=args.lod_root,
-                manifest_path=lod_manifests,
-                size=size,
-                norm_mode=args.norm_mode,
-                raw_domain_config=args.lod_raw_domain_config,
-                mode="train",
-                crop_mode=args.lod_crop_mode,
-            )
-    if "lod_day" in raw_mix_sources:
-        datasets["lod_day_train"] = LODRaw(
-            lod_root=args.lod_root,
-            manifest_path=args.lod_day_manifest,
-            size=size,
-            norm_mode=args.norm_mode,
-            raw_domain_config=args.lod_raw_domain_config,
-            mode="train",
-            crop_mode=args.lod_crop_mode,
-        )
-    if "lod_night" in raw_mix_sources:
-        if not args.lod_night_manifest:
-            raise ValueError("--train-sources includes lod_night but --lod-night-manifest was not provided")
-        datasets["lod_night_train"] = LODRaw(
-            lod_root=args.lod_root,
-            manifest_path=args.lod_night_manifest,
-            size=size,
-            norm_mode=args.norm_mode,
-            raw_domain_config=args.lod_raw_domain_config,
-            mode="train",
-            crop_mode=args.lod_crop_mode,
-        )
     if args.eval_kitti:
-        if args.input_type not in RGB_EVAL_INPUT_TYPES:
+        if not supports_rgb_eval_inputs(args):
             raise ValueError(f"--eval-kitti is only supported for rgb/raw-like input types right now, got {args.input_type}")
         datasets["kitti_val"] = KITTIEval(
             filelist_path=args.kitti_val_split,
@@ -1397,7 +1228,7 @@ def build_datasets(args):
             input_type="rgb",
         )
     if args.eval_nyu:
-        if args.input_type not in RGB_EVAL_INPUT_TYPES:
+        if not supports_rgb_eval_inputs(args):
             raise ValueError(f"--eval-nyu is only supported for rgb/raw-like input types right now, got {args.input_type}")
         datasets["nyu_val"] = NYUv2Eval(
             nyu_dir=args.nyu_dir,
@@ -1406,7 +1237,7 @@ def build_datasets(args):
             max_depth=args.nyu_max_depth,
         )
     if args.eval_eth3d:
-        if args.input_type in RGB_INPUT_TYPES:
+        if cfg.dataset_family == "stf_rgb":
             eth3d_dataset_cls = ETH3DValRGB
             eth3d_kwargs = {
                 "fast_eval_backend": args.eth3d_fast_eval_backend,
@@ -1417,7 +1248,7 @@ def build_datasets(args):
                 "norm_mode": args.eth3d_norm_mode,
                 "channel_mode": args.channel_mode,
                 "use_imagenet_norm": args.use_imagenet_norm,
-                "input_mode": resolve_stf_raw_input_mode(args.input_type),
+                "input_mode": cfg.dataset_input_mode,
                 "fast_eval_backend": args.eth3d_fast_eval_backend,
             }
         requested_modes = iter_requested_eth3d_modes(args) if args.eval_only else ("fast",)
@@ -1430,7 +1261,7 @@ def build_datasets(args):
                 **eth3d_kwargs,
             )
     if args.eval_robotcar:
-        if args.input_type in RGB_INPUT_TYPES:
+        if cfg.dataset_family == "stf_rgb":
             robotcar_dataset_cls = RobotCarValRGB
             robotcar_kwargs = {
                 "fast_eval_backend": args.robotcar_fast_eval_backend,
@@ -1441,7 +1272,7 @@ def build_datasets(args):
                 "norm_mode": args.robotcar_norm_mode,
                 "channel_mode": args.channel_mode,
                 "use_imagenet_norm": args.use_imagenet_norm,
-                "input_mode": resolve_stf_raw_input_mode(args.input_type),
+                "input_mode": cfg.dataset_input_mode,
                 "fast_eval_backend": args.robotcar_fast_eval_backend,
                 "raw_domain_config": args.robotcar_raw_domain_config,
             }
@@ -1455,7 +1286,7 @@ def build_datasets(args):
                 **robotcar_kwargs,
             )
     if args.eval_robotcar_night:
-        if args.input_type in RGB_INPUT_TYPES:
+        if cfg.dataset_family == "stf_rgb":
             robotcar_night_dataset_cls = RobotCarValRGB
             robotcar_night_kwargs = {
                 "fast_eval_backend": args.robotcar_night_fast_eval_backend,
@@ -1466,7 +1297,7 @@ def build_datasets(args):
                 "norm_mode": args.robotcar_night_norm_mode,
                 "channel_mode": args.channel_mode,
                 "use_imagenet_norm": args.use_imagenet_norm,
-                "input_mode": resolve_stf_raw_input_mode(args.input_type),
+                "input_mode": cfg.dataset_input_mode,
                 "fast_eval_backend": args.robotcar_night_fast_eval_backend,
                 "raw_domain_config": args.robotcar_night_raw_domain_config,
             }
@@ -1480,64 +1311,6 @@ def build_datasets(args):
                 max_depth=args.robotcar_night_max_depth,
                 **robotcar_night_kwargs,
             )
-    if args.stage in ("mixed", "vkitti_only", "vkitti_lod") or "vkitti" in raw_mix_sources:
-        if args.input_type in RAW_MODEL_INPUT_TYPES:
-            if args.vkitti_cache_root:
-                expected_vkitti = VKITTI2Raw(
-                    args.vkitti_train_list,
-                    mode="train",
-                    size=size,
-                    min_depth=args.min_depth,
-                    max_depth=args.max_depth,
-                    randomize_unprocessing=args.vkitti_randomize_unprocessing,
-                    unprocessing_preset=args.vkitti_unprocessing_preset,
-                    unprocessing_mix_weights=args.vkitti_unprocessing_mix_weights,
-                    hflip_prob=args.vkitti_hflip_prob,
-                )
-                expected_desc = expected_vkitti.describe_unprocessing()
-                datasets["vkitti_train"] = CachedVKITTI2Raw(
-                    args.vkitti_cache_root,
-                    filelist_path=args.vkitti_train_list,
-                    size=size,
-                    expected_num_samples=len(expected_vkitti),
-                    expected_preset_hash=expected_desc["preset_hash"],
-                )
-            else:
-                datasets["vkitti_train"] = VKITTI2Raw(
-                    args.vkitti_train_list,
-                    mode="train",
-                    size=size,
-                    min_depth=args.min_depth,
-                    max_depth=args.max_depth,
-                    randomize_unprocessing=args.vkitti_randomize_unprocessing,
-                    unprocessing_preset=args.vkitti_unprocessing_preset,
-                    unprocessing_mix_weights=args.vkitti_unprocessing_mix_weights,
-                    hflip_prob=args.vkitti_hflip_prob,
-                )
-        else:
-            datasets["vkitti_train"] = VKITTI2(
-                args.vkitti_train_list,
-                mode="train",
-                size=size,
-                min_depth=args.min_depth,
-                max_depth=args.max_depth,
-            )
-    if "hypersim" in raw_mix_sources:
-        datasets["hypersim_train"] = HypersimProcessedRaw(
-            filelist_path=args.hypersim_train_list,
-            processed_base=args.hypersim_processed_base,
-            split="train",
-            split_root=args.hypersim_train_root,
-            metadata_path=args.hypersim_train_meta,
-            mode="train",
-            size=size,
-            min_depth=args.hypersim_min_depth,
-            max_depth=args.hypersim_max_depth,
-            randomize_unprocessing=args.vkitti_randomize_unprocessing,
-            unprocessing_preset=args.vkitti_unprocessing_preset,
-            unprocessing_mix_weights=args.vkitti_unprocessing_mix_weights,
-            hflip_prob=args.vkitti_hflip_prob,
-        )
     return datasets
 
 
@@ -1553,85 +1326,6 @@ def build_loader(dataset, sampler, batch_size, num_workers, loader_kwargs, *, dr
     )
 
 
-def build_mixed_schedule(num_stf_steps, stf_per_vkitti):
-    if num_stf_steps <= 0:
-        return []
-    if stf_per_vkitti < 1:
-        raise ValueError(f"stf_per_vkitti must be >= 1, got {stf_per_vkitti}")
-
-    num_vkitti_steps = max(1, num_stf_steps // stf_per_vkitti)
-    target_positions = [
-        min(max(((idx + 1) * num_stf_steps) // (num_vkitti_steps + 1), 1), num_stf_steps)
-        for idx in range(num_vkitti_steps)
-    ]
-
-    schedule = []
-    position_iter = iter(target_positions)
-    next_position = next(position_iter, None)
-    for stf_idx in range(1, num_stf_steps + 1):
-        schedule.append("stf")
-        if next_position is not None and stf_idx >= next_position:
-            schedule.append("vkitti")
-            next_position = next(position_iter, None)
-    return schedule
-
-
-def build_lod_vkitti_schedule(num_lod_steps, lod_per_vkitti):
-    if num_lod_steps <= 0:
-        return []
-    if lod_per_vkitti < 1:
-        raise ValueError(f"lod_per_vkitti must be >= 1, got {lod_per_vkitti}")
-
-    num_vkitti_steps = max(1, num_lod_steps // lod_per_vkitti)
-    target_positions = [
-        min(max(((idx + 1) * num_lod_steps) // (num_vkitti_steps + 1), 1), num_lod_steps)
-        for idx in range(num_vkitti_steps)
-    ]
-
-    schedule = []
-    position_iter = iter(target_positions)
-    next_position = next(position_iter, None)
-    for lod_idx in range(1, num_lod_steps + 1):
-        schedule.append("lod")
-        if next_position is not None and lod_idx >= next_position:
-            schedule.append("vkitti")
-            next_position = next(position_iter, None)
-    return schedule
-
-
-def build_raw_mix_schedule(sources, weights, steps_per_epoch):
-    if steps_per_epoch < 1:
-        raise ValueError(f"steps_per_epoch must be >= 1, got {steps_per_epoch}")
-    if len(sources) != len(weights):
-        raise ValueError("sources and weights must have the same length")
-    if not sources:
-        raise ValueError("raw_mix schedule requires at least one source")
-    weights = [float(weight) for weight in weights]
-    if any(weight < 0 for weight in weights) or sum(weights) <= 0:
-        raise ValueError(f"raw_mix weights must be non-negative and sum to > 0, got {weights}")
-
-    total = float(sum(weights))
-    counts = {source: 0 for source in sources}
-    schedule = []
-    for step_idx in range(int(steps_per_epoch)):
-        step_number = step_idx + 1
-        best_source = None
-        best_deficit = None
-        for source, weight in zip(sources, weights):
-            desired = step_number * weight / total
-            deficit = desired - counts[source]
-            if best_deficit is None or deficit > best_deficit:
-                best_source = source
-                best_deficit = deficit
-        schedule.append(best_source)
-        counts[best_source] += 1
-    return schedule
-
-
-def raw_mix_dataset_key(source):
-    return f"{source}_train"
-
-
 def build_dataloaders(args, datasets):
     loader_kwargs = {}
     if args.num_workers > 0:
@@ -1639,34 +1333,11 @@ def build_dataloaders(args, datasets):
         loader_kwargs["prefetch_factor"] = 4
 
     state = {"samplers": {}}
-    if args.stage == "raw_mix":
-        source_loaders = {}
-        source_batches = {}
-        for source in args.train_sources:
-            dataset_key = raw_mix_dataset_key(source)
-            if dataset_key not in datasets:
-                raise KeyError(f"Missing dataset for raw_mix source {source!r}: expected key {dataset_key!r}")
-            sampler = DistributedSampler(datasets[dataset_key], shuffle=True)
-            loader = build_loader(
-                datasets[dataset_key],
-                sampler,
-                args.bs,
-                args.num_workers,
-                loader_kwargs,
-                drop_last=True,
-            )
-            source_loaders[source] = loader
-            source_batches[source] = len(loader)
-            state["samplers"][source] = sampler
-        schedule = build_raw_mix_schedule(args.train_sources, args.train_source_ratios, args.train_steps_per_epoch)
-        state["mode"] = "raw_mix"
-        state["source_loaders"] = source_loaders
-        state["source_batches_per_epoch"] = source_batches
-        state["schedule"] = schedule
-        state["steps_per_epoch"] = len(schedule)
-        state["train_sources"] = tuple(args.train_sources)
-        state["train_source_ratios"] = tuple(float(item) for item in args.train_source_ratios)
-    elif args.stage == "stf_only":
+    if args.eval_only:
+        state["mode"] = "eval_only"
+        state["steps_per_epoch"] = 0
+        state["source_names"] = ()
+    else:
         stf_sampler = DistributedSampler(datasets["stf_train"], shuffle=True)
         stf_loader = build_loader(
             datasets["stf_train"],
@@ -1681,108 +1352,7 @@ def build_dataloaders(args, datasets):
         state["samplers"]["stf"] = stf_sampler
         state["steps_per_epoch"] = len(stf_loader)
         state["single_source"] = "stf"
-        state["train_sources"] = ("stf",)
-    elif args.stage == "lod_only":
-        lod_sampler = DistributedSampler(datasets["lod_train"], shuffle=True)
-        lod_loader = build_loader(
-            datasets["lod_train"],
-            lod_sampler,
-            args.bs,
-            args.num_workers,
-            loader_kwargs,
-            drop_last=True,
-        )
-        state["mode"] = "single"
-        state["train_loader"] = lod_loader
-        state["samplers"]["lod"] = lod_sampler
-        state["steps_per_epoch"] = len(lod_loader)
-        state["single_source"] = "lod"
-        state["train_sources"] = ("lod",)
-    elif args.stage == "vkitti_lod":
-        lod_sampler = DistributedSampler(datasets["lod_train"], shuffle=True)
-        vkitti_sampler = DistributedSampler(datasets["vkitti_train"], shuffle=True)
-        lod_loader = build_loader(
-            datasets["lod_train"],
-            lod_sampler,
-            args.bs,
-            args.num_workers,
-            loader_kwargs,
-            drop_last=True,
-        )
-        vkitti_loader = build_loader(
-            datasets["vkitti_train"],
-            vkitti_sampler,
-            args.bs,
-            args.num_workers,
-            loader_kwargs,
-            drop_last=True,
-        )
-        baseline_schedule = build_lod_vkitti_schedule(len(lod_loader), args.lod_per_vkitti)
-        if args.lod_fraction is None:
-            schedule = baseline_schedule
-        else:
-            schedule = build_raw_mix_schedule(
-                ("lod", "vkitti"),
-                (args.lod_fraction, 1.0 - args.lod_fraction),
-                len(baseline_schedule),
-            )
-        state["mode"] = "lod_vkitti_mixed"
-        state["lod_loader"] = lod_loader
-        state["vkitti_loader"] = vkitti_loader
-        state["schedule"] = schedule
-        state["steps_per_epoch"] = len(schedule)
-        state["lod_batches_per_epoch"] = schedule.count("lod")
-        state["vkitti_batches_per_epoch"] = schedule.count("vkitti")
-        state["samplers"]["lod"] = lod_sampler
-        state["samplers"]["vkitti"] = vkitti_sampler
-        state["train_sources"] = ("lod", "vkitti")
-        state["lod_fraction"] = args.lod_fraction
-    elif args.stage == "vkitti_only":
-        vkitti_sampler = DistributedSampler(datasets["vkitti_train"], shuffle=True)
-        vkitti_loader = build_loader(
-            datasets["vkitti_train"],
-            vkitti_sampler,
-            args.bs,
-            args.num_workers,
-            loader_kwargs,
-            drop_last=True,
-        )
-        state["mode"] = "single"
-        state["train_loader"] = vkitti_loader
-        state["samplers"]["vkitti"] = vkitti_sampler
-        state["steps_per_epoch"] = len(vkitti_loader)
-        state["single_source"] = "vkitti"
-        state["train_sources"] = ("vkitti",)
-    else:
-        stf_sampler = DistributedSampler(datasets["stf_train"], shuffle=True)
-        vkitti_sampler = DistributedSampler(datasets["vkitti_train"], shuffle=True)
-        stf_loader = build_loader(
-            datasets["stf_train"],
-            stf_sampler,
-            args.bs,
-            args.num_workers,
-            loader_kwargs,
-            drop_last=True,
-        )
-        vkitti_loader = build_loader(
-            datasets["vkitti_train"],
-            vkitti_sampler,
-            args.bs,
-            args.num_workers,
-            loader_kwargs,
-            drop_last=True,
-        )
-        schedule = build_mixed_schedule(len(stf_loader), args.stf_repeat)
-        state["mode"] = "mixed"
-        state["stf_loader"] = stf_loader
-        state["vkitti_loader"] = vkitti_loader
-        state["schedule"] = schedule
-        state["steps_per_epoch"] = len(schedule)
-        state["stf_batches_per_epoch"] = len(stf_loader)
-        state["vkitti_batches_per_epoch"] = schedule.count("vkitti")
-        state["samplers"]["stf"] = stf_sampler
-        state["samplers"]["vkitti"] = vkitti_sampler
-        state["train_sources"] = ("stf", "vkitti")
+        state["source_names"] = ("stf",)
 
     if "val" in datasets:
         valsampler = DistributedSampler(datasets["val"], shuffle=False)
@@ -2129,16 +1699,16 @@ def sample_bilinear_disparity_at_mask(pred_disp, valid_mask, full_hw):
 
 
 def log_setup(logger, args, datasets, train_state, model):
+    cfg = resolved_config(args)
     total_params, trainable_params = count_parameters(model)
     model_ref = model.module if hasattr(model, "module") else model
     effective_bs = args.bs * args.accum_steps
     optimizer_steps_per_epoch = math.ceil(train_state["steps_per_epoch"] / args.accum_steps)
+    log_resolved_summary(logger, args)
     logger.info(
-        "[SETUP] stage=%s input_type=%s front_end=%s encoder=%s dav2_train_mode=%s epochs=%d bs=%d accum_steps=%d "
-        "effective_bs=%d lr=%.2e num_workers=%d",
+        "[SETUP] stage=%s input_type=%s encoder=%s dav2_train_mode=%s epochs=%d bs=%d accum_steps=%d effective_bs=%d lr=%.2e num_workers=%d",
         args.stage,
         args.input_type,
-        args.front_end,
         args.encoder,
         args.dav2_train_mode,
         args.epochs,
@@ -2148,6 +1718,7 @@ def log_setup(logger, args, datasets, train_state, model):
         args.lr,
         args.num_workers,
     )
+    logger.info("[SETUP][resolved_config] %s", json.dumps(cfg.to_dict(), sort_keys=True))
     logger.info(
         "[SETUP] optimizer_steps_per_epoch=%d micro_steps_per_epoch=%d",
         optimizer_steps_per_epoch,
@@ -2185,29 +1756,22 @@ def log_setup(logger, args, datasets, train_state, model):
             args.loss_target_normalization,
             args.loss_norm_min_scale,
         )
-    if args.input_type in RAW_MODEL_INPUT_TYPES:
+    if cfg.dataset_family == "stf_raw":
         logger.info(
-            "[STF_RAW] raw_storage_format=%s raw_storage_channel_order=%s raw_model_channel_order=%s "
-            "raw_decompand=%s raw_post_decode_norm=%s raw_channel_count=%s train_target_mode=%s pseudo_manifest=%s "
-            "fast_eval_backend=%s raw_ram_rgb_tail=%s",
+            "[STF_RAW] raw_storage_format=%s channel_mode=%s train_target_mode=%s pseudo_manifest=%s fast_eval_backend=%s raw_ram_rgb_tail=%s",
             args.raw_storage_format,
-            args.raw_storage_channel_order,
-            args.raw_model_channel_order,
-            args.raw_decompand,
-            args.raw_post_decode_norm,
-            args.raw_channel_count,
+            args.channel_mode,
             args.stf_train_target_mode,
             args.stf_pseudo_manifest,
             args.stf_fast_eval_backend,
             args.raw_ram_rgb_tail,
         )
-    elif args.input_type in RGB_INPUT_TYPES:
+    elif cfg.dataset_family == "stf_rgb":
         logger.info(
             "[STF_RGB] train_target_mode=%s pseudo_manifest=%s",
             args.stf_train_target_mode,
             args.stf_pseudo_manifest,
         )
-    lod_manifests = resolve_lod_manifest_paths(args)
     if "stf_train" in datasets:
         if "val" in datasets:
             logger.info(
@@ -2222,21 +1786,6 @@ def log_setup(logger, args, datasets, train_state, model):
                 len(datasets["stf_train"]),
                 True,
             )
-    elif "lod_train" in datasets:
-        if "val" in datasets:
-            logger.info(
-                "[DATASET] lod_train=%d lod_manifests=%s val=%d stf_val_input_hw=%s",
-                len(datasets["lod_train"]),
-                lod_manifests,
-                len(datasets["val"]),
-                get_stf_eval_size(args),
-            )
-        else:
-            logger.info(
-                "[DATASET] lod_train=%d lod_manifests=%s",
-                len(datasets["lod_train"]),
-                lod_manifests,
-            )
     else:
         if "val" in datasets:
             logger.info(
@@ -2246,11 +1795,13 @@ def log_setup(logger, args, datasets, train_state, model):
             )
     if "kitti_val" in datasets:
         logger.info(
-            "[DATASET] kitti_val=%d min_depth=%.1f max_depth=%.1f protocol=%s",
+            "[DATASET] kitti_val=%d min_depth=%.1f max_depth=%.1f protocol=%s model_source=%s eval_input_domain=%s model_input_tensor=image",
             len(datasets["kitti_val"]),
             args.kitti_min_depth,
             args.kitti_max_depth,
             args.kitti_eval_protocol,
+            cfg.kitti_model_source,
+            cfg.eval_input_domain,
         )
     if "nyu_val" in datasets:
         logger.info(
@@ -2274,7 +1825,7 @@ def log_setup(logger, args, datasets, train_state, model):
             args.eth3d_min_depth,
             args.eth3d_max_depth,
             args.input_type,
-            args.eth3d_norm_mode if args.input_type not in RGB_INPUT_TYPES else "n/a",
+            args.eth3d_norm_mode if cfg.dataset_family != "stf_rgb" else "n/a",
             args.eth3d_fast_eval_backend,
             train_state.get(f"{dataset_key}_num_workers", "n/a"),
         )
@@ -2290,7 +1841,7 @@ def log_setup(logger, args, datasets, train_state, model):
             args.robotcar_min_depth,
             args.robotcar_max_depth,
             args.input_type,
-            args.robotcar_norm_mode if args.input_type not in RGB_INPUT_TYPES else "n/a",
+            args.robotcar_norm_mode if cfg.dataset_family != "stf_rgb" else "n/a",
             getattr(getattr(datasets[dataset_key], "raw_domain_config", None), "describe", lambda: "n/a")(),
             args.robotcar_fast_eval_backend,
             train_state.get(f"{dataset_key}_num_workers", "n/a"),
@@ -2308,7 +1859,7 @@ def log_setup(logger, args, datasets, train_state, model):
             args.robotcar_night_min_depth,
             args.robotcar_night_max_depth,
             args.input_type,
-            args.robotcar_night_norm_mode if args.input_type not in RGB_INPUT_TYPES else "n/a",
+            args.robotcar_night_norm_mode if cfg.dataset_family != "stf_rgb" else "n/a",
             getattr(getattr(datasets[dataset_key], "raw_domain_config", None), "describe", lambda: "n/a")(),
             args.robotcar_night_fast_eval_backend,
             train_state.get(f"{dataset_key}_num_workers", "n/a"),
@@ -2327,69 +1878,25 @@ def log_setup(logger, args, datasets, train_state, model):
             args.robotcar_night_manifest_name,
             args.robotcar_night_root,
         )
-    if args.input_type in RAW_MODEL_INPUT_TYPES:
+    if cfg.dataset_family == "stf_raw":
         logger.info(
-            "[DATASET] raw_npz_root=%s raw_storage_format=%s raw_storage_channel_order=%s raw_model_channel_order=%s "
-            "raw_post_decode_norm=%s imagenet_norm=%s rgb_interface_mode=%s rgb_residual_scale=%.3g",
+            "[DATASET] raw_npz_root=%s raw_storage_format=%s channel_mode=%s imagenet_norm=%s rgb_interface_mode=%s rgb_residual_scale=%.3g",
             args.raw_npz_root,
             args.raw_storage_format,
-            args.raw_storage_channel_order,
-            args.raw_model_channel_order,
-            args.raw_post_decode_norm,
+            args.channel_mode,
             args.use_imagenet_norm,
             args.rgb_interface_mode,
             args.rgb_residual_scale,
         )
-    if "lod_train" in datasets:
-        logger.info(
-            "[DATASET] lod_train_crop_hw=%s lod_crop_mode=%s lod_input=%s lod_root=%s raw_domain=%s target_space=inverse_relative",
-            (args.input_height, args.input_width),
-            args.lod_crop_mode,
-            "rgb" if args.input_type in RGB_INPUT_TYPES else "raw",
-            args.lod_root,
-            getattr(getattr(datasets["lod_train"], "raw_domain_config", None), "describe", lambda: "n/a")(),
-        )
-    for source_name in ("lod_day", "lod_night"):
-        dataset_key = f"{source_name}_train"
-        if dataset_key in datasets:
-            logger.info(
-                "[DATASET] %s=%d crop_hw=%s lod_crop_mode=%s lod_root=%s raw_domain=%s target_space=inverse_relative",
-                dataset_key,
-                len(datasets[dataset_key]),
-                (args.input_height, args.input_width),
-                args.lod_crop_mode,
-                args.lod_root,
-                getattr(getattr(datasets[dataset_key], "raw_domain_config", None), "describe", lambda: "n/a")(),
-            )
-    if "hypersim_train" in datasets:
-        hypersim_unproc_desc = datasets["hypersim_train"].describe_unprocessing()
-        logger.info(
-            "[DATASET] hypersim_train=%d mode=marigold_processed pseudo_raw_online split_root=%s "
-            "min_depth=%.2f max_depth=%.1f randomize_unprocessing=%s hflip_prob=%.2f "
-            "unprocessing_preset=%s selected_default_sub=%s mix_weights=%s preset_version=%s preset_hash=%s",
-            len(datasets["hypersim_train"]),
-            datasets["hypersim_train"].split_root,
-            args.hypersim_min_depth,
-            args.hypersim_max_depth,
-            args.vkitti_randomize_unprocessing,
-            args.vkitti_hflip_prob,
-            hypersim_unproc_desc["unprocessing_preset"],
-            hypersim_unproc_desc["default_sub_preset"],
-            hypersim_unproc_desc["mix_weights"],
-            hypersim_unproc_desc["preset_version"],
-            hypersim_unproc_desc["preset_hash"],
-        )
-    if args.input_type in RAW_MODEL_INPUT_TYPES or args.input_type in RGB_INPUT_TYPES:
-        logger.info("[MODEL] %s front_end=%s", args.input_type, args.front_end)
-    if args.input_type in RAW_PACKED_INPUT_TYPES:
+    if cfg.front_end == "raw_to_rgb_head":
         logger.info(
             "[MODEL] %s packed_bayer4_native -> 1x1 stem -> imagenet norm -> center_pad -> DAv2 -> center_crop",
             args.input_type,
         )
-    if args.input_type in RAW_RAM_INPUT_TYPES:
+    if cfg.front_end == "raw_ram4" and not uses_bridge(args) and not uses_decoder_feature_adapter(args):
         head_desc = (
             describe_rgb_interface(args.rgb_interface_mode, args.rgb_residual_scale)
-            if args.input_type == "raw_ram"
+            if args.input_type in {"raw_ram", "raw_ram_lora"}
             else "base_rgb+0.1*tanh(residual_head)"
         )
         logger.info(
@@ -2398,7 +1905,7 @@ def log_setup(logger, args, datasets, train_state, model):
             FUNCTION_ORDER,
             head_desc,
         )
-    if args.input_type in RAW_RAM_RGB_INPUT_TYPES:
+    if cfg.front_end == "raw_to_base_rgb_ram3" and not uses_bridge(args) and not uses_decoder_feature_adapter(args):
         raw_rgb_tail_desc = (
             "ramcore_bn_no_clamp_no_imagenet_norm"
             if args.raw_ram_rgb_tail == "identity"
@@ -2410,26 +1917,27 @@ def log_setup(logger, args, datasets, train_state, model):
             FUNCTION_ORDER,
             raw_rgb_tail_desc,
         )
-    if args.input_type in (*RAW_RAM_BRIDGE_INPUT_TYPES, *RAW_RAM_RGB_BRIDGE_INPUT_TYPES):
+    if uses_bridge(args) and not uses_decoder_feature_adapter(args):
         bridge_head_desc = (
             "ramcore_bn_tanh25_no_clamp_no_imagenet_norm"
-            if args.input_type in RAW_RAM_RGB_BRIDGE_INPUT_TYPES
+            if cfg.front_end == "raw_to_base_rgb_ram3"
             else describe_rgb_interface(args.rgb_interface_mode, args.rgb_residual_scale)
         )
-        if args.input_type in (*RAW_RAM_BRIDGE_LORA_INPUT_TYPES, *RAW_RAM_RGB_BRIDGE_LORA_INPUT_TYPES):
+        if uses_lora(args):
             logger.info(
                 "[MODEL] %s bridge_source=%s bridge_feature_keys=%s bridge_layers=%s rgb_interface_head=%s "
                 "dav2_train_mode=%s base_lr=%.2e bridge_lr=%.2e "
-                "lora_block_mode=%s lora_blocks=%s lora_rank=%d lora_alpha=%.1f lora_lr=%.2e",
+                "lora_block_mode=%s lora_tap_layers=%s lora_blocks=%s lora_rank=%d lora_alpha=%.1f lora_lr=%.2e",
                 args.input_type,
                 args.bridge_source,
-                args.bridge_feature_keys,
-                args.bridge_layers,
+                list(cfg.bridge_feature_keys),
+                list(cfg.bridge_layers),
                 bridge_head_desc,
                 args.dav2_train_mode,
                 args.lr,
                 args.bridge_lr,
                 args.lora_block_mode,
+                list(cfg.lora_tap_layers),
                 getattr(model_ref, "lora_block_indices", ()),
                 args.lora_rank,
                 args.lora_alpha,
@@ -2441,34 +1949,36 @@ def log_setup(logger, args, datasets, train_state, model):
                 "dav2_train_mode=%s base_lr=%.2e bridge_lr=%.2e",
                 args.input_type,
                 args.bridge_source,
-                args.bridge_feature_keys,
-                args.bridge_layers,
+                list(cfg.bridge_feature_keys),
+                list(cfg.bridge_layers),
                 bridge_head_desc,
                 args.dav2_train_mode,
                 args.lr,
                 args.bridge_lr,
             )
-    if args.input_type in (*RAW_RAM_BRIDGE_FEATURE_ADAPTER_INPUT_TYPES, *RAW_RAM_RGB_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES):
+    if uses_bridge(args) and uses_decoder_feature_adapter(args):
         feature_adapter_image_desc = (
             "ramcore_bn_tanh25_no_clamp_no_imagenet_norm"
-            if args.input_type in RAW_RAM_RGB_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES
+            if cfg.front_end == "raw_to_base_rgb_ram3"
             else describe_rgb_interface(args.rgb_interface_mode, args.rgb_residual_scale)
         )
-        if args.input_type in RAW_RAM_BRIDGE_FEATURE_ADAPTER_LORA_INPUT_TYPES:
+        if uses_lora(args):
             logger.info(
-                "[MODEL] %s bridge_source=%s feature_keys=%s bridge_layers=%s "
+                "[MODEL] %s bridge_source=%s bridge_feature_keys=%s feature_adapter_keys=%s bridge_layers=%s "
                 "dav2_train_mode=%s base_lr=%.2e adapter_lr=%.2e "
                 "decoder_fusion=path_4,path_3,path_2 image_bridge=%s "
-                "lora_block_mode=%s lora_blocks=%s lora_rank=%d lora_alpha=%.1f lora_lr=%.2e",
+                "lora_block_mode=%s lora_tap_layers=%s lora_blocks=%s lora_rank=%d lora_alpha=%.1f lora_lr=%.2e",
                 args.input_type,
                 args.bridge_source,
-                args.bridge_feature_keys,
-                args.bridge_layers,
+                list(cfg.bridge_feature_keys),
+                list(cfg.feature_adapter_keys),
+                list(cfg.bridge_layers),
                 args.dav2_train_mode,
                 args.lr,
                 args.bridge_lr,
                 feature_adapter_image_desc,
                 args.lora_block_mode,
+                list(cfg.lora_tap_layers),
                 getattr(model_ref, "lora_block_indices", ()),
                 args.lora_rank,
                 args.lora_alpha,
@@ -2476,110 +1986,41 @@ def log_setup(logger, args, datasets, train_state, model):
             )
         else:
             logger.info(
-                "[MODEL] %s bridge_source=%s feature_keys=%s bridge_layers=%s "
+                "[MODEL] %s bridge_source=%s bridge_feature_keys=%s feature_adapter_keys=%s bridge_layers=%s "
                 "dav2_train_mode=%s base_lr=%.2e adapter_lr=%.2e "
                 "decoder_fusion=path_4,path_3,path_2 image_bridge=%s",
                 args.input_type,
                 args.bridge_source,
-                args.bridge_feature_keys,
-                args.bridge_layers,
+                list(cfg.bridge_feature_keys),
+                list(cfg.feature_adapter_keys),
+                list(cfg.bridge_layers),
                 args.dav2_train_mode,
                 args.lr,
                 args.bridge_lr,
                 feature_adapter_image_desc,
             )
-    if args.input_type in RAW_RAM_FEATURE_ADAPTER_ONLY_INPUT_TYPES:
+    if uses_decoder_feature_adapter(args) and not uses_bridge(args):
+        feature_adapter_image_desc = (
+            "ramcore_bn_tanh25_no_clamp_no_imagenet_norm"
+            if cfg.front_end == "raw_to_base_rgb_ram3"
+            else describe_rgb_interface(args.rgb_interface_mode, args.rgb_residual_scale)
+        )
         logger.info(
             "[MODEL] %s feature_keys=%s dav2_train_mode=%s base_lr=%.2e adapter_lr=%.2e "
             "decoder_fusion=path_4,path_3,path_2 image_bridge=%s",
             args.input_type,
-            args.bridge_feature_keys,
+            list(cfg.feature_adapter_keys),
             args.dav2_train_mode,
             args.lr,
             args.bridge_lr,
-            describe_rgb_interface(args.rgb_interface_mode, args.rgb_residual_scale),
+            feature_adapter_image_desc,
         )
-    if "vkitti_train" in datasets:
-        if args.input_type in RAW_MODEL_INPUT_TYPES:
-            vkitti_dataset = datasets["vkitti_train"]
-            vkitti_unproc_desc = vkitti_dataset.describe_unprocessing()
-            if isinstance(vkitti_dataset, CachedVKITTI2Raw):
-                logger.info(
-                    "[DATASET] vkitti_train=%d mode=pseudo_raw_cached cache_root=%s k=%d randomized_once seed=%s "
-                    "raw_dtype=%s depth_dtype=%s valid_mask_dtype=%s partial=%s tag=%s "
-                    "unprocessing_preset=%s selected_default_sub=%s mix_weights=%s preset_version=%s preset_hash=%s",
-                    len(vkitti_dataset),
-                    vkitti_dataset.cache_root,
-                    vkitti_dataset.num_variants,
-                    vkitti_dataset.seed,
-                    vkitti_dataset.storage.get("raw_dtype"),
-                    vkitti_dataset.storage.get("depth_dtype"),
-                    vkitti_dataset.storage.get("valid_mask_dtype"),
-                    vkitti_dataset.allow_partial,
-                    vkitti_dataset.cache_tag,
-                    vkitti_unproc_desc["unprocessing_preset"],
-                    vkitti_unproc_desc["default_sub_preset"],
-                    vkitti_unproc_desc["mix_weights"],
-                    vkitti_unproc_desc["preset_version"],
-                    vkitti_unproc_desc["preset_hash"],
-                )
-            else:
-                logger.info(
-                    "[DATASET] vkitti_train=%d mode=pseudo_raw_online randomize_unprocessing=%s hflip_prob=%.2f "
-                    "unprocessing_preset=%s selected_default_sub=%s mix_weights=%s preset_version=%s preset_hash=%s",
-                    len(vkitti_dataset),
-                    args.vkitti_randomize_unprocessing,
-                    args.vkitti_hflip_prob,
-                    vkitti_unproc_desc["unprocessing_preset"],
-                    vkitti_unproc_desc["default_sub_preset"],
-                    vkitti_unproc_desc["mix_weights"],
-                    vkitti_unproc_desc["preset_version"],
-                    vkitti_unproc_desc["preset_hash"],
-                )
-        else:
-            logger.info(
-                "[DATASET] vkitti_train=%d mode=rgb",
-                len(datasets["vkitti_train"]),
-            )
-    if train_state["mode"] == "raw_mix":
+    if train_state["mode"] == "eval_only":
         logger.info(
-            "[DATALOADER] mode=raw_mix sources=%s ratios=%s source_batches=%s total_steps_per_epoch=%d",
-            train_state["train_sources"],
-            train_state["train_source_ratios"],
-            train_state["source_batches_per_epoch"],
-            train_state["steps_per_epoch"],
+            "[DATALOADER] mode=eval_only val_steps=%s kitti_val_steps=%s",
+            len(train_state["val_loader"]) if "val_loader" in train_state else "n/a",
+            len(train_state["kitti_val_loader"]) if "kitti_val_loader" in train_state else "n/a",
         )
-        logger.info(
-            "[DATALOADER] raw_mix schedule_counts=%s",
-            {source: train_state["schedule"].count(source) for source in train_state["train_sources"]},
-        )
-    elif train_state["mode"] == "mixed":
-        logger.info(
-            "[DATASET] vkitti_train=%d stf_repeat=%d stf_batches=%d vkitti_batches=%d total_steps_per_epoch=%d",
-            len(datasets["vkitti_train"]),
-            args.stf_repeat,
-            train_state["stf_batches_per_epoch"],
-            train_state["vkitti_batches_per_epoch"],
-            train_state["steps_per_epoch"],
-        )
-    elif train_state["mode"] == "lod_vkitti_mixed":
-        if train_state.get("lod_fraction") is None:
-            logger.info(
-                "[DATASET] lod_batches=%d vkitti_batches=%d lod_per_vkitti=%d total_steps_per_epoch=%d",
-                train_state["lod_batches_per_epoch"],
-                train_state["vkitti_batches_per_epoch"],
-                args.lod_per_vkitti,
-                train_state["steps_per_epoch"],
-            )
-        else:
-            logger.info(
-                "[DATASET] lod_batches=%d vkitti_batches=%d lod_fraction=%.4f baseline_lod_per_vkitti=%d total_steps_per_epoch=%d",
-                train_state["lod_batches_per_epoch"],
-                train_state["vkitti_batches_per_epoch"],
-                train_state["lod_fraction"],
-                args.lod_per_vkitti,
-                train_state["steps_per_epoch"],
-            )
     else:
         logger.info(
             "[DATALOADER] mode=single source=%s train_steps_per_epoch=%d val_steps=%s kitti_val_steps=%s",
@@ -2594,28 +2035,36 @@ def log_setup(logger, args, datasets, train_state, model):
         trainable_params,
         total_params - trainable_params,
     )
-    if args.input_type in (*RGB_LORA_INPUT_TYPES, *RAW_RAM_RGB_LORA_INPUT_TYPES):
+    if uses_lora(args) and not uses_bridge(args) and not uses_decoder_feature_adapter(args):
         logger.info(
             "[MODEL] %s dav2_train_mode=%s base_lr=%.2e lora_block_mode=%s lora_blocks=%s "
-            "lora_rank=%d lora_alpha=%.1f lora_lr=%.2e",
+            "lora_tap_layers=%s lora_rank=%d lora_alpha=%.1f lora_lr=%.2e",
             args.input_type,
             args.dav2_train_mode,
             args.lr,
             args.lora_block_mode,
             getattr(model_ref, "lora_block_indices", ()),
+            list(cfg.lora_tap_layers),
             args.lora_rank,
             args.lora_alpha,
             args.lora_lr,
         )
 
 
-def prepare_model_input(sample, args, *, input_type_override=None):
-    input_type = args.input_type if input_type_override is None else str(input_type_override)
-    if input_type in RAW_MODEL_INPUT_TYPES:
-        tensor = sample["raw"] if "raw" in sample else sample["image"]
-    else:
-        tensor = sample["image"]
-
+def prepare_model_input(sample, args, *, input_type_override=None, model_input_tensor=None, sample_source=None):
+    cfg = resolved_config(args)
+    if model_input_tensor is None:
+        model_input_tensor = input_type_override
+    model_input_tensor = coerce_model_input_tensor(
+        model_input_tensor,
+        default=cfg.model_input_tensor,
+    )
+    tensor = select_model_input(
+        sample,
+        model_input_tensor,
+        dataset_family=cfg.dataset_family,
+        sample_source=sample_source,
+    )
     tensor = tensor.cuda(non_blocking=True).float()
     return tensor
 
@@ -2637,6 +2086,10 @@ def evaluate(
     model_input_type=None,
 ):
     model.eval()
+    eval_model_input_tensor = coerce_model_input_tensor(
+        model_input_type,
+        default=resolved_config(args).model_input_tensor,
+    )
     amp_dtype = torch.float16 if getattr(args, "amp_dtype", "bf16") == "fp16" else torch.bfloat16
     min_depth = args.min_depth if min_depth is None else float(min_depth)
     max_depth = args.max_depth if max_depth is None else float(max_depth)
@@ -2648,12 +2101,13 @@ def evaluate(
 
     if rank == 0 and logger is not None:
         logger.info(
-            "[EVAL][%s] start epoch=%s max_samples=%s min_depth=%g max_depth=%g",
+            "[EVAL][%s] start epoch=%s max_samples=%s min_depth=%g max_depth=%g model_input_tensor=%s",
             tag,
             "init" if epoch is None else epoch,
             max_samples,
             min_depth,
             max_depth,
+            eval_model_input_tensor,
         )
 
     processed = 0
@@ -2661,7 +2115,7 @@ def evaluate(
         if max_samples is not None and processed >= max_samples:
             break
 
-        img = prepare_model_input(sample, args, input_type_override=model_input_type)
+        img = prepare_model_input(sample, args, model_input_tensor=eval_model_input_tensor, sample_source=tag)
         depth = sample["depth"][0].cuda(non_blocking=True).float()
         valid_mask = sample["valid_mask"][0].cuda(non_blocking=True).bool()
         depth_mode = str(get_single_sample_meta(sample, "depth_mode", "full"))
@@ -2863,39 +2317,7 @@ def fetch_train_sample(train_state):
     mode = train_state["mode"]
     if mode == "single":
         return next(train_state["train_iter"]), train_state.get("single_source", "stf")
-
-    source = train_state["schedule"][train_state["schedule_index"]]
-    train_state["schedule_index"] += 1
-
-    if mode == "raw_mix":
-        try:
-            return next(train_state["source_iters"][source]), source
-        except StopIteration:
-            train_state["source_iters"][source] = iter(train_state["source_loaders"][source])
-            return next(train_state["source_iters"][source]), source
-
-    if mode == "mixed":
-        if source == "stf":
-            return next(train_state["stf_iter"]), source
-        iterator_key = "vkitti_iter"
-        loader_key = "vkitti_loader"
-    elif mode == "lod_vkitti_mixed":
-        if source == "lod":
-            iterator_key = "lod_iter"
-            loader_key = "lod_loader"
-        elif source == "vkitti":
-            iterator_key = "vkitti_iter"
-            loader_key = "vkitti_loader"
-        else:
-            raise ValueError(f"Unsupported source in lod_vkitti_mixed schedule: {source!r}")
-    else:
-        raise ValueError(f"Unsupported train mode: {mode!r}")
-
-    try:
-        return next(train_state[iterator_key]), source
-    except StopIteration:
-        train_state[iterator_key] = iter(train_state[loader_key])
-        return next(train_state[iterator_key]), source
+    raise ValueError(f"Unsupported train mode: {mode!r}")
 
 
 def attach_file_logger(logger, log_path):
@@ -2914,6 +2336,20 @@ def attach_file_logger(logger, log_path):
 def save_json(path, payload):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(payload, f, indent=2, sort_keys=True)
+
+
+def kitti_eval_metadata(args, *, checkpoint_source, metrics):
+    cfg = resolved_config(args)
+    return {
+        "checkpoint_source": checkpoint_source,
+        "stage": args.stage,
+        "split": "kitti_val",
+        "protocol": args.kitti_eval_protocol,
+        "kitti_model_source": cfg.kitti_model_source,
+        "eval_input_domain": cfg.eval_input_domain,
+        "model_input_tensor": "image" if cfg.eval_input_domain == "rgb" else cfg.model_input_tensor,
+        "metrics": metrics,
+    }
 
 
 def log_eval_summary(logger, tag, summary):
@@ -2969,18 +2405,6 @@ def _build_layer_decay_param_groups(args, model):
 
     max_layer_id = num_blocks + 2
     lora_group_lr = args.bridge_lr if args.lora_lr is None else args.lora_lr
-    adapter_prefixes = (
-        "ram_core.",
-        "rgb_head.",
-        "residual_head.",
-        "bridge_adapter.",
-        "image_bridge.",
-        "feature_projector.",
-        "merge1.",
-        "merge2.",
-        "merge3.",
-    )
-
     groups = []
     key_to_index = {}
 
@@ -2988,7 +2412,8 @@ def _build_layer_decay_param_groups(args, model):
         group_index = key_to_index.get(key)
         if group_index is None:
             key_to_index[key] = len(groups)
-            groups.append({"params": [param], "lr": lr, "initial_lr": lr})
+            group_name = "_".join(str(part) for part in key)
+            groups.append({"params": [param], "lr": lr, "initial_lr": lr, "group_name": group_name})
         else:
             groups[group_index]["params"].append(param)
 
@@ -2999,8 +2424,9 @@ def _build_layer_decay_param_groups(args, model):
         if ".lora_A." in name or ".lora_B." in name:
             _append_param(("lora",), lora_group_lr, param)
             continue
-        if name.startswith(adapter_prefixes):
-            _append_param(("adapter",), args.bridge_lr, param)
+        group_name = _optimizer_group_name_for_param(name)
+        if group_name in {"raw_front_end", "bridge", "decoder_feature_adapter", "dav2_decoder"}:
+            _append_param((group_name,), _optimizer_lr_for_group(args, group_name), param)
             continue
 
         layer_id = layer_map.get(id(param))
@@ -3014,45 +2440,106 @@ def _build_layer_decay_param_groups(args, model):
     return groups
 
 
+RAW_FRONT_END_PARAM_PREFIXES = (
+    "input_stem.",
+    "ram_core.",
+    "rgb_head.",
+    "image_bridge.",
+    "residual_head.",
+)
+DECODER_FEATURE_ADAPTER_PARAM_PREFIXES = (
+    "feature_projector.",
+    "merge1.",
+    "merge2.",
+    "merge3.",
+)
+
+
+def _optimizer_group_name_for_param(name):
+    if ".lora_A." in name or ".lora_B." in name:
+        return "lora"
+    if name.startswith("bridge_adapter."):
+        return "bridge"
+    if name.startswith(DECODER_FEATURE_ADAPTER_PARAM_PREFIXES):
+        return "decoder_feature_adapter"
+    if name.startswith(RAW_FRONT_END_PARAM_PREFIXES):
+        return "raw_front_end"
+    if name.startswith("dav2.depth_head.") or name.startswith("depth_head."):
+        return "dav2_decoder"
+    return "base"
+
+
+def _optimizer_lr_for_group(args, group_name):
+    if group_name in {"raw_front_end", "bridge", "decoder_feature_adapter"}:
+        return args.bridge_lr
+    if group_name == "lora":
+        return args.bridge_lr if args.lora_lr is None else args.lora_lr
+    return args.lr
+
+
+def _build_named_param_groups(args, model):
+    groups_by_name = {}
+    order = ("base", "raw_front_end", "bridge", "decoder_feature_adapter", "lora", "dav2_decoder")
+    for name, param in model.named_parameters():
+        if not param.requires_grad:
+            continue
+        group_name = _optimizer_group_name_for_param(name)
+        groups_by_name.setdefault(group_name, []).append(param)
+
+    param_groups = []
+    for group_name in order:
+        params = groups_by_name.get(group_name)
+        if not params:
+            continue
+        lr = _optimizer_lr_for_group(args, group_name)
+        param_groups.append({"params": params, "lr": lr, "initial_lr": lr, "group_name": group_name})
+    for group_name, params in groups_by_name.items():
+        if group_name in order:
+            continue
+        lr = _optimizer_lr_for_group(args, group_name)
+        param_groups.append({"params": params, "lr": lr, "initial_lr": lr, "group_name": group_name})
+    return param_groups
+
+
+def _required_optimizer_groups(args):
+    cfg = resolved_config(args)
+    required = []
+    if cfg.front_end in {"raw_to_rgb_head", "raw_ram4", "raw_to_base_rgb_ram3"}:
+        required.append("raw_front_end")
+    if cfg.bridge != "none":
+        required.append("bridge")
+    if cfg.decoder_feature_adapter != "none":
+        required.append("decoder_feature_adapter")
+    if cfg.lora != "none":
+        required.append("lora")
+    if args.dav2_train_mode != "none":
+        required.append("dav2_decoder")
+    return tuple(dict.fromkeys(required))
+
+
+def _validate_optimizer_param_groups(args, param_groups):
+    if not param_groups:
+        raise ValueError("Optimizer has no trainable parameter groups")
+    counts = {}
+    for group in param_groups:
+        trainable_count = sum(param.numel() for param in group["params"] if param.requires_grad)
+        counts[str(group["group_name"])] = counts.get(str(group["group_name"]), 0) + int(trainable_count)
+    missing = [group_name for group_name in _required_optimizer_groups(args) if counts.get(group_name, 0) == 0]
+    if missing:
+        details = ", ".join(f"{name}=0" for name in missing)
+        raise ValueError(f"Enabled optimizer group has no trainable parameters: {details}")
+
+
 def build_optimizer(args, model):
     if args.backbone_layer_decay < 1.0:
         param_groups = _build_layer_decay_param_groups(args, model)
-    elif args.input_type in (*RGB_LORA_INPUT_TYPES, *RAW_RAM_RGB_LORA_INPUT_TYPES):
-        base_params = []
-        lora_params = []
-        for name, param in model.named_parameters():
-            if not param.requires_grad:
-                continue
-            if ".lora_A." in name or ".lora_B." in name:
-                lora_params.append(param)
-            else:
-                base_params.append(param)
-
-        param_groups = []
-        if base_params:
-            param_groups.append({"params": base_params, "lr": args.lr, "initial_lr": args.lr})
-        if lora_params:
-            lora_lr = args.bridge_lr if args.lora_lr is None else args.lora_lr
-            param_groups.append({"params": lora_params, "lr": lora_lr, "initial_lr": lora_lr})
-    elif (
-        args.input_type in (
-            *RAW_RAM_BRIDGE_INPUT_TYPES,
-            *RAW_RAM_RGB_BRIDGE_INPUT_TYPES,
-            *RAW_RAM_FEATURE_ADAPTER_INPUT_TYPES,
-        )
-        and hasattr(model, "get_optimizer_param_groups")
-    ):
-        param_groups = model.get_optimizer_param_groups(
-            base_lr=args.lr,
-            bridge_lr=args.bridge_lr,
-            lora_lr=args.lora_lr,
-        )
     else:
-        trainable_params = [param for param in model.parameters() if param.requires_grad]
-        param_groups = [{"params": trainable_params, "lr": args.lr, "initial_lr": args.lr}]
+        param_groups = _build_named_param_groups(args, model)
 
     for group in param_groups:
         group.setdefault("initial_lr", group["lr"])
+        group.setdefault("group_name", "base")
+    _validate_optimizer_param_groups(args, param_groups)
 
     return AdamW(
         param_groups,
@@ -3060,6 +2547,28 @@ def build_optimizer(args, model):
         weight_decay=0.01,
         foreach=True,
     )
+
+
+def summarize_optimizer_param_groups(optimizer):
+    summary = []
+    for idx, group in enumerate(optimizer.param_groups):
+        params = list(group.get("params", ()))
+        trainable = [param for param in params if getattr(param, "requires_grad", False)]
+        summary.append(
+            {
+                "group_name": str(group.get("group_name", f"group_{idx}")),
+                "lr": float(group["lr"]),
+                "trainable_param_count": int(sum(param.numel() for param in trainable)),
+                "trainable_tensor_count": int(len(trainable)),
+            }
+        )
+    return summary
+
+
+def attach_optimizer_param_groups_to_resolved_config(args, optimizer):
+    resolved = resolved_config(args).with_optimizer_param_groups(summarize_optimizer_param_groups(optimizer))
+    args.resolved_config = resolved
+    return resolved
 
 
 def build_training_criterion(args, device):
@@ -3172,6 +2681,8 @@ def main():
     fixed_viz_rgb_baseline_model = None
     train_viz_rgb_baseline_model = None
     train_viz_rgb_baseline_status = None
+    fixed_viz_rgb_baseline_source = "pretrained_from_rgb_reference"
+    train_viz_rgb_baseline_source = "pretrained_from_rgb_reference"
     start_epoch = 0
     best_metrics = {name: float("inf") for name in BEST_METRIC_CHOICES}
     bridge_init_status = None
@@ -3183,16 +2694,7 @@ def main():
         best_metrics = get_best_metrics_from_resume(resume)
     else:
         load_initial_weights(model, args.pretrained_from, input_type=args.input_type)
-        if (
-            args.input_type
-            in (
-                *RAW_RAM_BRIDGE_INPUT_TYPES,
-                *RAW_RAM_RGB_BRIDGE_INPUT_TYPES,
-                *RAW_RAM_BRIDGE_FEATURE_ADAPTER_INPUT_TYPES,
-                *RAW_RAM_RGB_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES,
-            )
-            and args.bridge_init_from
-        ):
+        if uses_bridge(args) and args.bridge_init_from:
             bridge_init_status = load_optional_bridge_init_weights(model, args.bridge_init_from)
 
     if kitti_valloader is not None and args.kitti_eval_protocol == "rgb_pretrained_ref":
@@ -3226,6 +2728,7 @@ def main():
     if needs_train_viz_rgb_baseline:
         if args.train_viz_rgb_baseline_checkpoint:
             train_viz_rgb_baseline_model, train_viz_rgb_baseline_status = build_train_viz_rgb_baseline_model(args)
+            train_viz_rgb_baseline_source = f"checkpoint:{args.train_viz_rgb_baseline_checkpoint}"
         else:
             train_viz_rgb_baseline_model = (
                 kitti_reference_eval_model
@@ -3252,6 +2755,9 @@ def main():
 
     criterion = build_training_criterion(args, local_rank)
     optimizer = build_optimizer(args, model.module)
+    attach_optimizer_param_groups_to_resolved_config(args, optimizer)
+    if rank == 0:
+        save_args(args)
 
     amp_dtype = torch.float16 if args.amp_dtype == "fp16" else torch.bfloat16
     scaler = torch.cuda.amp.GradScaler(enabled=args.amp and args.amp_dtype == "fp16")
@@ -3338,10 +2844,23 @@ def main():
                 max_depth=args.kitti_max_depth,
                 max_samples=args.debug_max_kitti_samples,
                 writer_prefix="eval_kitti",
-                model_input_type="rgb",
+                model_input_type="image",
             )
             if rank == 0:
                 logger.info("[EVAL][%s] summary=%s", kitti_eval_tag, kitti_summary)
+                kitti_checkpoint_source = (
+                    args.pretrained_from
+                    if args.kitti_eval_protocol == "rgb_pretrained_ref"
+                    else (args.resume_from or args.pretrained_from)
+                )
+                save_json(
+                    os.path.join(args.save_path, f"{kitti_eval_tag}.json"),
+                    kitti_eval_metadata(
+                        args,
+                        checkpoint_source=kitti_checkpoint_source,
+                        metrics=kitti_summary,
+                    ),
+                )
         if nyu_valloader is not None:
             nyu_eval_tag = "eval_only_nyu_rgb_checkpoint_decoder"
             nyu_summary = evaluate(
@@ -3357,7 +2876,7 @@ def main():
                 max_depth=args.nyu_max_depth,
                 max_samples=args.nyu_max_samples,
                 writer_prefix="eval_nyu",
-                model_input_type="rgb",
+                model_input_type="image",
             )
             if rank == 0:
                 logger.info("[EVAL][%s] summary=%s", nyu_eval_tag, nyu_summary)
@@ -3375,7 +2894,7 @@ def main():
                 max_depth=args.eth3d_max_depth,
                 max_samples=args.eth3d_max_samples,
                 writer_prefix=f"eval_eth3d_{depth_mode}",
-                model_input_type=args.input_type,
+                model_input_type=args.resolved_config.model_input_tensor,
             )
             if rank == 0:
                 logger.info("[EVAL][eval_only_eth3d_%s] summary=%s", depth_mode, eth3d_summary)
@@ -3393,7 +2912,7 @@ def main():
                 max_depth=args.robotcar_max_depth,
                 max_samples=args.robotcar_max_samples,
                 writer_prefix=f"eval_robotcar_{depth_mode}",
-                model_input_type=args.input_type,
+                model_input_type=args.resolved_config.model_input_tensor,
             )
             if rank == 0:
                 logger.info("[EVAL][eval_only_robotcar_%s] summary=%s", depth_mode, robotcar_summary)
@@ -3411,7 +2930,7 @@ def main():
                 max_depth=args.robotcar_night_max_depth,
                 max_samples=args.robotcar_night_max_samples,
                 writer_prefix=f"eval_robotcar_night_{depth_mode}",
-                model_input_type=args.input_type,
+                model_input_type=args.resolved_config.model_input_tensor,
             )
             if rank == 0:
                 logger.info("[EVAL][eval_only_robotcar_night_%s] summary=%s", depth_mode, robotcar_night_summary)
@@ -3458,7 +2977,7 @@ def main():
             max_depth=args.kitti_max_depth,
             max_samples=args.debug_max_kitti_samples,
             writer_prefix="eval_kitti",
-            model_input_type="rgb",
+            model_input_type="image",
         )
     if nyu_valloader is not None:
         pretrain_nyu_summary = evaluate(
@@ -3474,7 +2993,7 @@ def main():
             max_depth=args.nyu_max_depth,
             max_samples=args.nyu_max_samples,
             writer_prefix="eval_nyu",
-            model_input_type="rgb",
+            model_input_type="image",
         )
     for depth_mode, eth3d_loader in iter_eth3d_eval_loaders(train_state, include_full=False):
         pretrain_eth3d_summaries[depth_mode] = evaluate(
@@ -3490,7 +3009,7 @@ def main():
             max_depth=args.eth3d_max_depth,
             max_samples=args.eth3d_max_samples,
             writer_prefix=f"eval_eth3d_{depth_mode}",
-            model_input_type=args.input_type,
+            model_input_type=args.resolved_config.model_input_tensor,
         )
     for depth_mode, robotcar_loader in iter_robotcar_eval_loaders(train_state, include_full=False):
         pretrain_robotcar_summaries[depth_mode] = evaluate(
@@ -3506,7 +3025,7 @@ def main():
             max_depth=args.robotcar_max_depth,
             max_samples=args.robotcar_max_samples,
             writer_prefix=f"eval_robotcar_{depth_mode}",
-            model_input_type=args.input_type,
+            model_input_type=args.resolved_config.model_input_tensor,
         )
     for depth_mode, robotcar_night_loader in iter_robotcar_night_eval_loaders(train_state, include_full=False):
         pretrain_robotcar_night_summaries[depth_mode] = evaluate(
@@ -3522,7 +3041,7 @@ def main():
             max_depth=args.robotcar_night_max_depth,
             max_samples=args.robotcar_night_max_samples,
             writer_prefix=f"eval_robotcar_night_{depth_mode}",
-            model_input_type=args.input_type,
+            model_input_type=args.resolved_config.model_input_tensor,
         )
     if rank == 0:
         if pretrain_summary is not None:
@@ -3548,13 +3067,11 @@ def main():
             )
             save_json(
                 os.path.join(args.save_path, "pretrain_eval_kitti.json"),
-                {
-                    "checkpoint_source": kitti_checkpoint_source,
-                    "stage": args.stage,
-                    "split": "kitti_val",
-                    "protocol": args.kitti_eval_protocol,
-                    "metrics": pretrain_kitti_summary,
-                },
+                kitti_eval_metadata(
+                    args,
+                    checkpoint_source=kitti_checkpoint_source,
+                    metrics=pretrain_kitti_summary,
+                ),
             )
             if writer is not None:
                 for key, value in pretrain_kitti_summary.items():
@@ -3623,22 +3140,7 @@ def main():
             if sampler_name in {"val", "kitti_val", "nyu_val"}:
                 continue
             sampler.set_epoch(epoch + 1)
-        if train_state["mode"] == "raw_mix":
-            train_state["source_iters"] = {
-                source: iter(loader)
-                for source, loader in train_state["source_loaders"].items()
-            }
-            train_state["schedule_index"] = 0
-        elif train_state["mode"] == "mixed":
-            train_state["stf_iter"] = iter(train_state["stf_loader"])
-            train_state["vkitti_iter"] = iter(train_state["vkitti_loader"])
-            train_state["schedule_index"] = 0
-        elif train_state["mode"] == "lod_vkitti_mixed":
-            train_state["lod_iter"] = iter(train_state["lod_loader"])
-            train_state["vkitti_iter"] = iter(train_state["vkitti_loader"])
-            train_state["schedule_index"] = 0
-        else:
-            train_state["train_iter"] = iter(train_state["train_loader"])
+        train_state["train_iter"] = iter(train_state["train_loader"])
         model.train()
         dav2_ref = model.module.dav2 if hasattr(model.module, "dav2") else model.module
         if hasattr(dav2_ref, "pretrained") and hasattr(dav2_ref, "depth_head"):
@@ -3654,40 +3156,13 @@ def main():
                 args.best_metric,
                 best_metrics[args.best_metric],
             )
-            if train_state["mode"] == "raw_mix":
-                logger.info(
-                    "[EPOCH] raw_mix schedule: counts=%s ratios=%s",
-                    {source: train_state["schedule"].count(source) for source in train_state["train_sources"]},
-                    train_state["train_source_ratios"],
-                )
-            elif train_state["mode"] == "mixed":
-                logger.info(
-                    "[EPOCH] mixed schedule: %d STF batches + %d VKITTI2 batches per epoch (target ratio %d:1)",
-                    train_state["stf_batches_per_epoch"],
-                    train_state["vkitti_batches_per_epoch"],
-                    args.stf_repeat,
-                )
-            elif train_state["mode"] == "lod_vkitti_mixed":
-                if train_state.get("lod_fraction") is None:
-                    logger.info(
-                        "[EPOCH] lod-vkitti schedule: %d LOD batches + %d VKITTI2 batches per epoch (target ratio %d:1)",
-                        train_state["lod_batches_per_epoch"],
-                        train_state["vkitti_batches_per_epoch"],
-                        args.lod_per_vkitti,
-                    )
-                else:
-                    logger.info(
-                        "[EPOCH] lod-vkitti schedule: %d LOD batches + %d VKITTI2 batches per epoch (lod_fraction %.4f)",
-                        train_state["lod_batches_per_epoch"],
-                        train_state["vkitti_batches_per_epoch"],
-                        train_state["lod_fraction"],
-                    )
 
         running_loss = 0.0
         used_steps = 0
         optimizer_steps_done = 0
         loss_term_stats = make_loss_term_accumulator()
-        source_stats = {source_name: make_source_accumulator() for source_name in train_state["train_sources"]}
+        source_names = train_state["source_names"]
+        source_stats = {source_name: make_source_accumulator() for source_name in source_names}
         logged_source_stats = set()
 
         accum_steps = args.accum_steps
@@ -3700,7 +3175,7 @@ def main():
 
             sample, source = fetch_train_sample(train_state)
 
-            img = prepare_model_input(sample, args)
+            img = prepare_model_input(sample, args, sample_source=source)
             depth = sample["depth"].cuda(non_blocking=True).float()
             valid_mask = sample["valid_mask"].cuda(non_blocking=True).bool()
             target_space = resolve_batch_target_space(sample)
@@ -3714,7 +3189,7 @@ def main():
                     tuple(valid_mask.shape),
                     preview_batch_ids(sample),
                 )
-                if source in {"stf", "lod", "lod_day", "lod_night", "vkitti", "hypersim"}:
+                if source == "stf":
                     source_tag = source.upper()
                     raw_stats = summarize_tensor(img)
                     valid_count = int(valid_mask.sum().item())
@@ -3739,7 +3214,7 @@ def main():
                     )
                 logged_source_stats.add(source)
 
-            apply_runtime_hflip = args.input_type not in RAW_MODEL_INPUT_TYPES
+            apply_runtime_hflip = not uses_stf_raw_dataset(args)
             if apply_runtime_hflip and random.random() < 0.5:
                 img = img.flip(-1)
                 depth = depth.flip(-1)
@@ -3829,7 +3304,7 @@ def main():
                     optimizer.param_groups[0]["lr"],
                     float(loss.item()),
                     running_loss / max(used_steps, 1),
-                    format_source_running_avgs(source_stats, train_state["train_sources"]),
+                    format_source_running_avgs(source_stats, source_names),
                     format_loss_term_summary(loss_term_metrics, loss_term_stats),
                     loss_info["used_samples"],
                     loss_info["skipped_samples"],
@@ -3868,7 +3343,7 @@ def main():
                     max_depth=args.kitti_max_depth,
                     max_samples=args.debug_max_kitti_samples,
                     writer_prefix="eval_kitti",
-                    model_input_type="rgb",
+                    model_input_type="image",
                 )
             else:
                 kitti_summary = pretrain_kitti_summary
@@ -3886,7 +3361,7 @@ def main():
                 max_depth=args.nyu_max_depth,
                 max_samples=args.nyu_max_samples,
                 writer_prefix="eval_nyu",
-                model_input_type="rgb",
+                model_input_type="image",
             )
         for depth_mode, eth3d_loader in iter_eth3d_eval_loaders(train_state, include_full=False):
             eth3d_summaries[depth_mode] = evaluate(
@@ -3901,9 +3376,9 @@ def main():
                 min_depth=args.eth3d_min_depth,
                 max_depth=args.eth3d_max_depth,
                 max_samples=args.eth3d_max_samples,
-                writer_prefix=f"eval_eth3d_{depth_mode}",
-                model_input_type=args.input_type,
-            )
+            writer_prefix=f"eval_eth3d_{depth_mode}",
+            model_input_type=args.resolved_config.model_input_tensor,
+        )
         for depth_mode, robotcar_loader in iter_robotcar_eval_loaders(train_state, include_full=False):
             robotcar_summaries[depth_mode] = evaluate(
                 model,
@@ -3917,9 +3392,9 @@ def main():
                 min_depth=args.robotcar_min_depth,
                 max_depth=args.robotcar_max_depth,
                 max_samples=args.robotcar_max_samples,
-                writer_prefix=f"eval_robotcar_{depth_mode}",
-                model_input_type=args.input_type,
-            )
+            writer_prefix=f"eval_robotcar_{depth_mode}",
+            model_input_type=args.resolved_config.model_input_tensor,
+        )
         for depth_mode, robotcar_night_loader in iter_robotcar_night_eval_loaders(train_state, include_full=False):
             robotcar_night_summaries[depth_mode] = evaluate(
                 model,
@@ -3933,9 +3408,9 @@ def main():
                 min_depth=args.robotcar_night_min_depth,
                 max_depth=args.robotcar_night_max_depth,
                 max_samples=args.robotcar_night_max_samples,
-                writer_prefix=f"eval_robotcar_night_{depth_mode}",
-                model_input_type=args.input_type,
-            )
+            writer_prefix=f"eval_robotcar_night_{depth_mode}",
+            model_input_type=args.resolved_config.model_input_tensor,
+        )
 
         if rank == 0:
             avg_loss = epoch_stats["running_loss"] / max(epoch_stats["used_steps"], 1)
@@ -3946,7 +3421,7 @@ def main():
                 epoch_stats["used_steps"],
                 format_seconds(time.time() - epoch_start_time),
             )
-            for source_name in train_state["train_sources"]:
+            for source_name in source_names:
                 stats = epoch_stats["source"][source_name]
                 if stats["steps"] == 0:
                     logger.info("[EPOCH][%s] avg_loss=n/a raw_pred_valid_mean_max=n/a", source_name)
@@ -4045,11 +3520,13 @@ def main():
                     writer=writer,
                     baseline_model=train_viz_rgb_baseline_model,
                     baseline_label=args.train_viz_rgb_baseline_label or dav2_rgb_pred_label(args),
+                    baseline_model_source=train_viz_rgb_baseline_source,
                     logger=logger,
                 )
             if args.enable_fixed_viz_dump and train_state.get("fixed_viz_samples"):
                 model_overrides = {}
                 input_type_overrides = {}
+                model_source_overrides = {}
                 if kitti_valloader is not None:
                     kitti_dump_model = (
                         rgb_decoder_eval_model
@@ -4058,7 +3535,8 @@ def main():
                     )
                     if kitti_dump_model is not None:
                         model_overrides["kitti"] = kitti_dump_model
-                        input_type_overrides["kitti"] = "rgb"
+                        input_type_overrides["kitti"] = "image"
+                        model_source_overrides["kitti"] = args.resolved_config.kitti_model_source
                 dump_outputs = dump_fixed_samples(
                     model,
                     train_state["fixed_viz_samples"],
@@ -4067,9 +3545,11 @@ def main():
                     args.save_path,
                     model_overrides=model_overrides,
                     input_type_overrides=input_type_overrides,
+                    model_source_overrides=model_source_overrides,
                     rgb_baseline_model=fixed_viz_rgb_baseline_model,
                     rgb_baseline_splits=FIXED_VIZ_RGB_BASELINE_SPLITS,
                     rgb_baseline_label=dav2_rgb_pred_label(args),
+                    rgb_baseline_model_source=fixed_viz_rgb_baseline_source,
                 )
                 logger.info(
                     "[VIZ] dumped fixed samples epoch=%d splits=%s root=%s",

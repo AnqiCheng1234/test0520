@@ -35,7 +35,6 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from anqi_eval.eval_rel_depth_strict import affine_align_disp, compute_metrics
 from finetune_stf.dataset.stf import STF
-from finetune_stf.dataset.raw_storage import get_raw_storage_spec
 from finetune_stf.dataset.stf_raw import STF_RAW
 from finetune_stf.train import (
     RAW_MODEL_INPUT_TYPES,
@@ -234,29 +233,8 @@ def config_for_item(item: EvalItem, reference_config: Path) -> SimpleNamespace:
     return to_namespace(load_json(item.config_path))
 
 
-def resolve_raw_storage_format(cfg: Any) -> str:
-    if isinstance(cfg, dict):
-        raw_storage_format = cfg.get("raw_storage_format")
-        legacy_decode_mode = cfg.get("stf_raw_decode_mode")
-    else:
-        raw_storage_format = getattr(cfg, "raw_storage_format", None)
-        legacy_decode_mode = getattr(cfg, "stf_raw_decode_mode", None)
-
-    if raw_storage_format is None:
-        if legacy_decode_mode in (None, "legacy_companded", "legacy_online_decomp16"):
-            raw_storage_format = "legacy_bggR_decomp16"
-        elif legacy_decode_mode == "canonical_decomp16":
-            raw_storage_format = "raw_future"
-        else:
-            raise ValueError(f"Unsupported legacy stf_raw_decode_mode in config: {legacy_decode_mode!r}")
-
-    return str(get_raw_storage_spec(raw_storage_format).name)
-
-
 def dataset_for_item(cfg: SimpleNamespace, item: EvalItem, split: str):
     size = (int(cfg.input_height), int(cfg.input_width))
-    raw_storage_format = resolve_raw_storage_format(cfg)
-
     if item.input_source == "raw_preview":
         return STF_RAW(
             split,
@@ -266,9 +244,11 @@ def dataset_for_item(cfg: SimpleNamespace, item: EvalItem, split: str):
             min_depth=cfg.min_depth,
             max_depth=cfg.max_depth,
             merge_test_into_train=False,
-            raw_storage_format=raw_storage_format,
+            norm_mode="passthrough",
+            channel_mode="rgb_avg_g",
             use_imagenet_norm=True,
             input_mode="raw_naive",
+            stf_raw_decode_mode="legacy_online_decomp16",
             depth_mode="fast",
             fast_eval_backend="sparse",
         )
@@ -292,9 +272,11 @@ def dataset_for_item(cfg: SimpleNamespace, item: EvalItem, split: str):
             min_depth=cfg.min_depth,
             max_depth=cfg.max_depth,
             merge_test_into_train=False,
-            raw_storage_format=raw_storage_format,
+            norm_mode=cfg.norm_mode,
+            channel_mode=cfg.channel_mode,
             use_imagenet_norm=cfg.use_imagenet_norm,
             input_mode=resolve_stf_raw_input_mode(cfg.input_type),
+            stf_raw_decode_mode=cfg.stf_raw_decode_mode,
             depth_mode="fast",
             fast_eval_backend=getattr(cfg, "stf_fast_eval_backend", "sparse"),
         )

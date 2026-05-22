@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT="${ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+ROOT="${ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)}"
 EXP_ROOT="${EXP_ROOT:-${ROOT}/finetune_stf/exp}"
 LOG_ROOT="${LOG_ROOT:-${ROOT}/finetune_stf/logs}"
 HEAVY_ROOT="${HEAVY_ROOT:-/mnt/drive/3333_raw/0000_exp_ckpt}"
@@ -25,7 +25,7 @@ RUN_SUFFIX="${RUN_SUFFIX:-stf_train_test_pseudovitl_raw_ram_rgb_bridge_feature_a
 usage() {
   cat <<'EOF'
 Usage:
-  bash finetune_stf/scripts/0522_run_stf_ram_rgb_feature_adapter_bridge_from_0521_1542_queue.sh
+  bash finetune_stf/scripts/formal/0522_run_stf_ram_rgb_feature_adapter_bridge_from_0521_1542_queue.sh
 
 Starts one tmux session that:
   1. optionally runs a codex_smoke validation run,
@@ -198,7 +198,6 @@ common_args=(
   --accum-steps 1
   --lr 1e-5
   --loss-type ssi
-  --loss-mask-downsample strict
   --loss-target-normalization
   --loss-norm-min-scale 1e-3
   --amp
@@ -206,20 +205,29 @@ common_args=(
   --seed 42
   --num-workers 4
   --log-interval 500
-  --stf-repeat 7
   --raw-npz-root "${RAW_NPZ_ROOT}"
-  --stf-raw-decode-mode legacy_online_decomp16
+  --input-domain raw4
+  --front-end raw_to_base_rgb_ram3
+  --dataset-family stf_raw
+  --dataset-input-mode raw_ram
+  --model-input-tensor raw
+  --raw-storage-format legacy_bggR_decomp16
+  --bridge raw_feature_bridge
+  --decoder-feature-adapter raw_feature_adapter
+  --lora none
   --norm-mode passthrough
   --channel-mode rgb_avg_g
   --raw-ram-rgb-tail identity
   --rgb-interface-mode residual_tanh
+  --bridge-feature-source-channels x3
+  --adapter-feature-source-channels x3
   --bridge-feature-keys x_cat ffm_mid x3
+  --feature-adapter-keys x_cat ffm_mid x3
   --bridge-layers 2 5 8 11
   --bridge-source ram_core
   --bridge-lr 5e-5
   --stf-train-target-mode dav2_pseudo
   --stf-pseudo-manifest "${DAV2_MANIFEST}"
-  --input-type raw_ram_rgb_bridge_feature_adapter
   --dav2-train-mode none
   --epochs 10
 )
@@ -271,8 +279,8 @@ echo "[QUEUE_START] $(date -Iseconds)"
 echo "[QUEUE_SESSION] ${QUEUE_SESSION:-internal}"
 echo "[QUEUE_POLICY] RUN_SMOKE=${RUN_SMOKE}; stop on first failure"
 echo "[REFERENCE] 0521_1542_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_bridge_ram_e10"
-echo "[CHANGE] input_type=raw_ram_rgb_bridge_feature_adapter; feature_keys=x_cat,ffm_mid,x3; decoder feature adapter added"
-echo "[UNCHANGED] stage/data/loss/epochs/bs/lr/bridge/dav2_train_mode from 0521_1542"
+echo "[CHANGE] front_end=raw_to_base_rgb_ram3 bridge=x3 decoder_feature_adapter=x3"
+echo "[UNCHANGED] dataset=stf_raw/raw_ram model_input_tensor=raw loss=ssi epochs=10 dav2_train_mode=none"
 echo "[PRETRAINED] ${PRETRAINED}"
 echo "[DAV2_MANIFEST] ${DAV2_MANIFEST}"
 

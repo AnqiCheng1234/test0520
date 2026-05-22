@@ -27,6 +27,7 @@ from finetune_stf.util.loss import (
 from finetune_stf.dataset.lod_raw import LODRGB, LODRaw
 from finetune_stf.dataset.stf import build_da3_sparse_metric_target
 from finetune_stf.models.raw_ram import phase1b_tanh_tail_squash
+from finetune_stf.util.model_input import coerce_model_input_tensor, select_model_input
 from foundation.engine.transforms import packed_bayer_to_base_rgb
 
 
@@ -76,8 +77,13 @@ def _normalize_fixed_viz_splits(splits):
     return set(normalized)
 
 
-def _is_rgb_lod_input(input_type):
-    return str(input_type) in {"rgb", "rgb_lora"}
+def _resolved_model_input_tensor(args):
+    resolved = getattr(args, "resolved_config", None)
+    return coerce_model_input_tensor(getattr(resolved, "model_input_tensor", None), default="image")
+
+
+def _is_rgb_lod_input(args):
+    return _resolved_model_input_tensor(args) == "image"
 
 
 def _build_lod_fixed_dataset(args, split_name, manifest_attr):
@@ -85,7 +91,7 @@ def _build_lod_fixed_dataset(args, split_name, manifest_attr):
     if not manifest_path:
         return None
 
-    dataset_cls = LODRGB if _is_rgb_lod_input(getattr(args, "input_type", "rgb")) else LODRaw
+    dataset_cls = LODRGB if _is_rgb_lod_input(args) else LODRaw
     kwargs = {
         "lod_root": getattr(args, "lod_root", None),
         "manifest_path": manifest_path,
@@ -231,14 +237,13 @@ def _sample_stem(sample, fallback):
     return f"sample_{fallback:02d}"
 
 
-def _select_model_input(sample, input_type):
-    if str(input_type) != "rgb" and "raw" in sample:
-        tensor = sample["raw"]
-    else:
-        tensor = sample["image"]
-    if tensor.ndim == 3:
-        tensor = tensor.unsqueeze(0)
-    return tensor
+def _select_model_input(sample, model_input_tensor, *, sample_source=None):
+    return select_model_input(
+        sample,
+        model_input_tensor,
+        sample_source=sample_source,
+        add_batch_dim=True,
+    )
 
 
 def _colorize_disp(disp):
@@ -771,9 +776,11 @@ def _write_fixed_panel_extras(
     sample_index,
     disp_path,
     color_path,
-    input_type,
+    model_input_tensor,
+    model_source,
     amp_dtype,
     use_amp,
+    rgb_baseline_model_source=None,
     write_individual_images=False,
 ):
     show_rgb_baseline = rgb_baseline_model is not None
@@ -799,9 +806,13 @@ def _write_fixed_panel_extras(
         "split": split_name,
         "sample_name": str(_first_value(sample.get("sample_name"), stem)),
         "sample_stem": stem,
+        "model_input_tensor": model_input_tensor,
+        "model_source": str(model_source),
         "disp": str(disp_path),
         "panel": str(panel_path),
     }
+    if split_name == "kitti":
+        metrics_json["kitti_model_source"] = str(model_source)
     if color_path is not None:
         metrics_json["color"] = str(color_path)
     if write_individual_images and ram_rgb_bgr is not None:
@@ -934,6 +945,7 @@ def _write_fixed_panel_extras(
         if baseline_tensor is None:
             metrics_json["rgb_baseline"] = {
                 "available": False,
+                "model_source": str(rgb_baseline_model_source or "rgb_baseline"),
                 "note": "missing RGB path/tensor for fixed-viz RGB DAv2 baseline",
             }
         else:
@@ -954,6 +966,7 @@ def _write_fixed_panel_extras(
             baseline_info = {
                 "available": True,
                 "label": rgb_baseline_title,
+                "model_source": str(rgb_baseline_model_source or "rgb_baseline"),
             }
             if rgb_baseline_disp_np is not None:
                 rgb_baseline_disp_path = split_dir / f"{stem}_rgb_dav2_disp.npz"
@@ -1040,7 +1053,7 @@ def _write_fixed_panel_extras(
         sample=sample,
         split_name=split_name,
         sample_index=sample_index,
-        input_type=input_type,
+        model_input_tensor=model_input_tensor,
         target_view=target_view,
         current_view=current_view,
         current_title=current_title,
@@ -1174,7 +1187,7 @@ def _baseline_relation_for_source(source):
 
 def _resolve_train_viz_sources(train_state, datasets, requested):
     if str(requested).strip().lower() == "auto":
-        requested_sources = list(train_state.get("train_sources", ()))
+        requested_sources = list(train_state.get("source_names", train_state.get("train_sources", ())))
         explicit = False
     else:
         requested_sources = [item.strip() for item in str(requested).split(",") if item.strip()]
@@ -1363,16 +1376,13 @@ def collect_fixed_train_source_samples(train_state, datasets, args, *, logger=No
     return fixed_samples
 
 
-def _select_train_model_input(sample, input_type):
-    if str(input_type) != "rgb":
-        tensor = sample.get("raw", sample.get("image"))
-    else:
-        tensor = sample.get("image")
-    if tensor is None:
-        raise KeyError("Sample has no model input tensor")
-    if tensor.ndim == 3:
-        tensor = tensor.unsqueeze(0)
-    return tensor
+def _select_train_model_input(sample, model_input_tensor, *, sample_source=None):
+    return select_model_input(
+        sample,
+        model_input_tensor,
+        sample_source=sample_source,
+        add_batch_dim=True,
+    )
 
 
 def _ensure_pred_hw(pred_disp, target_hw):
@@ -1649,7 +1659,8 @@ def _fixed_rgb_baseline_input_from_sample(sample, target_hw=None):
     return _imagenet_normalized_rgb_tensor(image, target_hw=target_hw)
 
 
-def _fixed_rgb_preview_from_sample(sample, input_type):
+def _fixed_rgb_preview_from_sample(sample, model_input_tensor):
+    model_input_tensor = coerce_model_input_tensor(model_input_tensor, default="image")
     if "rgb_preview" in sample:
         preview = _to_rgb_preview(sample.get("rgb_preview"))
         if preview is not None:
@@ -1660,20 +1671,19 @@ def _fixed_rgb_preview_from_sample(sample, input_type):
         if preview is not None:
             return preview
 
-    if str(input_type) == "rgb" and "image" in sample:
+    if model_input_tensor == "image" and "image" in sample:
         return _maybe_denormalize_imagenet(_to_rgb_preview(sample.get("image"), clip=False))
     if "raw" in sample:
         return _to_rgb_preview(sample.get("raw"))
     return _maybe_denormalize_imagenet(_to_rgb_preview(sample.get("image"), clip=False))
 
 
-def _fixed_input_preview_from_sample(sample, input_type):
-    if str(input_type) != "rgb" and "raw" in sample:
-        return _to_rgb_preview(sample.get("raw"))
-    if "raw" in sample:
+def _fixed_input_preview_from_sample(sample, model_input_tensor):
+    model_input_tensor = coerce_model_input_tensor(model_input_tensor, default="image")
+    if model_input_tensor == "raw" and "raw" in sample:
         return _to_rgb_preview(sample.get("raw"))
     preview = _to_rgb_preview(sample.get("image"), clip=False)
-    if str(input_type) == "rgb":
+    if model_input_tensor == "image":
         return _maybe_denormalize_imagenet(preview)
     return np.clip(preview, 0.0, 1.0) if preview is not None else None
 
@@ -1685,8 +1695,9 @@ def _raw_preview_from_sample(sample):
     return _to_rgb_preview(tensor)
 
 
-def _distribution_axis_mode_for_raw_preview(sample, input_type=None):
-    if str(input_type or "") != "rgb" and "raw" in sample:
+def _distribution_axis_mode_for_raw_preview(sample, model_input_tensor=None):
+    model_input_tensor = coerce_model_input_tensor(model_input_tensor, default="image")
+    if model_input_tensor == "raw" and "raw" in sample:
         tensor = sample.get("raw")
     else:
         tensor = sample.get("raw", sample.get("image"))
@@ -2285,7 +2296,7 @@ def _make_fixed_viz_panel(
     sample,
     split_name,
     sample_index,
-    input_type,
+    model_input_tensor,
     target_view,
     current_view,
     current_title,
@@ -2300,8 +2311,8 @@ def _make_fixed_viz_panel(
     rgb_baseline_title="RGB DAv2",
     rgb_baseline_subtitle="",
 ):
-    rgb_preview = _fixed_rgb_preview_from_sample(sample, input_type)
-    input_preview = _fixed_input_preview_from_sample(sample, input_type)
+    rgb_preview = _fixed_rgb_preview_from_sample(sample, model_input_tensor)
+    input_preview = _fixed_input_preview_from_sample(sample, model_input_tensor)
     ram_preview = _to_rgb_preview(ram_rgb_pre_norm, clip=False)
     color_limit_inputs = [target_view, current_view]
     if show_rgb_baseline and rgb_baseline_view is not None:
@@ -2351,7 +2362,7 @@ def _make_fixed_viz_panel(
                 axis_modes=(
                     "unit",
                     "imagenet_norm",
-                    _distribution_axis_mode_for_raw_preview(sample, input_type),
+                    _distribution_axis_mode_for_raw_preview(sample, model_input_tensor),
                     "zero_center",
                 ),
             ),
@@ -2385,6 +2396,7 @@ def dump_train_source_samples(
     writer=None,
     baseline_model=None,
     baseline_label="rgb_baseline",
+    baseline_model_source="rgb_baseline",
     logger=None,
 ):
     if not fixed_samples:
@@ -2398,6 +2410,7 @@ def dump_train_source_samples(
     amp_dtype = torch.float16 if getattr(args, "amp_dtype", "bf16") == "fp16" else torch.bfloat16
     use_amp = bool(getattr(args, "amp", False))
     device = next(_module(model).parameters()).device
+    model_input_tensor = _resolved_model_input_tensor(args)
     models = {id(model): model}
     if baseline_model is not None:
         models[id(baseline_model)] = baseline_model
@@ -2431,7 +2444,11 @@ def dump_train_source_samples(
                         depth = depth.to(device=device, non_blocking=True).float()
                         valid_mask = valid_mask.to(device=device, non_blocking=True).bool()
 
-                        model_input = _select_train_model_input(sample, getattr(args, "input_type", "rgb"))
+                        model_input = _select_train_model_input(
+                            sample,
+                            model_input_tensor,
+                            sample_source=source,
+                        )
                         model_input = model_input.to(device=device, non_blocking=True).float()
                         with torch.autocast(device_type="cuda", dtype=amp_dtype, enabled=use_amp and model_input.is_cuda):
                             current_pred = model(model_input)
@@ -2517,6 +2534,8 @@ def dump_train_source_samples(
                             "current_aligned_target_space": current_aligned_np,
                             "baseline_raw_pred_disp": _tensor_2d_np(baseline_pred[0]),
                             "baseline_aligned_target_space": baseline_aligned_np,
+                            "model_input_tensor": np.array(model_input_tensor),
+                            "baseline_model_source": np.array(str(baseline_model_source)),
                             "current_align_scale": np.array(current_metrics["align_scale"], dtype=np.float32),
                             "current_align_shift": np.array(current_metrics["align_shift"], dtype=np.float32),
                             "baseline_align_scale": np.array(baseline_metrics["align_scale"], dtype=np.float32),
@@ -2573,6 +2592,7 @@ def dump_train_source_samples(
                             "sample_index": int(record["index"]),
                             "sample_name": str(sample.get("sample_name", stem)),
                             "target_space": target_space,
+                            "model_input_tensor": model_input_tensor,
                             "panel_path": str(panel_path),
                             "npz_path": str(npz_path),
                             "current_loss_total": _float_or_nan(current_metrics["loss_total"]),
@@ -2587,6 +2607,7 @@ def dump_train_source_samples(
                             "current_align_shift": _float_or_nan(current_metrics["align_shift"]),
                             "baseline_align_scale": _float_or_nan(baseline_metrics["align_scale"]),
                             "baseline_align_shift": _float_or_nan(baseline_metrics["align_shift"]),
+                            "baseline_model_source": str(baseline_model_source),
                             "baseline_target_relation": record["baseline_target_relation"],
                         }
                         manifest_handle.write(json.dumps(manifest_record, sort_keys=True) + "\n")
@@ -2631,16 +2652,22 @@ def dump_fixed_samples(
     *,
     model_overrides=None,
     input_type_overrides=None,
+    model_input_tensor_overrides=None,
+    model_source_overrides=None,
     rgb_baseline_model=None,
     rgb_baseline_splits=None,
     rgb_baseline_label="RGB DAv2",
+    rgb_baseline_model_source="pretrained_from_rgb_reference",
     write_individual_images=False,
 ):
     if not fixed_samples:
         return {}
 
     model_overrides = model_overrides or {}
-    input_type_overrides = input_type_overrides or {}
+    if model_input_tensor_overrides is None:
+        model_input_tensor_overrides = input_type_overrides or {}
+    model_input_tensor_overrides = model_input_tensor_overrides or {}
+    model_source_overrides = model_source_overrides or {}
     rgb_baseline_splits = set(rgb_baseline_splits or ())
     root = Path(save_root) / "viz_fixed" / _epoch_dir_name(epoch)
     amp_dtype = torch.float16 if getattr(args, "amp_dtype", "bf16") == "fp16" else torch.bfloat16
@@ -2664,12 +2691,20 @@ def dump_fixed_samples(
                 split_dir = root / split_name
                 split_dir.mkdir(parents=True, exist_ok=True)
                 active_model = model_overrides.get(split_name) or model
-                input_type = input_type_overrides.get(split_name, getattr(args, "input_type", "rgb"))
+                model_input_tensor = coerce_model_input_tensor(
+                    model_input_tensor_overrides.get(split_name),
+                    default=_resolved_model_input_tensor(args),
+                )
+                model_source = model_source_overrides.get(split_name, "live_model")
                 device = next(_module(active_model).parameters()).device
                 saved = []
 
                 for idx, sample in enumerate(samples):
-                    tensor = _select_model_input(sample, input_type).to(device=device, non_blocking=True).float()
+                    tensor = _select_model_input(
+                        sample,
+                        model_input_tensor,
+                        sample_source=split_name,
+                    ).to(device=device, non_blocking=True).float()
                     with torch.autocast(
                         device_type="cuda",
                         dtype=amp_dtype,
@@ -2690,7 +2725,11 @@ def dump_fixed_samples(
                     np.savez_compressed(npz_path, disp=disp_np.astype(np.float32, copy=False))
                     if write_individual_images:
                         cv2.imwrite(str(png_path), _colorize_disp(disp_np))
-                    saved_record = {"disp": str(npz_path)}
+                    saved_record = {
+                        "disp": str(npz_path),
+                        "model_input_tensor": model_input_tensor,
+                        "model_source": str(model_source),
+                    }
                     if png_path is not None:
                         saved_record["color"] = str(png_path)
                     saved_record.update(
@@ -2711,9 +2750,11 @@ def dump_fixed_samples(
                             sample_index=idx,
                             disp_path=npz_path,
                             color_path=png_path,
-                            input_type=input_type,
+                            model_input_tensor=model_input_tensor,
+                            model_source=model_source,
                             amp_dtype=amp_dtype,
                             use_amp=use_amp,
+                            rgb_baseline_model_source=rgb_baseline_model_source,
                             write_individual_images=write_individual_images,
                         )
                     )

@@ -20,11 +20,10 @@ except ImportError:
 
 from finetune_stf.dataset.raw_utils import (
     DEFAULT_RAW_NPZ_ROOT,
-    bayer_to_3ch,
     decode_stf_raw_by_storage_format,
     load_rectified_bayer_npz,
+    bayer_to_3ch,
 )
-from finetune_stf.dataset.raw_storage import get_raw_storage_spec
 from finetune_stf.dataset.stf import (
     DEFAULT_STF_ROOT,
     REQUIRED_COLUMNS,
@@ -117,9 +116,10 @@ class STF_RAW(Dataset):
         min_depth=1.0,
         max_depth=80.0,
         merge_test_into_train=True,
+        raw_storage_format="legacy_bggR_decomp16",
+        channel_mode="rgb_avg_g",
         use_imagenet_norm=True,
         input_mode="raw_naive",
-        raw_storage_format="legacy_bggR_decomp16",
         stf_train_target_mode="gt_sparse",
         stf_pseudo_manifest=DEFAULT_STF_PSEUDO_MANIFEST,
         depth_mode="fast",
@@ -132,28 +132,21 @@ class STF_RAW(Dataset):
         self.min_depth = float(min_depth)
         self.max_depth = float(max_depth)
         self.size = tuple(size)
+        self.raw_storage_format = str(raw_storage_format)
+        self.channel_mode = channel_mode
         self.use_imagenet_norm = bool(use_imagenet_norm)
         self.input_mode = input_mode
-        if self.size != STF_RAW_NATIVE_HW:
-            raise ValueError(
-                f"dataset_family=stf_raw requires input_size={STF_RAW_NATIVE_HW}, got {self.size}"
-            )
-        self.raw_storage_format = str(raw_storage_format)
-        self.raw_storage_spec = get_raw_storage_spec(self.raw_storage_format)
         self.stf_train_target_mode = str(stf_train_target_mode)
         self.stf_pseudo_manifest = Path(stf_pseudo_manifest).expanduser().resolve()
         self.depth_mode = str(depth_mode)
         self.fast_eval_backend = str(fast_eval_backend)
 
-        if self.raw_storage_format == "raw_future":
-            raise ValueError(
-                "raw_storage_format=raw_future is not supported yet. "
-                "Please choose legacy_bggR_decomp16 for now."
-            )
         if self.stf_train_target_mode not in STF_TRAIN_TARGET_MODES:
             raise ValueError(f"Unsupported STF train target mode: {self.stf_train_target_mode}")
         if self.fast_eval_backend not in STF_FAST_EVAL_BACKENDS:
             raise ValueError(f"Unsupported STF fast_eval_backend: {self.fast_eval_backend}")
+        if self.raw_storage_format == "raw_future":
+            raise ValueError("raw_storage_format=raw_future is reserved and not implemented yet")
 
         manifest_dir = self.stf_root / "manifests"
         if split == "train" and self.stf_train_target_mode in STF_PSEUDO_TRAIN_TARGET_MODES:
@@ -237,11 +230,13 @@ class STF_RAW(Dataset):
             raise ValueError(
                 f"Expected STF packed Bayer with spatial size {self.size}, got {tuple(bayer_rect.shape[:2])}"
             )
-        bayer_rect = decode_stf_raw_by_storage_format(bayer_rect, self.raw_storage_spec)
+        bayer_rect = decode_stf_raw_by_storage_format(bayer_rect, self.raw_storage_format)
+        raw4 = np.asarray(bayer_rect, dtype=np.float32)
         if self.input_mode == "raw_ram":
-            image = bayer_rect
+            # Return 4-channel packed Bayer normalized to [0, 1]
+            image = raw4
         else:
-            image = bayer_to_3ch(bayer_rect, channel_mode="rgb_avg_g")
+            image = bayer_to_3ch(raw4, channel_mode=self.channel_mode)
 
         target_kind = row.get("target_kind", "gt_sparse")
         if target_kind == "dav2_pseudo":
@@ -294,17 +289,13 @@ class STF_RAW(Dataset):
         sample["target_kind"] = target_kind
         sample["target_source"] = target_meta["target_source"]
         sample["raw_storage_format"] = self.raw_storage_format
-        sample["raw_storage_channel_order"] = self.raw_storage_spec.storage_channel_order
-        sample["raw_model_channel_order"] = self.raw_storage_spec.model_channel_order
-        sample["raw_post_decode_norm"] = self.raw_storage_spec.post_decode_norm
-        sample["raw_channel_count"] = 4
         if "sparse_depth_path" in row:
             sample["sparse_depth_path"] = str(row["sparse_depth_path"])
             sample["pseudo_depth_path"] = str(depth_path)
         if self.input_mode == "raw_ram":
             sample["raw"] = sample["image"]
-        elif "raw" not in sample:
-            sample["raw"] = torch.from_numpy(bayer_rect)
+        else:
+            sample["raw"] = torch.from_numpy(raw4)
         if self.mode != "train":
             sample["depth_mode"] = self.depth_mode
             sample["fast_eval_backend"] = self.fast_eval_backend
