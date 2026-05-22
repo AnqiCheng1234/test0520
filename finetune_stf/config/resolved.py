@@ -48,6 +48,7 @@ SOURCE_FIELDS = (
     "bridge_feature_keys",
     "bridge_layers",
     "bridge_source",
+    "raw_front_end_lr",
     "lora_rank",
     "lora_alpha",
     "lora_lr",
@@ -109,6 +110,7 @@ class ResolvedConfig:
     ram_core_type: str = NOT_APPLICABLE
     imagenet_norm_enabled: bool | str = NOT_APPLICABLE
     bridge_source: str = NOT_APPLICABLE
+    raw_front_end_lr: float | str = NOT_APPLICABLE
     lora_rank: int | str = NOT_APPLICABLE
     lora_alpha: float | str = NOT_APPLICABLE
     lora_lr: float | str = NOT_APPLICABLE
@@ -163,6 +165,7 @@ class ResolvedConfig:
             "ram_core_type": self.ram_core_type,
             "imagenet_norm_enabled": self.imagenet_norm_enabled,
             "bridge_source": self.bridge_source,
+            "raw_front_end_lr": self.raw_front_end_lr,
             "lora_rank": self.lora_rank,
             "lora_alpha": self.lora_alpha,
             "lora_lr": self.lora_lr,
@@ -778,6 +781,12 @@ def validate_applicability(resolved: ResolvedConfig, args: Any | None = None) ->
         if not (_arg_was_explicit(args, "bridge_source") or resolved.sources.get("bridge_source") == SOURCE_ALIAS):
             raise ValueError("decoder_feature_adapter=raw_feature_adapter requires explicit --bridge-source")
 
+    if resolved.front_end in {"raw_to_rgb_head", "raw_ram4", "raw_to_base_rgb_ram3"}:
+        if resolved.input_type_alias_source == "orthogonal" and not _arg_was_explicit(args, "raw_front_end_lr"):
+            raise ValueError("orthogonal raw front-end configs require explicit --raw-front-end-lr")
+    else:
+        _reject_explicit_when_disabled(args, ("raw_front_end_lr",), context="raw front end")
+
     if resolved.lora == NONE:
         _reject_explicit_when_disabled(
             args,
@@ -1049,6 +1058,15 @@ def resolve_config_from_args(args: Any) -> ResolvedConfig:
         sources["lora_alpha"] = NOT_APPLICABLE
         sources["lora_lr"] = NOT_APPLICABLE
 
+    if config["front_end"] in {"raw_to_rgb_head", "raw_ram4", "raw_to_base_rgb_ram3"}:
+        raw_front_end_lr = float(getattr(args, "raw_front_end_lr", 5e-5))
+        sources["raw_front_end_lr"] = (
+            SOURCE_EXPLICIT if "raw_front_end_lr" in explicit_cli_args else _source_for_default(explicit_alias)
+        )
+    else:
+        raw_front_end_lr = NOT_APPLICABLE
+        sources["raw_front_end_lr"] = NOT_APPLICABLE
+
     config["kitti_eval_protocol"], sources["kitti_eval_protocol"] = _kitti_protocol_from_args(args)
     config["input_type_alias"] = str(alias) if explicit_alias else _legacy_alias_from_config(config)
     config["input_type_alias_source"] = alias_source
@@ -1086,6 +1104,7 @@ def resolve_config_from_args(args: Any) -> ResolvedConfig:
         ram_core_type=ram_core_type,
         imagenet_norm_enabled=imagenet_norm_enabled,
         bridge_source=bridge_source,
+        raw_front_end_lr=raw_front_end_lr,
         lora_rank=lora_rank,
         lora_alpha=lora_alpha,
         lora_lr=lora_lr,

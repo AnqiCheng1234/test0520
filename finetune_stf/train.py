@@ -369,6 +369,12 @@ def parse_args():
     parser.add_argument("--bs", default=4, type=int)
     parser.add_argument("--accum-steps", default=1, type=int, help="Gradient accumulation steps; effective bs = bs * accum_steps")
     parser.add_argument("--lr", default=1e-5, type=float)
+    parser.add_argument(
+        "--raw-front-end-lr",
+        default=5e-5,
+        type=float,
+        help="Learning rate for raw input front-end parameters such as RAM/RamCore3.",
+    )
     parser.add_argument("--bridge-lr", default=5e-5, type=float)
     parser.add_argument("--lora-lr", default=5e-5, type=float)
     parser.add_argument(
@@ -625,6 +631,8 @@ def parse_args():
         parser.error("--lora-rank must be >= 1")
     if args.lora_alpha <= 0:
         parser.error("--lora-alpha must be > 0")
+    if args.raw_front_end_lr <= 0:
+        parser.error("--raw-front-end-lr must be > 0")
     if not (0.0 < args.backbone_layer_decay <= 1.0):
         parser.error("--backbone-layer-decay must be in (0, 1]")
     if args.rgb_residual_scale < 0:
@@ -1917,6 +1925,12 @@ def log_setup(logger, args, datasets, train_state, model):
             FUNCTION_ORDER,
             raw_rgb_tail_desc,
         )
+        logger.info(
+            "[MODEL] %s dav2_train_mode=%s raw_front_end_lr=%.2e",
+            args.input_type,
+            args.dav2_train_mode,
+            args.raw_front_end_lr,
+        )
     if uses_bridge(args) and not uses_decoder_feature_adapter(args):
         bridge_head_desc = (
             "ramcore_bn_tanh25_no_clamp_no_imagenet_norm"
@@ -1926,7 +1940,7 @@ def log_setup(logger, args, datasets, train_state, model):
         if uses_lora(args):
             logger.info(
                 "[MODEL] %s bridge_source=%s bridge_feature_keys=%s bridge_layers=%s rgb_interface_head=%s "
-                "dav2_train_mode=%s base_lr=%.2e bridge_lr=%.2e "
+                "dav2_train_mode=%s base_lr=%.2e raw_front_end_lr=%.2e bridge_lr=%.2e "
                 "lora_block_mode=%s lora_tap_layers=%s lora_blocks=%s lora_rank=%d lora_alpha=%.1f lora_lr=%.2e",
                 args.input_type,
                 args.bridge_source,
@@ -1935,6 +1949,7 @@ def log_setup(logger, args, datasets, train_state, model):
                 bridge_head_desc,
                 args.dav2_train_mode,
                 args.lr,
+                args.raw_front_end_lr,
                 args.bridge_lr,
                 args.lora_block_mode,
                 list(cfg.lora_tap_layers),
@@ -1946,7 +1961,7 @@ def log_setup(logger, args, datasets, train_state, model):
         else:
             logger.info(
                 "[MODEL] %s bridge_source=%s bridge_feature_keys=%s bridge_layers=%s rgb_interface_head=%s "
-                "dav2_train_mode=%s base_lr=%.2e bridge_lr=%.2e",
+                "dav2_train_mode=%s base_lr=%.2e raw_front_end_lr=%.2e bridge_lr=%.2e",
                 args.input_type,
                 args.bridge_source,
                 list(cfg.bridge_feature_keys),
@@ -1954,6 +1969,7 @@ def log_setup(logger, args, datasets, train_state, model):
                 bridge_head_desc,
                 args.dav2_train_mode,
                 args.lr,
+                args.raw_front_end_lr,
                 args.bridge_lr,
             )
     if uses_bridge(args) and uses_decoder_feature_adapter(args):
@@ -1965,7 +1981,7 @@ def log_setup(logger, args, datasets, train_state, model):
         if uses_lora(args):
             logger.info(
                 "[MODEL] %s bridge_source=%s bridge_feature_keys=%s feature_adapter_keys=%s bridge_layers=%s "
-                "dav2_train_mode=%s base_lr=%.2e adapter_lr=%.2e "
+                "dav2_train_mode=%s base_lr=%.2e raw_front_end_lr=%.2e adapter_lr=%.2e "
                 "decoder_fusion=path_4,path_3,path_2 image_bridge=%s "
                 "lora_block_mode=%s lora_tap_layers=%s lora_blocks=%s lora_rank=%d lora_alpha=%.1f lora_lr=%.2e",
                 args.input_type,
@@ -1975,6 +1991,7 @@ def log_setup(logger, args, datasets, train_state, model):
                 list(cfg.bridge_layers),
                 args.dav2_train_mode,
                 args.lr,
+                args.raw_front_end_lr,
                 args.bridge_lr,
                 feature_adapter_image_desc,
                 args.lora_block_mode,
@@ -1987,7 +2004,7 @@ def log_setup(logger, args, datasets, train_state, model):
         else:
             logger.info(
                 "[MODEL] %s bridge_source=%s bridge_feature_keys=%s feature_adapter_keys=%s bridge_layers=%s "
-                "dav2_train_mode=%s base_lr=%.2e adapter_lr=%.2e "
+                "dav2_train_mode=%s base_lr=%.2e raw_front_end_lr=%.2e adapter_lr=%.2e "
                 "decoder_fusion=path_4,path_3,path_2 image_bridge=%s",
                 args.input_type,
                 args.bridge_source,
@@ -1996,6 +2013,7 @@ def log_setup(logger, args, datasets, train_state, model):
                 list(cfg.bridge_layers),
                 args.dav2_train_mode,
                 args.lr,
+                args.raw_front_end_lr,
                 args.bridge_lr,
                 feature_adapter_image_desc,
             )
@@ -2006,12 +2024,13 @@ def log_setup(logger, args, datasets, train_state, model):
             else describe_rgb_interface(args.rgb_interface_mode, args.rgb_residual_scale)
         )
         logger.info(
-            "[MODEL] %s feature_keys=%s dav2_train_mode=%s base_lr=%.2e adapter_lr=%.2e "
+            "[MODEL] %s feature_keys=%s dav2_train_mode=%s base_lr=%.2e raw_front_end_lr=%.2e adapter_lr=%.2e "
             "decoder_fusion=path_4,path_3,path_2 image_bridge=%s",
             args.input_type,
             list(cfg.feature_adapter_keys),
             args.dav2_train_mode,
             args.lr,
+            args.raw_front_end_lr,
             args.bridge_lr,
             feature_adapter_image_desc,
         )
@@ -2470,7 +2489,9 @@ def _optimizer_group_name_for_param(name):
 
 
 def _optimizer_lr_for_group(args, group_name):
-    if group_name in {"raw_front_end", "bridge", "decoder_feature_adapter"}:
+    if group_name == "raw_front_end":
+        return args.raw_front_end_lr
+    if group_name in {"bridge", "decoder_feature_adapter"}:
         return args.bridge_lr
     if group_name == "lora":
         return args.bridge_lr if args.lora_lr is None else args.lora_lr

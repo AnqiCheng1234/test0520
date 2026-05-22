@@ -10,30 +10,26 @@ CONDA_ENV="${CONDA_ENV:-dav3}"
 GPU="${GPU:-${CUDA_VISIBLE_DEVICES:-0}}"
 WAIT_FOR_GPU_IDLE="${WAIT_FOR_GPU_IDLE:-1}"
 WAIT_INTERVAL_SEC="${WAIT_INTERVAL_SEC:-60}"
-SESSION_PREFIX="${SESSION_PREFIX:-stf_ram_rgb_fa_bridge_from_0521_1542}"
-RUN_SMOKE="${RUN_SMOKE:-1}"
+SESSION_PREFIX="${SESSION_PREFIX:-stf_ram_rgb_from_0521_0012_e2}"
 
 PRETRAINED="${PRETRAINED:-/home/caq/333_cvpr/da_ours/checkpoints/depth_anything_v2_vits.pth}"
 STF_ROOT="${STF_ROOT:-/home/caq/6666_raw/seeingthroughfog}"
 RAW_NPZ_ROOT="${RAW_NPZ_ROOT:-/mnt/drive/3333_raw/seeing_through_fog/cam_stereo_left_bayer_rect/npz}"
 DAV2_MANIFEST="${DAV2_MANIFEST:-/mnt/drive/3333_raw/seeing_through_fog/pseudo_depth_dav2_official_vitl_rgb_lut_6216_20260417/stf_rgb_lut_manifest_6216.csv}"
 
-SMOKE_PORT="${SMOKE_PORT:-29785}"
-FORMAL_PORT="${FORMAL_PORT:-29735}"
-RUN_SUFFIX="${RUN_SUFFIX:-stf_train_test_pseudovitl_raw_ram_rgb_bridge_feature_adapter_ram_e10_from_0521_1542_setting}"
+FORMAL_PORT="${FORMAL_PORT:-29783}"
+RUN_SUFFIX="${RUN_SUFFIX:-stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_ram_only_e2_from_0521_0012_setting}"
 
 usage() {
   cat <<'EOF'
 Usage:
-  bash finetune_stf/scripts/formal/0522_run_stf_ram_rgb_feature_adapter_bridge_from_0521_1542_queue.sh
+  bash finetune_stf/scripts/formal/0522_run_stf_ram_rgb_from_0521_0012_e2_queue.sh
 
-Starts one tmux session that:
-  1. optionally runs a codex_smoke validation run,
-  2. deletes successful codex_smoke artifacts only,
-  3. launches the formal STF experiment based on 0521_1542 with only decoder feature adapter added.
+Starts one tmux session for the formal STF experiment matching the 0521_0012
+raw_ram_rgb/RamCore3 setting, with epochs=2.
 
 Overrides:
-  GPU=1 WAIT_FOR_GPU_IDLE=0 RUN_SMOKE=0 bash ...
+  GPU=1 WAIT_FOR_GPU_IDLE=0 bash ...
 EOF
 }
 
@@ -54,7 +50,7 @@ if [[ "${1:-}" != "--run-internal" ]]; then
   fi
 
   tmux new-session -d -s "${session}" \
-    "cd '${ROOT}' && ROOT='${ROOT}' EXP_ROOT='${EXP_ROOT}' LOG_ROOT='${LOG_ROOT}' HEAVY_ROOT='${HEAVY_ROOT}' CONDA_BIN='${CONDA_BIN}' CONDA_ENV='${CONDA_ENV}' GPU='${GPU}' WAIT_FOR_GPU_IDLE='${WAIT_FOR_GPU_IDLE}' WAIT_INTERVAL_SEC='${WAIT_INTERVAL_SEC}' RUN_SMOKE='${RUN_SMOKE}' PRETRAINED='${PRETRAINED}' STF_ROOT='${STF_ROOT}' RAW_NPZ_ROOT='${RAW_NPZ_ROOT}' DAV2_MANIFEST='${DAV2_MANIFEST}' SMOKE_PORT='${SMOKE_PORT}' FORMAL_PORT='${FORMAL_PORT}' RUN_SUFFIX='${RUN_SUFFIX}' QUEUE_SESSION='${session}' CUDA_VISIBLE_DEVICES='${GPU}' bash '$0' --run-internal 2>&1 | tee -a '${queue_log}'"
+    "cd '${ROOT}' && ROOT='${ROOT}' EXP_ROOT='${EXP_ROOT}' LOG_ROOT='${LOG_ROOT}' HEAVY_ROOT='${HEAVY_ROOT}' CONDA_BIN='${CONDA_BIN}' CONDA_ENV='${CONDA_ENV}' GPU='${GPU}' WAIT_FOR_GPU_IDLE='${WAIT_FOR_GPU_IDLE}' WAIT_INTERVAL_SEC='${WAIT_INTERVAL_SEC}' PRETRAINED='${PRETRAINED}' STF_ROOT='${STF_ROOT}' RAW_NPZ_ROOT='${RAW_NPZ_ROOT}' DAV2_MANIFEST='${DAV2_MANIFEST}' FORMAL_PORT='${FORMAL_PORT}' RUN_SUFFIX='${RUN_SUFFIX}' QUEUE_SESSION='${session}' CUDA_VISIBLE_DEVICES='${GPU}' bash '$0' --run-internal 2>&1 | tee -a '${queue_log}'"
 
   cat <<EOF
 Started tmux session: ${session}
@@ -100,27 +96,6 @@ wait_for_gpu_idle() {
     echo "[GPU] busy on CUDA_VISIBLE_DEVICES=${GPU}; waiting ${WAIT_INTERVAL_SEC}s"
     echo "${apps}"
     sleep "${WAIT_INTERVAL_SEC}"
-  done
-}
-
-is_temp_path() {
-  case "$1" in
-    *smoke*|*debug*|*tmp*|*codex_smoke*) return 0 ;;
-    *) return 1 ;;
-  esac
-}
-
-cleanup_smoke_artifacts() {
-  local path
-  for path in "$@"; do
-    if [[ -e "${path}" ]]; then
-      if is_temp_path "${path}"; then
-        echo "[CLEANUP] rm -rf ${path}"
-        rm -rf "${path}"
-      else
-        echo "[CLEANUP][KEEP] ambiguous path: ${path}"
-      fi
-    fi
   done
 }
 
@@ -213,61 +188,23 @@ common_args=(
   --dataset-input-mode raw_ram
   --model-input-tensor raw
   --raw-storage-format legacy_bggR_decomp16
-  --bridge raw_feature_bridge
-  --decoder-feature-adapter raw_feature_adapter
+  --bridge none
+  --decoder-feature-adapter none
   --lora none
   --norm-mode passthrough
   --channel-mode rgb_avg_g
   --raw-ram-rgb-tail identity
-  --rgb-interface-mode residual_tanh
-  --bridge-feature-source-channels x3
-  --adapter-feature-source-channels x3
-  --bridge-feature-keys x_cat ffm_mid x3
-  --feature-adapter-keys x_cat ffm_mid x3
-  --bridge-layers 2 5 8 11
-  --bridge-source ram_core
-  --bridge-lr 5e-5
   --stf-train-target-mode dav2_pseudo
   --stf-pseudo-manifest "${DAV2_MANIFEST}"
   --dav2-train-mode none
-  --epochs 10
+  --epochs 2
 )
-
-smoke_args=(
-  --epochs 1
-  --bs 2
-  --accum-steps 1
-  --num-workers 0
-  --log-interval 1
-  --debug-max-train-steps 2
-  --debug-max-val-samples 8
-  --no-enable-fixed-viz-dump
-  --no-enable-train-source-viz-dump
-  --no-train-viz-rgb-baseline
-)
-
-run_smoke() {
-  local smoke_ts run
-  smoke_ts="$(date +%m%d_%H%M)"
-  run="codex_smoke_${smoke_ts}_${RUN_SUFFIX}"
-  if run_train "smoke 0521_1542 + decoder feature adapter, RamCore3 path" "${run}" "${SMOKE_PORT}" \
-    "${common_args[@]}" "${smoke_args[@]}"; then
-    cleanup_smoke_artifacts "${EXP_ROOT}/${run}" "${HEAVY_ROOT}/${run}" "${LOG_ROOT}/${run}.tmux.log"
-  else
-    local status=$?
-    echo "[SMOKE][FAIL] ${run} status=${status}"
-    echo "[SMOKE][KEEP] ${EXP_ROOT}/${run}"
-    echo "[SMOKE][KEEP] ${HEAVY_ROOT}/${run}"
-    echo "[SMOKE][KEEP] ${LOG_ROOT}/${run}.tmux.log"
-    return "${status}"
-  fi
-}
 
 run_formal() {
   local ts run
   ts="$(date +%m%d_%H%M)"
   run="${ts}_${RUN_SUFFIX}"
-  run_train "formal 0521_1542 + decoder feature adapter, RamCore3 path" "${run}" "${FORMAL_PORT}" \
+  run_train "formal 0521_0012 raw_ram_rgb RamCore3-only epochs=2" "${run}" "${FORMAL_PORT}" \
     "${common_args[@]}"
 }
 
@@ -278,18 +215,11 @@ require_dir "${RAW_NPZ_ROOT}"
 
 echo "[QUEUE_START] $(date -Iseconds)"
 echo "[QUEUE_SESSION] ${QUEUE_SESSION:-internal}"
-echo "[QUEUE_POLICY] RUN_SMOKE=${RUN_SMOKE}; stop on first failure"
-echo "[REFERENCE] 0521_1542_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_bridge_ram_e10"
-echo "[CHANGE] front_end=raw_to_base_rgb_ram3 bridge=x3 decoder_feature_adapter=x3"
-echo "[UNCHANGED] dataset=stf_raw/raw_ram model_input_tensor=raw loss=ssi epochs=10 dav2_train_mode=none"
+echo "[REFERENCE] 0521_0012_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_e5"
+echo "[FORMAL] epochs=2 front_end=raw_to_base_rgb_ram3 raw_ram_rgb_tail=identity dav2_train_mode=none"
+echo "[TRAINABLE] raw_front_end_lr=5e-5 bridge=none decoder_feature_adapter=none lora=none"
 echo "[PRETRAINED] ${PRETRAINED}"
 echo "[DAV2_MANIFEST] ${DAV2_MANIFEST}"
-
-if [[ "${RUN_SMOKE}" == "1" ]]; then
-  run_smoke
-else
-  echo "[SKIP] RUN_SMOKE=${RUN_SMOKE}; not running smoke test"
-fi
 
 run_formal
 

@@ -197,6 +197,7 @@ common_args=(
   --bs 8
   --accum-steps 1
   --lr 1e-5
+  --raw-front-end-lr 5e-5
   --loss-type ssi
   --loss-target-normalization
   --loss-norm-min-scale 1e-3
