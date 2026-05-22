@@ -1,0 +1,67 @@
+[
+  {
+    "all_abs_rel_0306": 0.12151584401323014,
+    "all_abs_rel_0835": 0.127723129430181,
+    "delta_edge_abs_rel_0306_minus_0835": 1.2702056381520792,
+    "edge_abs_rel_0306": 1.4175636070968933,
+    "edge_abs_rel_0835": 0.14735796894481404,
+    "edge_d1_0306": 0.8972868217054264,
+    "edge_d1_0835": 0.9197292069632496,
+    "edge_points": 1032,
+    "index": 545,
+    "panel": "/home/caq/6666_raw/dav2_raw_0520/plans/result/stf_boundary_diagnostics_key_0521_1528/examples_0835_better_image_edge_abs/0545_2018-02-07_14-17-18_00200_edge_abs_0835_better.png",
+    "sample_name": "2018-02-07_14-17-18_00200"
+  },
+  {
+    "all_abs_rel_0306": 0.09935493034686099,
+    "all_abs_rel_0835": 0.093579959435264,
+    "delta_edge_abs_rel_0306_minus_0835": 0.336205952743597,
+    "edge_abs_rel_0306": 0.47778470920040056,
+    "edge_abs_rel_0835": 0.14157875645680357,
+    "edge_d1_0306": 0.8099447513812155,
+    "edge_d1_0835": 0.8792723263506064,
+    "edge_points": 1810,
+    "index": 537,
+    "panel": "/home/caq/6666_raw/dav2_raw_0520/plans/result/stf_boundary_diagnostics_key_0521_1528/examples_0835_better_image_edge_abs/0537_2018-02-07_14-15-57_00050_edge_abs_0835_better.png",
+    "sample_name": "2018-02-07_14-15-57_00050"
+  },
+  {
+    "all_abs_rel_0306": 0.12850372259630363,
+    "all_abs_rel_0835": 0.12178595041005201,
+    "delta_edge_abs_rel_0306_minus_0835": 0.1604272940419802,
+    "edge_abs_rel_0306": 0.4999219564915249,
+    "edge_abs_rel_0835": 0.3394946624495447,
+    "edge_d1_0306": 0.8035714285714286,
+    "edge_d1_0835": 0.8110119047619048,
+    "edge_points": 672,
+    "index": 743,
+    "panel": "/home/caq/6666_raw/dav2_raw_0520/plans/result/stf_boundary_diagnostics_key_0521_1528/examples_0835_better_image_edge_abs/0743_2018-12-13_10-47-18_03500_edge_abs_0835_better.png",
+    "sample_name": "2018-12-13_10-47-18_03500"
+  },
+  {
+    "all_abs_rel_0306": 0.1408597805908716,
+    "all_abs_rel_0835": 0.1370224544885593,
+    "delta_edge_abs_rel_0306_minus_0835": 0.15931600051238132,
+    "edge_abs_rel_0306": 0.33938787016879624,
+    "edge_abs_rel_0835": 0.18007186965641492,
+    "edge_d1_0306": 0.68830242510699,
+    "edge_d1_0835": 0.7796005706134094,
+    "edge_points": 1402,
+    "index": 551,
+    "panel": "/home/caq/6666_raw/dav2_raw_0520/plans/result/stf_boundary_diagnostics_key_0521_1528/examples_0835_better_image_edge_abs/0551_2018-02-07_14-18-25_00800_edge_abs_0835_better.png",
+    "sample_name": "2018-02-07_14-18-25_00800"
+  },
+  {
+    "all_abs_rel_0306": 0.14435603792478666,
+    "all_abs_rel_0835": 0.13351408036900025,
+    "delta_edge_abs_rel_0306_minus_0835": 0.12092010842026935,
+    "edge_abs_rel_0306": 0.43126812788431573,
+    "edge_abs_rel_0835": 0.3103480194640464,
+    "edge_d1_0306": 0.611026808295397,
+    "edge_d1_0835": 0.7212948912493677,
+    "edge_points": 1977,
+    "index": 445,
+    "panel": "/home/caq/6666_raw/dav2_raw_0520/plans/result/stf_boundary_diagnostics_key_0521_1528/examples_0835_better_image_edge_abs/0445_2018-02-04_10-41-26_00200_edge_abs_0835_better.png",
+    "sample_name": "2018-02-04_10-41-26_00200"
+  }
+]

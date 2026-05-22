@@ -20,6 +20,16 @@ DIST_H = 190
 PANEL_TILE_COUNT = 7
 DIST_GAP = 8
 
+DEFAULT_RAW_RUN_PREFIXES = (
+    "0521_0012",
+    "0521_1542",
+    "0522_1423",
+    "0521_0112",
+    "0521_0522",
+    "0521_0656",
+    "0521_0835",
+)
+
 
 @dataclass(frozen=True)
 class RunInfo:
@@ -179,7 +189,67 @@ def _collect_runs(exp_root: Path, start: str, end: str, sample: str) -> tuple[li
     return runs, warnings
 
 
-def _discover_common_samples(exp_root: Path, start: str, end: str) -> list[str]:
+def _run_info_for_sample(run_dir: Path, sample: str) -> tuple[RunInfo | None, list[str]]:
+    warnings: list[str] = []
+    config = _load_config(run_dir)
+    input_type = str(config.get("input_type", ""))
+    route = "raw" if "raw" in input_type or "raw_ram" in run_dir.name else "rgb"
+    best_epoch, best_value = _best_epoch_from_log(run_dir)
+    if best_epoch is None:
+        best_epoch = _latest_epoch(run_dir)
+        warnings.append(f"{run_dir.name}: no best epoch in log; using latest epoch {best_epoch}")
+    if best_epoch is None:
+        warnings.append(f"{run_dir.name}: no viz_fixed epoch found; skipped")
+        return None, warnings
+
+    panel_path = run_dir / "viz_fixed" / f"epoch_{best_epoch:02d}" / "stf" / f"{sample}_panel.png"
+    if not panel_path.exists():
+        warnings.append(f"{run_dir.name}: missing {panel_path}; skipped")
+        return None, warnings
+
+    return (
+        RunInfo(
+            name=run_dir.name,
+            path=run_dir,
+            input_type=input_type,
+            route=route,
+            train_lines=_train_summary_lines(run_dir.name, config),
+            best_epoch=best_epoch,
+            best_value=best_value,
+            panel_path=panel_path,
+        ),
+        warnings,
+    )
+
+
+def _matching_run_dirs(exp_root: Path, prefixes: list[str]) -> tuple[list[Path], list[str]]:
+    warnings: list[str] = []
+    selected: list[Path] = []
+    seen: set[Path] = set()
+    for prefix in prefixes:
+        matches = sorted(path for path in exp_root.iterdir() if path.is_dir() and path.name.startswith(prefix))
+        if not matches:
+            warnings.append(f"{prefix}: no matching run directory found")
+        for run_dir in matches:
+            if run_dir in seen:
+                continue
+            selected.append(run_dir)
+            seen.add(run_dir)
+    return selected, warnings
+
+
+def _collect_runs_by_prefixes(exp_root: Path, prefixes: list[str], sample: str) -> tuple[list[RunInfo], list[str]]:
+    runs: list[RunInfo] = []
+    run_dirs, warnings = _matching_run_dirs(exp_root, prefixes)
+    for run_dir in run_dirs:
+        run, run_warnings = _run_info_for_sample(run_dir, sample)
+        warnings.extend(run_warnings)
+        if run is not None:
+            runs.append(run)
+    return runs, warnings
+
+
+def _discover_common_samples(exp_root: Path, start: str, end: str, raw_run_prefixes: list[str] | None = None) -> list[str]:
     sample_sets = []
     for run_dir in sorted(path for path in exp_root.iterdir() if path.is_dir()):
         prefix = _timestamp_prefix(run_dir.name)
@@ -202,6 +272,26 @@ def _discover_common_samples(exp_root: Path, start: str, end: str) -> list[str]:
         }
         if names:
             sample_sets.append(names)
+
+    if raw_run_prefixes:
+        run_dirs, _ = _matching_run_dirs(exp_root, raw_run_prefixes)
+        for run_dir in run_dirs:
+            best_epoch, _ = _best_epoch_from_log(run_dir)
+            if best_epoch is None:
+                best_epoch = _latest_epoch(run_dir)
+            if best_epoch is None:
+                continue
+
+            split_dir = run_dir / "viz_fixed" / f"epoch_{best_epoch:02d}" / "stf"
+            if not split_dir.exists():
+                continue
+            names = {
+                path.name[: -len("_panel.png")]
+                for path in split_dir.glob("*_panel.png")
+                if path.name.endswith("_panel.png")
+            }
+            if names:
+                sample_sets.append(names)
 
     if not sample_sets:
         return []
@@ -311,14 +401,26 @@ def _paste_with_caption(
     canvas.paste(image, (x, y + 22))
 
 
-def _make_panel(runs: list[RunInfo], sample: str, output: Path) -> None:
+def _make_panel(
+    runs: list[RunInfo],
+    sample: str,
+    output: Path,
+    *,
+    raw_runs_override: list[RunInfo] | None = None,
+) -> None:
     if not runs:
         raise SystemExit("No usable runs found.")
 
-    panels = {run.name: Image.open(run.panel_path).convert("RGB") for run in runs}
-    raw_runs = [run for run in runs if run.route == "raw"]
+    all_runs = list(runs)
+    if raw_runs_override is not None:
+        known = {run.name for run in all_runs}
+        all_runs.extend(run for run in raw_runs_override if run.name not in known)
+
+    panels = {run.name: Image.open(run.panel_path).convert("RGB") for run in all_runs}
+    reference_raw_runs = [run for run in runs if run.route == "raw"]
+    raw_runs = raw_runs_override if raw_runs_override is not None else reference_raw_runs
     rgb_runs = [run for run in runs if run.route != "raw"]
-    reference_run = _choose_reference_run(raw_runs if raw_runs else runs, panels)
+    reference_run = _choose_reference_run(reference_raw_runs if reference_raw_runs else runs, panels)
     reference = panels[reference_run.name]
     reference_dist_count = _distribution_count(reference)
 
@@ -441,6 +543,19 @@ def main() -> None:
     parser.add_argument("--exp-root", type=Path, default=Path("finetune_stf/exp"))
     parser.add_argument("--start", default="0521_0012")
     parser.add_argument("--end", default="0521_1004")
+    parser.add_argument(
+        "--raw-run-prefix",
+        action="append",
+        help=(
+            "Run prefix for the RAW route section. Can be repeated; each prefix may match multiple runs. "
+            "Defaults to the curated 0521/0522 RAW comparison list."
+        ),
+    )
+    parser.add_argument(
+        "--use-range-raw-runs",
+        action="store_true",
+        help="Use RAW runs from --start/--end instead of the default curated RAW route list.",
+    )
     parser.add_argument("--sample", action="append", help="Sample stem. Can be passed multiple times.")
     parser.add_argument("--sample-list", type=Path, help="Text file with one sample stem per line.")
     parser.add_argument("--all-samples", action="store_true", help="Generate all common best-epoch fixed-viz samples.")
@@ -453,12 +568,16 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    raw_run_prefixes = None
+    if not args.use_range_raw_runs:
+        raw_run_prefixes = list(args.raw_run_prefix or DEFAULT_RAW_RUN_PREFIXES)
+
     samples = list(args.sample or [])
     if args.sample_list is not None:
         with args.sample_list.open("r", encoding="utf-8") as handle:
             samples.extend(line.strip() for line in handle if line.strip() and not line.lstrip().startswith("#"))
     if args.all_samples:
-        samples.extend(_discover_common_samples(args.exp_root, args.start, args.end))
+        samples.extend(_discover_common_samples(args.exp_root, args.start, args.end, raw_run_prefixes))
 
     samples = sorted(dict.fromkeys(samples))
     if not samples:
@@ -471,6 +590,10 @@ def main() -> None:
         output = args.output or args.output_dir / f"{sample}_cross_exp_best_panel.png"
         print(f"[SAMPLE] {sample}")
         runs, warnings = _collect_runs(args.exp_root, args.start, args.end, sample)
+        raw_runs = None
+        if raw_run_prefixes is not None:
+            raw_runs, raw_warnings = _collect_runs_by_prefixes(args.exp_root, raw_run_prefixes, sample)
+            warnings.extend(raw_warnings)
         for warning in warnings:
             print(f"[WARN] {warning}")
         for run in runs:
@@ -483,7 +606,12 @@ def main() -> None:
                 f"best_epoch={run.best_epoch:02d} val_abs_rel={metric} "
                 f"tiles={tile_count} dist_blocks={dist_count}"
             )
-        _make_panel(runs, sample, output)
+        if raw_runs is not None:
+            print("[RAW ROUTE]")
+            for run in raw_runs:
+                metric = "n/a" if run.best_value is None else f"{run.best_value:.4f}"
+                print(f"[RAW] {run.name} best_epoch={run.best_epoch:02d} val_abs_rel={metric}")
+        _make_panel(runs, sample, output, raw_runs_override=raw_runs)
         print(f"[OK] wrote {output}")
 
 

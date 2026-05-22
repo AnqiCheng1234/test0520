@@ -1,0 +1,26 @@
+[
+  {
+    "abs_rel": 0.12716921098859327,
+    "checkpoint": "/home/caq/333_cvpr/da_ours/checkpoints/depth_anything_v2_vitl.pth",
+    "config": "/home/caq/6666_raw/dav2_raw_0520/finetune_stf/exp/0521_0133_stf_train_test_pseudovitl_rgb_decoder_e5/config.json",
+    "d1": 0.8636315718829632,
+    "edge_band_sample_count": 808.0,
+    "image_edge_band_abs_rel": 0.31854806293882454,
+    "image_edge_band_coverage": 0.4016316815629227,
+    "image_edge_band_d1": 0.7864854683742089,
+    "image_edge_band_points": 2714.980198019802,
+    "item_id": "dav2l_rgb_direct",
+    "label": "DAv2-L RGB direct",
+    "n": 808.0,
+    "pseudo_boundary_sample_count": 808.0,
+    "pseudo_dbe_acc": 0.8421437029570046,
+    "pseudo_dbe_comp": 0.8848262305675757,
+    "pseudo_edge_f1": 0.9148233686711559,
+    "pseudo_edge_precision": 0.917697926797864,
+    "pseudo_edge_recall": 0.9123940412543263,
+    "pseudo_pred_edge_density": 0.04466195311089946,
+    "pseudo_target_edge_density": 0.044851651836936623,
+    "rmse": 7.933617140444015,
+    "silog": 0.25773059932584436
+  }
+]

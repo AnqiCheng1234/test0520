@@ -1,6 +1,6 @@
 # RGB / RAW baseline 公平性汇总
 
-日期：2026-05-21
+日期：2026-05-22
 
 本文记录 `/home/caq/6666_raw/dav2_raw_0520` 当前 STF formal validation 结果。
 
@@ -31,6 +31,28 @@
   - train target：DAv2 pseudo depth，manifest 为 `/mnt/drive/3333_raw/seeing_through_fog/pseudo_depth_dav2_official_vitl_rgb_lut_6216_20260417/stf_rgb_lut_manifest_6216.csv`
   - eval split：STF val，`808` samples，sparse backend，`min_depth=1 / max_depth=80`
   - checkpoint：`best_model.pth` 按 `best_metric=stf` 保存，best epoch 为 epoch 7；last epoch 为 epoch 9
+- `0522_0137_stf_train_test_pseudovitl_raw_ram_bridge_feature_adapter_ram_e10_from_0521_1542_setting`
+  - source log：`/home/caq/6666_raw/dav2_raw_0520/finetune_stf/exp/0522_0137_stf_train_test_pseudovitl_raw_ram_bridge_feature_adapter_ram_e10_from_0521_1542_setting/train.log`
+  - tmux log：`/home/caq/6666_raw/dav2_raw_0520/finetune_stf/logs/0522_0137_stf_train_test_pseudovitl_raw_ram_bridge_feature_adapter_ram_e10_from_0521_1542_setting.tmux.log`
+  - queue log：`/home/caq/6666_raw/dav2_raw_0520/finetune_stf/logs/0522_0137_stf_ram_fa_bridge_from_0521_1542.queue.log`
+  - stage: `stf_only`
+  - input: `raw_ram_bridge_feature_adapter`
+  - RAW path：同 `0521_1542` 的 STF legacy online decomp16 RAW -> `channel_mode=rgb_avg_g` -> RamCore3；额外启用 bridge + decoder-side feature adapter
+  - model log：`feature_keys=['x_cat','ffm_mid','x4']`，`bridge_layers=[2,5,8,11]`，decoder fusion `path_4,path_3,path_2`，`image_bridge=base_rgb+0.1*tanh(1x1_conv(x4))`，`dav2_train_mode=none`，`trainable_params=871397`
+  - train target：DAv2 pseudo depth，manifest 为 `/mnt/drive/3333_raw/seeing_through_fog/pseudo_depth_dav2_official_vitl_rgb_lut_6216_20260417/stf_rgb_lut_manifest_6216.csv`
+  - eval split：STF val，`808` samples，sparse backend，`min_depth=1 / max_depth=80`
+  - checkpoint：`best_model.pth` 按 `best_metric=stf` 保存，best epoch 为 epoch 9；last epoch 为 epoch 9
+- `0522_1423_stf_train_test_pseudovitl_raw_ram_rgb_bridge_feature_adapter_ram_e10_from_0521_1542_setting`
+  - source log：`/home/caq/6666_raw/dav2_raw_0520/finetune_stf/exp/0522_1423_stf_train_test_pseudovitl_raw_ram_rgb_bridge_feature_adapter_ram_e10_from_0521_1542_setting/train.log`
+  - tmux log：`/home/caq/6666_raw/dav2_raw_0520/finetune_stf/logs/0522_1423_stf_train_test_pseudovitl_raw_ram_rgb_bridge_feature_adapter_ram_e10_from_0521_1542_setting.tmux.log`
+  - queue log：`/home/caq/6666_raw/dav2_raw_0520/finetune_stf/logs/0522_1423_stf_ram_rgb_fa_bridge_from_0521_1542.queue.log`
+  - stage: `stf_only`
+  - input: `raw_ram_rgb_bridge_feature_adapter`
+  - RAW path：同 `0521_1542` 的 STF legacy online decomp16 RAW -> `channel_mode=rgb_avg_g` -> RamCore3；额外启用 bridge + decoder-side feature adapter
+  - model log：`feature_keys=['x_cat','ffm_mid','x3']`，`bridge_layers=[2,5,8,11]`，decoder fusion `path_4,path_3,path_2`，`image_bridge=ramcore_bn_tanh25_no_clamp_no_imagenet_norm`，`dav2_train_mode=none`，`trainable_params=860971`
+  - train target：DAv2 pseudo depth，manifest 为 `/mnt/drive/3333_raw/seeing_through_fog/pseudo_depth_dav2_official_vitl_rgb_lut_6216_20260417/stf_rgb_lut_manifest_6216.csv`
+  - eval split：STF val，`808` samples，sparse backend，`min_depth=1 / max_depth=80`
+  - checkpoint：`best_model.pth` 按 `best_metric=stf` 保存，best epoch 为 epoch 9；last epoch 为 epoch 9
 - `0521_0112_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_decoder_e5`
   - source log：`/home/caq/6666_raw/dav2_raw_0520/finetune_stf/exp/0521_0112_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_identity_decoder_e5/train.log`
   - stage: `stf_only`
@@ -43,6 +65,10 @@
 
 baseline/control 行：
 
+- DAv2-L RGB 直推：official RGB DAv2-L checkpoint，不训练；已补跑。
+  - source log：`/home/caq/6666_raw/dav2_raw_0520/logs/0521_2347_stf_dav2l_rgb_direct_baseline.log`
+  - eval report：`/home/caq/6666_raw/dav2_raw_0520/anqi_eval/results/0521_2347_stf_val_dav2l_rgb_direct/eval_stf_rel_depth_val_2026-05-21.txt`
+  - eval split：STF val，`808` samples，sparse backend equivalent，`min_depth=1 / max_depth=80`，input size `512x960`
 - DAv2-S RGB 直推：official RGB DAv2-S checkpoint，不训练；已补跑。
   - source log：`/home/caq/6666_raw/dav2_raw_0520/logs/0521_0104_stf_dav2s_direct_baselines.log`
   - eval report：`/home/caq/6666_raw/dav2_raw_0520/anqi_eval/results/0521_0104_stf_val_dav2s_rgb_direct/eval_stf_rel_depth_val_2026-05-21.txt`
@@ -140,6 +166,16 @@ baseline/control 行：
   - train target：DAv2 pseudo depth，manifest 为 `/mnt/drive/3333_raw/seeing_through_fog/pseudo_depth_dav2_official_vitl_rgb_lut_6216_20260417/stf_rgb_lut_manifest_6216.csv`
   - eval split：STF val，`808` samples，sparse backend，`min_depth=1 / max_depth=80`
   - checkpoint：`best_model.pth` 按 `best_metric=stf` 保存，best epoch 为 epoch 5；last epoch 为 epoch 9
+- `0521_2217_stf_train_test_pseudovitl_raw_ram_bridge_feature_adapter_full_no_lrd_e10_from_0521_1606_setting`
+  - source log：`/home/caq/6666_raw/dav2_raw_0520/finetune_stf/exp/0521_2217_stf_train_test_pseudovitl_raw_ram_bridge_feature_adapter_full_no_lrd_e10_from_0521_1606_setting/train.log`
+  - tmux log：`/home/caq/6666_raw/dav2_raw_0520/finetune_stf/logs/0521_2217_stf_train_test_pseudovitl_raw_ram_bridge_feature_adapter_full_no_lrd_e10_from_0521_1606_setting.tmux.log`
+  - stage: `stf_only`
+  - input: `raw_ram_bridge_feature_adapter`
+  - RAW path：STF legacy online decomp16 RAW -> packed Bayer -> `channel_mode=rgb_avg_g` -> RamCore3 -> image bridge；额外启用 bridge + decoder-side feature adapter
+  - model log：`feature_keys=['x_cat','ffm_mid','x4']`，`bridge_layers=[2,5,8,11]`，decoder fusion `path_4,path_3,path_2`，`image_bridge=base_rgb+0.1*tanh(1x1_conv(x4))`，`dav2_train_mode=full`，`backbone_layer_decay=1.0` / no LRD，`trainable_params=25656486`
+  - train target：DAv2 pseudo depth，manifest 为 `/mnt/drive/3333_raw/seeing_through_fog/pseudo_depth_dav2_official_vitl_rgb_lut_6216_20260417/stf_rgb_lut_manifest_6216.csv`
+  - eval split：STF val，`808` samples，sparse backend，`min_depth=1 / max_depth=80`
+  - checkpoint：`best_model.pth` 按 `best_metric=stf` 保存，best epoch 为 epoch 7；last epoch 为 epoch 9
 - `0521_1137_stf_train_test_pseudoda3_sparse_metric_rgb_lora_decoder_e5`
   - source log：`/home/caq/6666_raw/dav2_raw_0520/finetune_stf/exp/0521_1137_stf_train_test_pseudoda3_sparse_metric_rgb_lora_decoder_e5/train.log`
   - tmux log：`/home/caq/6666_raw/dav2_raw_0520/finetune_stf/logs/0521_1137_stf_train_test_pseudoda3_sparse_metric_rgb_lora_decoder_e5.tmux.log`
@@ -168,11 +204,12 @@ run-row 数据源优先级：
 
 ## 1. STF val
 
-### 1.1 DAv2-S direct baselines
+### 1.1 DAv2 direct zero-shot baselines
 
 | Experiment | Training data / schedule | abs_rel best (epoch) | abs_rel last/current | d1 best (epoch) | d1 last/current | notes |
 |---|---|---:|---:|---:|---:|---|
-| DAv2-S RGB 直推 | baseline，不训练；`0521_0104_stf_val_dav2s_rgb_direct` | **0.1287 (zero-shot)** | 0.1287 | **0.8575 (zero-shot)** | 0.8575 | official RGB DAv2-S 在 STF RGB LUT preview 输入上 zero-shot；`rmse=7.9067`，`silog=0.2560`。 |
+| DAv2-L RGB 直推 | baseline，不训练；`0521_2347_stf_val_dav2l_rgb_direct` | 0.1292 (zero-shot) | 0.1292 | **0.8601 (zero-shot)** | 0.8601 | official RGB DAv2-L 在 STF RGB LUT preview 输入上 zero-shot；`rmse=7.9835`，`silog=0.2613`。 |
+| DAv2-S RGB 直推 | baseline，不训练；`0521_0104_stf_val_dav2s_rgb_direct` | **0.1287 (zero-shot)** | 0.1287 | 0.8575 (zero-shot) | 0.8575 | official RGB DAv2-S 在 STF RGB LUT preview 输入上 zero-shot；`rmse=7.9067`，`silog=0.2560`。 |
 | DAv2-S RAW-preview 直推 | baseline，不训练；`0521_0104_stf_val_dav2s_raw_preview_direct` | 0.1649 (zero-shot) | 0.1649 | 0.7774 (zero-shot) | 0.7774 | official DAv2-S 在 STF RAW preview / pseudo-RGB path 上 zero-shot；`legacy_online_decomp16 + passthrough + rgb_avg_g`；`rmse=9.0814`，`silog=0.2897`。 |
 
 ### 1.2 DAv2 pseudo RGB finetune runs
@@ -189,13 +226,16 @@ run-row 数据源优先级：
 |---|---|---:|---:|---:|---:|---|
 | `0521_0012...raw_ram_rgb_bnclean_identity_e5` | STF train+test pseudo-label training；`stf_train=5408`，val `808`，`stf_repeat=7`，每 epoch `676` steps | 0.1388 (e4) | 0.1388 | 0.8319 (e4) | 0.8319 | 当前项目摘要中的第一条 formal run。DAv2-S 冻住（`dav2_train_mode=none`），只训练 RAW/RAM front end；best 和 last 均为 epoch 4。 |
 | `0521_1542...bridge_ram_e10` | STF train+test pseudo-label training；同 `0521_0012` 为 DAv2-S frozen RAW/RAM adapter 口径；`input_type=raw_ram_rgb_bridge`，bridge layers `[2,5,8,11]`，keys `x_cat/ffm_mid/x3`，每 epoch `676` steps | 0.1327 (e7) | 0.1328 | 0.8453 (e9) | 0.8453 | 与 `0521_0012` 主要对照 bridge adapter 和训练轮数；loss 同为 SSI。best checkpoint 按 abs_rel 在 epoch 7 保存，last 为 epoch 9；last `rmse=8.0426`，`silog=0.2621`。 |
+| `0522_0137...feature_adapter_ram_e10_from_0521_1542`（4ch RAW） | STF train+test pseudo-label training；同 `0521_1542` 为 DAv2-S frozen RAW/RAM adapter 口径；`input_type=raw_ram_bridge_feature_adapter`，feature keys `x_cat/ffm_mid/x4`，decoder fusion `path_4/path_3/path_2`，每 epoch `676` steps | 0.1303 (e9) | 0.1303 | 0.8498 (e9) | 0.8498 | 基于 `0521_1542` 加 decoder-side feature adapter；best checkpoint 按 abs_rel 在 epoch 9 保存，last 为 epoch 9；last `rmse=7.9462`，`silog=0.2599`。 |
+| `0522_1423...raw_ram_rgb_bridge_feature_adapter_ram_e10_from_0521_1542` | STF train+test pseudo-label training；同 `0521_1542` 为 DAv2-S frozen RAW/RAM adapter 口径；`input_type=raw_ram_rgb_bridge_feature_adapter`，feature keys `x_cat/ffm_mid/x3`，decoder fusion `path_4/path_3/path_2`，每 epoch `676` steps | 0.1313 (e9) | 0.1313 | 0.8468 (e9) | 0.8468 | 基于 `0521_1542` 加 RamCore3/x3 decoder-side feature adapter；best checkpoint 按 abs_rel 在 epoch 9 保存，last 为 epoch 9；last `rmse=8.0112`，`silog=0.2608`。 |
 | `0521_0112...raw_ram_rgb_bnclean_identity_decoder_e5` | STF train+test pseudo-label training；同 `0521_0012`，但 `dav2_train_mode=decoder`；每 epoch `676` steps | 0.1346 (e4) | 0.1346 | 0.8394 (e3) | 0.8392 | RAW/RAM path 相同，额外解冻 DAv2-S decoder；best checkpoint 按 abs_rel 在 epoch 4 保存，last 为 epoch 4；last `rmse=8.1073`，`silog=0.2642`。 |
 | `0521_0522...identity_lora_decoder_e10` | STF train+test pseudo-label training；`input_type=raw_ram_rgb_lora`，identity BN-clean RAW/RAM path；val `808`，`stf_repeat=7`，每 epoch `676` steps；DAv2-S decoder + LoRA | 0.1303 (e8) | 0.1305 | 0.8507 (e9) | 0.8507 | identity RAW/RAM + LoRA decoder；best checkpoint 按 abs_rel 在 epoch 8 保存，last 为 epoch 9；last `rmse=7.9874`，`silog=0.2608`。 |
 | `0521_0656...identity_full_lrd09_e10` | STF train+test pseudo-label training；`input_type=raw_ram_rgb`，identity BN-clean RAW/RAM path；val `808`，`stf_repeat=7`，每 epoch `676` steps；full finetune，`backbone_layer_decay=0.9` | **0.1280 (e4)** | 0.1287 | **0.8574 (e7)** | 0.8561 | identity RAW/RAM + full finetune；best checkpoint 按 abs_rel 在 epoch 4 保存，last 为 epoch 9；last `rmse=7.9307`，`silog=0.2592`。 |
 | `0521_0835...bridge_lora_decoder_e10` | STF train+test pseudo-label training；`input_type=raw_ram_rgb_bridge_lora`，bridge layers `[2,5,8,11]`，keys `x_cat/ffm_mid/x3`；val `808`，每 epoch `676` steps；DAv2-S decoder + LoRA | 0.1294 (e1) | 0.1298 | 0.8512 (e9) | 0.8512 | bridge RAW/RAM + LoRA decoder；best checkpoint 按 abs_rel 在 epoch 1 保存，last 为 epoch 9；last `rmse=7.9542`，`silog=0.2600`。 |
-| `0521_1606...feature_adapter_lora_decoder_e10_from_0521_0835` | STF train+test pseudo-label training；`input_type=raw_ram_bridge_feature_adapter_lora`，feature keys `x_cat/ffm_mid/x4`，decoder fusion `path_4/path_3/path_2`；val `808`，每 epoch `676` steps；DAv2-S decoder + LoRA + bridge + decoder-side feature adapter | 0.1293 (e2) | 0.1294 | 0.8526 (e9) | 0.8526 | 186 run；follows `0521_0835` setting but no `resume_from`/`bridge_init_from`；best checkpoint 按 abs_rel 在 epoch 2 保存，last 为 epoch 9；last `rmse=7.9246`，`silog=0.2596`。 |
+| `0521_1606...feature_adapter_lora_decoder_e10_from_0521_0835`（4ch RAW） | STF train+test pseudo-label training；`input_type=raw_ram_bridge_feature_adapter_lora`，feature keys `x_cat/ffm_mid/x4`，decoder fusion `path_4/path_3/path_2`；val `808`，每 epoch `676` steps；DAv2-S decoder + LoRA + bridge + decoder-side feature adapter | 0.1293 (e2) | 0.1294 | 0.8526 (e9) | 0.8526 | 186 run；follows `0521_0835` setting but no `resume_from`/`bridge_init_from`；best checkpoint 按 abs_rel 在 epoch 2 保存，last 为 epoch 9；last `rmse=7.9246`，`silog=0.2596`。 |
 | `0521_1004...bridge_full_lrd09_e10` | STF train+test pseudo-label training；`input_type=raw_ram_rgb_bridge`，bridge layers `[2,5,8,11]`，keys `x_cat/ffm_mid/x3`；val `808`，每 epoch `676` steps；full finetune，`backbone_layer_decay=0.9` | 0.1282 (e4) | 0.1288 | 0.8561 (e7) | 0.8557 | bridge RAW/RAM + full finetune；best checkpoint 按 abs_rel 在 epoch 4 保存，last 为 epoch 9；last `rmse=7.9349`，`silog=0.2593`。 |
-| `0521_1606...feature_adapter_full_lrd09_e10_from_0521_1004` | STF train+test pseudo-label training；`input_type=raw_ram_bridge_feature_adapter`，feature keys `x_cat/ffm_mid/x4`，decoder fusion `path_4/path_3/path_2`；val `808`，每 epoch `676` steps；full finetune，`backbone_layer_decay=0.9`，bridge + decoder-side feature adapter | **0.1279 (e5)** | 0.1285 | **0.8581 (e7)** | 0.8570 | 186 run；follows `0521_1004` setting but no `resume_from`/`bridge_init_from`；best checkpoint 按 abs_rel 在 epoch 5 保存，last 为 epoch 9；last `rmse=7.9135`，`silog=0.2589`。 |
+| `0521_1606...feature_adapter_full_lrd09_e10_from_0521_1004`（4ch RAW） | STF train+test pseudo-label training；`input_type=raw_ram_bridge_feature_adapter`，feature keys `x_cat/ffm_mid/x4`，decoder fusion `path_4/path_3/path_2`；val `808`，每 epoch `676` steps；full finetune，`backbone_layer_decay=0.9`，bridge + decoder-side feature adapter | **0.1279 (e5)** | 0.1285 | **0.8581 (e7)** | 0.8570 | 186 run；follows `0521_1004` setting but no `resume_from`/`bridge_init_from`；best checkpoint 按 abs_rel 在 epoch 5 保存，last 为 epoch 9；last `rmse=7.9135`，`silog=0.2589`。 |
+| `0521_2217...feature_adapter_full_no_lrd_e10_from_0521_1606`（4ch RAW） | STF train+test pseudo-label training；`input_type=raw_ram_bridge_feature_adapter`，feature keys `x_cat/ffm_mid/x4`，decoder fusion `path_4/path_3/path_2`；val `808`，每 epoch `676` steps；full finetune，`backbone_layer_decay=1.0` / no LRD，bridge + decoder-side feature adapter | 0.1280 (e7) | 0.1286 | 0.8576 (e7) | 0.8565 | local no-LRD ablation of the `0521_1606` full feature-adapter setting；best checkpoint 按 abs_rel 在 epoch 7 保存，last 为 epoch 9；last `rmse=7.9177`，`silog=0.2588`。 |
 
 ### 1.4 DA3 pseudo training runs
 
@@ -218,7 +258,7 @@ run-row 数据源优先级：
 说明：
 
 - `init/pretrain` 行来自 `pretrain_eval.json`，checkpoint source 为 `/home/caq/333_cvpr/da_ours/checkpoints/depth_anything_v2_vits.pth`；指标表 best 只按训练 epoch 0-4 统计。
-- 与 RGB 直推 baseline 相比，decoder-only RGB control 的 best abs_rel 从 `0.1287` 到 `0.1278`，但 last 回到 `0.1287`；d1 未超过同一 train pipeline 的 `init/pretrain=0.8577`。
+- 与 DAv2-S RGB 直推 baseline 相比，decoder-only RGB control 的 best abs_rel 从 `0.1287` 到 `0.1278`，但 last 回到 `0.1287`；d1 未超过同一 train pipeline 的 `init/pretrain=0.8577`。
 - best checkpoint：`/mnt/drive/3333_raw/0000_exp_ckpt/0521_0133_stf_train_test_pseudovitl_rgb_decoder_e5/best_model.pth`。
 - last checkpoint：`/mnt/drive/3333_raw/0000_exp_ckpt/0521_0133_stf_train_test_pseudovitl_rgb_decoder_e5/last_epoch_model.pth`。
 
@@ -264,6 +304,60 @@ run-row 数据源优先级：
 - `pretrain_eval.json` 记录了 split `stf_val` 的 full metrics。
 - best checkpoint：`/mnt/drive/3333_raw/0000_exp_ckpt/0521_1542_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_bridge_ram_e10/best_model.pth`。
 - last checkpoint：`/mnt/drive/3333_raw/0000_exp_ckpt/0521_1542_stf_train_test_pseudovitl_raw_ram_rgb_bnclean_bridge_ram_e10/last_epoch_model.pth`。
+
+### `0522_0137...raw_ram_bridge_feature_adapter_ram_e10_from_0521_1542_setting` per-epoch pointer
+
+| epoch | abs_rel | rmse | silog | d1 | d2 | d3 |
+|---:|---:|---:|---:|---:|---:|---:|
+| init/pretrain | 0.1458 | 8.3949 | 0.2647 | 0.8125 | 0.9126 | 0.9551 |
+| 0 | 0.1337 | 8.0829 | 0.2620 | 0.8416 | 0.9256 | 0.9594 |
+| 1 | 0.1329 | 8.0397 | 0.2620 | 0.8448 | 0.9281 | 0.9600 |
+| 2 | 0.1308 | 7.9675 | 0.2597 | 0.8481 | 0.9296 | 0.9609 |
+| 3 | 0.1313 | 7.9865 | 0.2610 | 0.8484 | 0.9296 | 0.9608 |
+| 4 | 0.1304 | 7.9591 | 0.2604 | 0.8494 | 0.9300 | 0.9609 |
+| 5 | 0.1313 | 7.9676 | 0.2602 | 0.8477 | 0.9298 | 0.9610 |
+| 6 | 0.1304 | 7.9523 | 0.2605 | 0.8495 | **0.9304** | 0.9609 |
+| 7 | 0.1308 | 7.9606 | 0.2608 | 0.8486 | 0.9300 | 0.9610 |
+| 8 | 0.1303 | 7.9511 | 0.2601 | 0.8497 | 0.9302 | 0.9609 |
+| 9 | **0.1303** | **7.9462** | **0.2599** | **0.8498** | **0.9304** | **0.9611** |
+
+说明：
+
+- 该 run 放在 `0521_1542` 下面：两者同为 DAv2-S frozen RAW/RAM adapter 口径，训练/验证数据、STF pseudo target、sparse eval backend、`raw_ram_rgb_tail=identity` 均一致。
+- 主要差异是把 bridge feature 从 `x3` 改为 `x4` 并加 decoder-side feature adapter：`bridge_feature_keys=['x_cat','ffm_mid','x4']`，decoder fusion `path_4,path_3,path_2`，`image_bridge=base_rgb+0.1*tanh(1x1_conv(x4))`，log 中 `trainable_params=871397`。
+- best checkpoint 按 abs_rel 在 epoch 9 保存；last 为 epoch 9。rounded 后 epoch 8/9 的 abs_rel 都是 `0.1303`，但 checkpoint log 在 epoch 9 记录 `best_stf improved`。
+- `pretrain_eval.json` 记录了 split `stf_val` 的 full metrics。
+- source log：`/home/caq/6666_raw/dav2_raw_0520/finetune_stf/exp/0522_0137_stf_train_test_pseudovitl_raw_ram_bridge_feature_adapter_ram_e10_from_0521_1542_setting/train.log`。
+- tmux log：`/home/caq/6666_raw/dav2_raw_0520/finetune_stf/logs/0522_0137_stf_train_test_pseudovitl_raw_ram_bridge_feature_adapter_ram_e10_from_0521_1542_setting.tmux.log`。
+- best checkpoint：`/mnt/drive/3333_raw/0000_exp_ckpt/0522_0137_stf_train_test_pseudovitl_raw_ram_bridge_feature_adapter_ram_e10_from_0521_1542_setting/best_model.pth`。
+- last checkpoint：`/mnt/drive/3333_raw/0000_exp_ckpt/0522_0137_stf_train_test_pseudovitl_raw_ram_bridge_feature_adapter_ram_e10_from_0521_1542_setting/last_epoch_model.pth`。
+
+### `0522_1423...raw_ram_rgb_bridge_feature_adapter_ram_e10_from_0521_1542_setting` per-epoch pointer
+
+| epoch | abs_rel | rmse | silog | d1 | d2 | d3 |
+|---:|---:|---:|---:|---:|---:|---:|
+| init/pretrain | 0.2902 | 12.3261 | 0.4308 | 0.5204 | 0.7648 | 0.8798 |
+| 0 | 0.1358 | 8.1368 | 0.2629 | 0.8360 | 0.9256 | 0.9597 |
+| 1 | 0.1333 | 8.0728 | 0.2620 | 0.8407 | 0.9272 | 0.9601 |
+| 2 | 0.1322 | 8.0349 | **0.2605** | 0.8436 | 0.9284 | 0.9602 |
+| 3 | 0.1327 | 8.0577 | 0.2621 | 0.8435 | 0.9278 | 0.9600 |
+| 4 | 0.1325 | 8.0521 | 0.2623 | 0.8457 | 0.9286 | 0.9600 |
+| 5 | 0.1320 | 8.0223 | 0.2607 | 0.8445 | 0.9284 | **0.9605** |
+| 6 | 0.1317 | 8.0248 | 0.2618 | 0.8457 | 0.9287 | 0.9602 |
+| 7 | 0.1316 | 8.0207 | 0.2612 | 0.8459 | 0.9286 | 0.9603 |
+| 8 | 0.1317 | 8.0352 | 0.2610 | 0.8464 | 0.9288 | 0.9603 |
+| 9 | **0.1313** | **8.0112** | 0.2608 | **0.8468** | **0.9290** | 0.9603 |
+
+说明：
+
+- 该 run 放在 `0521_1542` 和 `0522_0137` 下面：同为 DAv2-S frozen RAW/RAM adapter 口径，训练/验证数据、STF pseudo target、sparse eval backend、`raw_ram_rgb_tail=identity` 均一致。
+- 主要差异是使用 RamCore3/x3 decoder-side feature adapter：`input_type=raw_ram_rgb_bridge_feature_adapter`，`bridge_feature_keys=['x_cat','ffm_mid','x3']`，decoder fusion `path_4,path_3,path_2`，`image_bridge=ramcore_bn_tanh25_no_clamp_no_imagenet_norm`，log 中 `trainable_params=860971`。
+- best checkpoint 按 abs_rel 在 epoch 9 保存；last 为 epoch 9。d1/d2 best 也出现在 epoch 9，silog best 出现在 epoch 2，d3 best 出现在 epoch 5。
+- `pretrain_eval.json` 记录了 split `stf_val` 的 full metrics。
+- source log：`/home/caq/6666_raw/dav2_raw_0520/finetune_stf/exp/0522_1423_stf_train_test_pseudovitl_raw_ram_rgb_bridge_feature_adapter_ram_e10_from_0521_1542_setting/train.log`。
+- tmux log：`/home/caq/6666_raw/dav2_raw_0520/finetune_stf/logs/0522_1423_stf_train_test_pseudovitl_raw_ram_rgb_bridge_feature_adapter_ram_e10_from_0521_1542_setting.tmux.log`。
+- best checkpoint：`/mnt/drive/3333_raw/0000_exp_ckpt/0522_1423_stf_train_test_pseudovitl_raw_ram_rgb_bridge_feature_adapter_ram_e10_from_0521_1542_setting/best_model.pth`。
+- last checkpoint：`/mnt/drive/3333_raw/0000_exp_ckpt/0522_1423_stf_train_test_pseudovitl_raw_ram_rgb_bridge_feature_adapter_ram_e10_from_0521_1542_setting/last_epoch_model.pth`。
 
 ### `0521_0112...raw_ram_rgb_bnclean_identity_decoder_e5` per-epoch pointer
 
@@ -466,6 +560,32 @@ run-row 数据源优先级：
 - tmux log on 186：`/home/a5000/6666_raw/dav2_raw_0520/finetune_stf/logs/0521_1606_stf_train_test_pseudovitl_raw_ram_bridge_feature_adapter_full_lrd09_e10_from_0521_1004_setting_retry1.tmux.log`。
 - best checkpoint：`/mnt/drive/3333_raw/0000_exp_ckpt/0521_1606_stf_train_test_pseudovitl_raw_ram_bridge_feature_adapter_full_lrd09_e10_from_0521_1004_setting_retry1/best_model.pth`。
 - last checkpoint：`/mnt/drive/3333_raw/0000_exp_ckpt/0521_1606_stf_train_test_pseudovitl_raw_ram_bridge_feature_adapter_full_lrd09_e10_from_0521_1004_setting_retry1/last_epoch_model.pth`。
+
+### `0521_2217...raw_ram_bridge_feature_adapter_full_no_lrd_e10_from_0521_1606_setting` per-epoch pointer
+
+| epoch | abs_rel | rmse | silog | d1 | d2 | d3 |
+|---:|---:|---:|---:|---:|---:|---:|
+| init/pretrain | 0.1458 | 8.3949 | 0.2647 | 0.8125 | 0.9126 | 0.9551 |
+| 0 | 0.1327 | 8.0224 | 0.2618 | 0.8419 | 0.9284 | 0.9601 |
+| 1 | 0.1313 | 8.0052 | 0.2621 | 0.8439 | 0.9281 | 0.9608 |
+| 2 | 0.1309 | 7.9433 | 0.2599 | 0.8506 | 0.9312 | 0.9612 |
+| 3 | 0.1315 | 8.0455 | 0.2634 | 0.8465 | 0.9293 | 0.9605 |
+| 4 | 0.1290 | 7.9060 | 0.2588 | 0.8530 | 0.9322 | 0.9613 |
+| 5 | 0.1285 | **7.8782** | **0.2581** | 0.8530 | 0.9318 | **0.9614** |
+| 6 | 0.1288 | 7.9016 | 0.2587 | 0.8542 | 0.9321 | 0.9612 |
+| 7 | **0.1280** | 7.8954 | **0.2581** | **0.8576** | **0.9330** | 0.9612 |
+| 8 | 0.1291 | 7.9332 | 0.2599 | 0.8544 | 0.9316 | 0.9610 |
+| 9 | 0.1286 | 7.9177 | 0.2588 | 0.8565 | 0.9326 | 0.9611 |
+
+说明：
+
+- feature-adapter full no-LRD ablation：`input_type=raw_ram_bridge_feature_adapter`，feature keys `x_cat/ffm_mid/x4`，decoder fusion `path_4/path_3/path_2`，`dav2_train_mode=full`，`backbone_layer_decay=1.0`，log 中 `trainable_params=25656486`。
+- 该 run 与 `0521_1606` full feature-adapter setting 同口径，但去掉 layer-wise LR decay；`resume_from=None`，没有 `bridge_init_from`。
+- best checkpoint 按 abs_rel 在 epoch 7 保存；last 为 epoch 9。d1 best 同样出现在 epoch 7。
+- source log：`/home/caq/6666_raw/dav2_raw_0520/finetune_stf/exp/0521_2217_stf_train_test_pseudovitl_raw_ram_bridge_feature_adapter_full_no_lrd_e10_from_0521_1606_setting/train.log`。
+- tmux log：`/home/caq/6666_raw/dav2_raw_0520/finetune_stf/logs/0521_2217_stf_train_test_pseudovitl_raw_ram_bridge_feature_adapter_full_no_lrd_e10_from_0521_1606_setting.tmux.log`。
+- best checkpoint：`/mnt/drive/3333_raw/0000_exp_ckpt/0521_2217_stf_train_test_pseudovitl_raw_ram_bridge_feature_adapter_full_no_lrd_e10_from_0521_1606_setting/best_model.pth`。
+- last checkpoint：`/mnt/drive/3333_raw/0000_exp_ckpt/0521_2217_stf_train_test_pseudovitl_raw_ram_bridge_feature_adapter_full_no_lrd_e10_from_0521_1606_setting/last_epoch_model.pth`。
 
 ### `0521_1137...pseudoda3_sparse_metric_rgb_lora_decoder_e5` per-epoch pointer
 

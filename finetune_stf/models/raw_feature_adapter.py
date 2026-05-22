@@ -4,6 +4,7 @@ import torch.nn.functional as F
 
 from finetune_stf.models.lora_bridge import (
     DEFAULT_LORA_BLOCK_MODE,
+    DEFAULT_RGB_BRIDGE_FEATURE_KEYS,
     LORA_BLOCK_MODE_CHOICES,
     RawFeatureBridgeAdapter,
     _remap_state_dict_for_lora_modules,
@@ -11,9 +12,13 @@ from finetune_stf.models.lora_bridge import (
 )
 from finetune_stf.models.raw_ram import (
     RAW_RAM_BRIDGE_FEATURE_CHANNELS,
+    RAW_RAM_RGB_BRIDGE_FEATURE_CHANNELS,
     RGBInterfaceHead,
+    RamCore3,
     RawRamCore,
     _register_imagenet_stats,
+    packed_bayer_to_base_rgb,
+    phase1b_tanh_tail_squash,
 )
 from finetune_stf.models.spatial_adapter import BACKBONE_INPUT_HW, SENSOR_INPUT_HW, CenterPadCropAdapter
 
@@ -21,6 +26,7 @@ from finetune_stf.models.spatial_adapter import BACKBONE_INPUT_HW, SENSOR_INPUT_
 RAW_RAM_FEATURE_ADAPTER_ONLY_INPUT_TYPES = ("raw_ram_feature_adapter",)
 RAW_RAM_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES = ("raw_ram_bridge_feature_adapter",)
 RAW_RAM_BRIDGE_FEATURE_ADAPTER_LORA_INPUT_TYPES = ("raw_ram_bridge_feature_adapter_lora",)
+RAW_RAM_RGB_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES = ("raw_ram_rgb_bridge_feature_adapter",)
 RAW_RAM_BRIDGE_FEATURE_ADAPTER_INPUT_TYPES = (
     RAW_RAM_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES
     + RAW_RAM_BRIDGE_FEATURE_ADAPTER_LORA_INPUT_TYPES
@@ -28,6 +34,7 @@ RAW_RAM_BRIDGE_FEATURE_ADAPTER_INPUT_TYPES = (
 RAW_RAM_FEATURE_ADAPTER_INPUT_TYPES = (
     RAW_RAM_FEATURE_ADAPTER_ONLY_INPUT_TYPES
     + RAW_RAM_BRIDGE_FEATURE_ADAPTER_INPUT_TYPES
+    + RAW_RAM_RGB_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES
 )
 DEFAULT_FEATURE_ADAPTER_KEYS = ("x_cat", "ffm_mid", "x4")
 
@@ -354,6 +361,88 @@ class RawRamBridgeFeatureAdapterDepthModel(RawRamFeatureAdapterDepthModel):
         return self.bridge_adapter(feature_dict, patch_hw=patch_hw)
 
 
+class RawRamRgbBridgeFeatureAdapterDepthModel(RawRamFeatureAdapterDepthModel):
+    """
+    raw4 -> [R,(Gr+Gb)/2,B] -> RamCore3 BN output -> DAv2 backbone with bridge
+        plus decoder-side feature adapters from the same x_cat / ffm_mid / x3 features.
+    """
+
+    def __init__(
+        self,
+        dav2_model,
+        *,
+        feature_keys=DEFAULT_RGB_BRIDGE_FEATURE_KEYS,
+        bridge_layers=None,
+        bridge_source="ram_core",
+        adapter_dim=64,
+        sensor_hw=SENSOR_INPUT_HW,
+        backbone_hw=BACKBONE_INPUT_HW,
+    ):
+        nn.Module.__init__(self)
+        if bridge_source != "ram_core":
+            raise ValueError(f"Unsupported bridge_source for now: {bridge_source}")
+        unknown_keys = [key for key in feature_keys if key not in RAW_RAM_RGB_BRIDGE_FEATURE_CHANNELS]
+        if unknown_keys:
+            raise ValueError(f"Unsupported feature adapter keys: {unknown_keys}")
+
+        self.ram_core = RamCore3()
+        self.feature_adapter_keys = tuple(feature_keys)
+        self.dav2 = dav2_model
+        self.feature_projector = RAWFeatureProjector(
+            feature_channels=RAW_RAM_RGB_BRIDGE_FEATURE_CHANNELS,
+            feature_keys=self.feature_adapter_keys,
+            adapter_dim=adapter_dim,
+        )
+        decoder_feat_dim = int(self.dav2.depth_head.scratch.output_conv1.in_channels)
+        self.merge3 = DepthMergeBlock(decoder_feat_dim, adapter_dim)
+        self.merge2 = DepthMergeBlock(decoder_feat_dim, adapter_dim)
+        self.merge1 = DepthMergeBlock(decoder_feat_dim, adapter_dim)
+        if bridge_layers is None:
+            bridge_layers = dav2_model.intermediate_layer_idx[dav2_model.encoder]
+        self.bridge_source = bridge_source
+        self.bridge_feature_keys = self.feature_adapter_keys
+        self.bridge_layers = tuple(int(layer) for layer in bridge_layers)
+        self.bridge_adapter = RawFeatureBridgeAdapter(
+            feature_channels=RAW_RAM_RGB_BRIDGE_FEATURE_CHANNELS,
+            feature_keys=self.bridge_feature_keys,
+            target_layers=self.bridge_layers,
+            embed_dim=self.dav2.pretrained.embed_dim,
+        )
+        self.spatial_adapter = CenterPadCropAdapter(sensor_hw=sensor_hw, backbone_hw=backbone_hw)
+        _register_imagenet_stats(self)
+
+    def _build_bridge_injections(self, feature_dict, *, patch_hw):
+        return self.bridge_adapter(feature_dict, patch_hw=patch_hw)
+
+    def forward_features(self, x_raw):
+        x3_in = packed_bayer_to_base_rgb(x_raw)
+        x3, feature_dict = self.ram_core.forward_with_features(x3_in)
+        x3 = phase1b_tanh_tail_squash(x3)
+        feature_dict = {**feature_dict, "x3": x3}
+        x_norm = self.spatial_adapter.pad_rgb(x3)
+        patch_hw = (
+            x_norm.shape[-2] // self.dav2.pretrained.patch_size,
+            x_norm.shape[-1] // self.dav2.pretrained.patch_size,
+        )
+        bridge_injections = self._build_bridge_injections(feature_dict, patch_hw=patch_hw)
+        out_features, patch_h, patch_w = self._extract_backbone_features(
+            x_norm,
+            bridge_injections=bridge_injections,
+        )
+        adapters = self.feature_projector(
+            feature_dict,
+            target_sizes={
+                "a3": (patch_h, patch_w),
+                "a2": (patch_h * 2, patch_w * 2),
+                "a1": (patch_h * 4, patch_w * 4),
+            },
+        )
+        depth = self._forward_decoder_with_adapters(out_features, patch_h, patch_w, adapters)
+        depth = F.relu(depth).squeeze(1)
+        depth = self.spatial_adapter.crop_depth(depth)
+        return {"rgb": x3, "depth": depth}
+
+
 class RawRamBridgeFeatureAdapterLoRADepthModel(RawRamBridgeFeatureAdapterDepthModel):
     def __init__(
         self,
@@ -423,6 +512,16 @@ def build_raw_ram_feature_adapter_depth_model(
             adapter_dim=adapter_dim,
             rgb_interface_mode=rgb_interface_mode,
             rgb_residual_scale=rgb_residual_scale,
+            sensor_hw=sensor_hw,
+            backbone_hw=backbone_hw,
+        )
+    if input_type == "raw_ram_rgb_bridge_feature_adapter":
+        return RawRamRgbBridgeFeatureAdapterDepthModel(
+            dav2_model,
+            feature_keys=feature_keys,
+            bridge_layers=bridge_layers,
+            bridge_source=bridge_source,
+            adapter_dim=adapter_dim,
             sensor_hw=sensor_hw,
             backbone_hw=backbone_hw,
         )

@@ -35,6 +35,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from anqi_eval.eval_rel_depth_strict import affine_align_disp, compute_metrics
 from finetune_stf.dataset.stf import STF
+from finetune_stf.dataset.raw_storage import get_raw_storage_spec
 from finetune_stf.dataset.stf_raw import STF_RAW
 from finetune_stf.train import (
     RAW_MODEL_INPUT_TYPES,
@@ -73,11 +74,13 @@ SUMMARY_RUNS = (
 )
 
 DIRECT_BASELINES = (
+    "dav2l_rgb_direct",
     "dav2s_rgb_direct",
     "dav2s_raw_preview_direct",
 )
 
 SUMMARY_LABELS = {
+    "dav2l_rgb_direct": "DAv2-L RGB direct",
     "dav2s_rgb_direct": "DAv2-S RGB direct",
     "dav2s_raw_preview_direct": "DAv2-S RAW-preview direct",
     "0521_0133_stf_train_test_pseudovitl_rgb_decoder_e5": "0521_0133 rgb_decoder",
@@ -112,6 +115,13 @@ def parse_args() -> argparse.Namespace:
         help="Named experiment suite. 'summary' matches rgb_raw_baseline_fairness_summary.md.",
     )
     parser.add_argument("--run", action="append", default=None, help="Run name(s) to evaluate instead of the full suite.")
+    parser.add_argument(
+        "--direct-baseline",
+        action="append",
+        choices=DIRECT_BASELINES,
+        default=None,
+        help="Direct baseline item(s) to evaluate without expanding the full suite.",
+    )
     parser.add_argument("--include-direct", action="store_true", default=True)
     parser.add_argument("--no-include-direct", action="store_false", dest="include_direct")
     parser.add_argument("--reference-config", type=Path, default=DEFAULT_REFERENCE_CONFIG)
@@ -174,27 +184,22 @@ def to_namespace(cfg: dict[str, Any]) -> SimpleNamespace:
 
 def build_eval_items(args: argparse.Namespace) -> list[EvalItem]:
     items: list[EvalItem] = []
-    run_names = tuple(args.run) if args.run else SUMMARY_RUNS
-    if args.include_direct and not args.run:
-        items.extend(
-            [
-                EvalItem(
-                    item_id="dav2s_rgb_direct",
-                    label=SUMMARY_LABELS["dav2s_rgb_direct"],
-                    config_path=None,
-                    checkpoint_path=None,
-                    direct_mode="rgb",
-                    input_source="rgb",
-                ),
-                EvalItem(
-                    item_id="dav2s_raw_preview_direct",
-                    label=SUMMARY_LABELS["dav2s_raw_preview_direct"],
-                    config_path=None,
-                    checkpoint_path=None,
-                    direct_mode="raw_preview",
-                    input_source="raw_preview",
-                ),
-            ]
+    run_names = tuple(args.run) if args.run else (() if args.direct_baseline else SUMMARY_RUNS)
+
+    direct_ids = tuple(args.direct_baseline or ())
+    if not direct_ids and args.include_direct and not args.run:
+        direct_ids = ("dav2l_rgb_direct", "dav2s_rgb_direct", "dav2s_raw_preview_direct")
+    for direct_id in direct_ids:
+        input_source = "raw_preview" if direct_id.endswith("raw_preview_direct") else "rgb"
+        items.append(
+            EvalItem(
+                item_id=direct_id,
+                label=SUMMARY_LABELS[direct_id],
+                config_path=None,
+                checkpoint_path=None,
+                direct_mode=input_source,
+                input_source=input_source,
+            )
         )
 
     for run_name in run_names:
@@ -219,6 +224,9 @@ def config_for_item(item: EvalItem, reference_config: Path) -> SimpleNamespace:
         cfg["input_type"] = "rgb"
         cfg["dav2_train_mode"] = "none"
         cfg["resume_from"] = None
+        if item.item_id.startswith("dav2l_"):
+            cfg["encoder"] = "vitl"
+            cfg["pretrained_from"] = "/home/caq/333_cvpr/da_ours/checkpoints/depth_anything_v2_vitl.pth"
         return to_namespace(cfg)
 
     if not item.config_path.is_file():
@@ -226,8 +234,29 @@ def config_for_item(item: EvalItem, reference_config: Path) -> SimpleNamespace:
     return to_namespace(load_json(item.config_path))
 
 
+def resolve_raw_storage_format(cfg: Any) -> str:
+    if isinstance(cfg, dict):
+        raw_storage_format = cfg.get("raw_storage_format")
+        legacy_decode_mode = cfg.get("stf_raw_decode_mode")
+    else:
+        raw_storage_format = getattr(cfg, "raw_storage_format", None)
+        legacy_decode_mode = getattr(cfg, "stf_raw_decode_mode", None)
+
+    if raw_storage_format is None:
+        if legacy_decode_mode in (None, "legacy_companded", "legacy_online_decomp16"):
+            raw_storage_format = "legacy_bggR_decomp16"
+        elif legacy_decode_mode == "canonical_decomp16":
+            raw_storage_format = "raw_future"
+        else:
+            raise ValueError(f"Unsupported legacy stf_raw_decode_mode in config: {legacy_decode_mode!r}")
+
+    return str(get_raw_storage_spec(raw_storage_format).name)
+
+
 def dataset_for_item(cfg: SimpleNamespace, item: EvalItem, split: str):
     size = (int(cfg.input_height), int(cfg.input_width))
+    raw_storage_format = resolve_raw_storage_format(cfg)
+
     if item.input_source == "raw_preview":
         return STF_RAW(
             split,
@@ -237,11 +266,9 @@ def dataset_for_item(cfg: SimpleNamespace, item: EvalItem, split: str):
             min_depth=cfg.min_depth,
             max_depth=cfg.max_depth,
             merge_test_into_train=False,
-            norm_mode="passthrough",
-            channel_mode="rgb_avg_g",
+            raw_storage_format=raw_storage_format,
             use_imagenet_norm=True,
             input_mode="raw_naive",
-            stf_raw_decode_mode="legacy_online_decomp16",
             depth_mode="fast",
             fast_eval_backend="sparse",
         )
@@ -265,11 +292,9 @@ def dataset_for_item(cfg: SimpleNamespace, item: EvalItem, split: str):
             min_depth=cfg.min_depth,
             max_depth=cfg.max_depth,
             merge_test_into_train=False,
-            norm_mode=cfg.norm_mode,
-            channel_mode=cfg.channel_mode,
+            raw_storage_format=raw_storage_format,
             use_imagenet_norm=cfg.use_imagenet_norm,
             input_mode=resolve_stf_raw_input_mode(cfg.input_type),
-            stf_raw_decode_mode=cfg.stf_raw_decode_mode,
             depth_mode="fast",
             fast_eval_backend=getattr(cfg, "stf_fast_eval_backend", "sparse"),
         )

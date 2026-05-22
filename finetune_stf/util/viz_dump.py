@@ -24,6 +24,7 @@ from finetune_stf.util.loss import (
     build_training_target,
     robust_normalize_target_per_sample,
 )
+from finetune_stf.dataset.lod_raw import LODRGB, LODRaw
 from finetune_stf.dataset.stf import build_da3_sparse_metric_target
 from finetune_stf.models.raw_ram import phase1b_tanh_tail_squash
 from foundation.engine.transforms import packed_bayer_to_base_rgb
@@ -35,6 +36,10 @@ _FIXED_SAMPLE_LOADERS = (
     ("eth3d", "eth3d_val_fast_loader"),
     ("robotcar", "robotcar_val_fast_loader"),
     ("robotcar_night", "robotcar_night_val_fast_loader"),
+)
+_FIXED_LOD_SAMPLE_SPECS = (
+    ("lod_day", "lod_day_train", "lod_day_manifest", "day-"),
+    ("lod_night", "lod_night_train", "lod_night_manifest", "night-"),
 )
 _IMAGENET_MEAN = np.array([0.485, 0.456, 0.406], dtype=np.float32)
 _IMAGENET_STD = np.array([0.229, 0.224, 0.225], dtype=np.float32)
@@ -55,9 +60,129 @@ def _clone_sample_to_cpu(sample):
     return cloned
 
 
-def collect_fixed_samples(train_state, n_per_split=8):
+def _normalize_fixed_viz_splits(splits):
+    if splits is None:
+        return None
+    if isinstance(splits, str):
+        items = [item.strip() for item in splits.split(",") if item.strip()]
+    else:
+        items = [str(item).strip() for item in splits if str(item).strip()]
+    normalized = []
+    for item in items:
+        if item == "lod":
+            normalized.extend(["lod_day", "lod_night"])
+        else:
+            normalized.append(item)
+    return set(normalized)
+
+
+def _is_rgb_lod_input(input_type):
+    return str(input_type) in {"rgb", "rgb_lora"}
+
+
+def _build_lod_fixed_dataset(args, split_name, manifest_attr):
+    manifest_path = getattr(args, manifest_attr, None)
+    if not manifest_path:
+        return None
+
+    dataset_cls = LODRGB if _is_rgb_lod_input(getattr(args, "input_type", "rgb")) else LODRaw
+    kwargs = {
+        "lod_root": getattr(args, "lod_root", None),
+        "manifest_path": manifest_path,
+        "size": (
+            int(getattr(args, "input_height", 512)),
+            int(getattr(args, "input_width", 960)),
+        ),
+        "mode": "val",
+        "crop_mode": "center",
+    }
+    if kwargs["lod_root"] is None:
+        kwargs.pop("lod_root")
+    if dataset_cls is LODRaw:
+        kwargs["norm_mode"] = getattr(args, "norm_mode", "companded")
+        kwargs["raw_domain_config"] = getattr(args, "lod_raw_domain_config", "identity")
+    try:
+        return dataset_cls(**kwargs)
+    except (OSError, RuntimeError, ValueError):
+        return None
+
+
+def _lod_dataset_indices(dataset, sample_prefix, limit):
+    rows = getattr(dataset, "rows", None)
+    if rows is None:
+        return list(range(min(int(limit), len(dataset))))
+
+    indices = []
+    for idx, row in enumerate(rows):
+        sample_name = str(row.get("sample_name", ""))
+        if sample_name.startswith(sample_prefix):
+            indices.append(idx)
+            if len(indices) >= int(limit):
+                break
+    return indices
+
+
+def _fixed_lod_sample_without_gt(sample):
+    sample = _clone_sample_to_cpu(sample)
+    pseudo_path = _first_value(sample.get("pseudo_depth_path")) or _first_value(sample.get("depth_path"))
+    if pseudo_path:
+        sample["pseudo_depth_path"] = str(pseudo_path)
+    sample.pop("depth", None)
+    sample.pop("valid_mask", None)
+    sample["depth_mode"] = "no_gt"
+    sample["fast_eval_backend"] = "none"
+    sample["gt_available"] = False
+    return sample
+
+
+def _collect_fixed_lod_samples(datasets, args, requested_splits, n_per_split):
+    if args is None:
+        return {}
+
+    outputs = {}
+    datasets = datasets or {}
+    for split_name, dataset_key, manifest_attr, sample_prefix in _FIXED_LOD_SAMPLE_SPECS:
+        if requested_splits is not None and split_name not in requested_splits:
+            continue
+
+        dataset = datasets.get(dataset_key) or datasets.get("lod_train")
+        if dataset is None:
+            dataset = _build_lod_fixed_dataset(args, split_name, manifest_attr)
+        if dataset is None:
+            continue
+
+        count = min(max(int(n_per_split), 0), len(dataset))
+        if count <= 0:
+            continue
+
+        indices = _lod_dataset_indices(dataset, sample_prefix, count)
+        if not indices:
+            continue
+
+        samples = []
+        seed = int(getattr(args, "seed", 42))
+        for order, idx in enumerate(indices[:count]):
+            sample_seed = _stable_int_seed(seed, split_name, idx, order, "fixed_viz")
+            sample = _build_fixed_source_sample(dataset, idx, sample_seed, include_geometry=True)
+            samples.append(_fixed_lod_sample_without_gt(sample))
+        outputs[split_name] = samples
+    return outputs
+
+
+def collect_fixed_samples(
+    train_state,
+    n_per_split=8,
+    *,
+    datasets=None,
+    args=None,
+    fixed_splits=None,
+    lod_n_per_split=1,
+):
+    requested_splits = _normalize_fixed_viz_splits(fixed_splits)
     fixed_samples = {}
     for split_name, loader_key in _FIXED_SAMPLE_LOADERS:
+        if requested_splits is not None and split_name not in requested_splits:
+            continue
         loader = train_state.get(loader_key)
         if loader is None:
             continue
@@ -68,6 +193,19 @@ def collect_fixed_samples(train_state, n_per_split=8):
             if len(samples) >= int(n_per_split):
                 break
         fixed_samples[split_name] = samples
+
+    include_lod = requested_splits is not None and any(
+        split_name in requested_splits for split_name, *_ in _FIXED_LOD_SAMPLE_SPECS
+    )
+    if include_lod:
+        fixed_samples.update(
+            _collect_fixed_lod_samples(
+                datasets,
+                args,
+                requested_splits,
+                lod_n_per_split,
+            )
+        )
     return fixed_samples
 
 
@@ -608,8 +746,8 @@ def _fixed_train_target_from_sample(sample, args, target_hw):
     return {
         "view": _valid_positive_view(direct, target_hw, resize_mode="bilinear"),
         "target_space": "inverse_relative",
-        "target_source": "dense_pseudo",
-        "label": "Train target rel inv",
+        "target_source": str(_first_value(sample.get("train_target_source"), "dense_pseudo")),
+        "label": str(_first_value(sample.get("train_target_label"), "Train target rel inv")),
         "cmap_name": "Spectral_r",
         "file_suffix": "train_target_rel_inv",
         "extra_key": "train_target_rel_inv",
@@ -1547,6 +1685,23 @@ def _raw_preview_from_sample(sample):
     return _to_rgb_preview(tensor)
 
 
+def _distribution_axis_mode_for_raw_preview(sample, input_type=None):
+    if str(input_type or "") != "rgb" and "raw" in sample:
+        tensor = sample.get("raw")
+    else:
+        tensor = sample.get("raw", sample.get("image"))
+    if tensor is None:
+        return "unit"
+    if torch.is_tensor(tensor):
+        shape = tuple(int(v) for v in tensor.shape)
+    else:
+        shape = np.asarray(tensor).shape
+    while len(shape) > 3 and shape[0] == 1:
+        shape = shape[1:]
+    channel_count = shape[0] if len(shape) == 3 and shape[0] in (1, 3, 4) else (shape[-1] if shape else 0)
+    return "auto" if int(channel_count) == 4 else "unit"
+
+
 def _preview_percentile_stretch(image_rgb, *, lower=1.0, upper=99.0, gamma=1.0):
     if image_rgb is None:
         return None
@@ -1814,7 +1969,7 @@ def _distribution_axis_limits(image, axis_mode):
 
     if axis_mode == "zero_center":
         robust_abs = float(np.percentile(np.abs(finite_values), 99.0))
-        limit = max(2.5, _nice_upper_bound(robust_abs))
+        limit = max(1.0, _nice_upper_bound(robust_abs))
         return -limit, limit, (-limit, 0.0, limit), "x-axis centered at 0"
 
     lo, hi = np.percentile(finite_values, [1.0, 99.0])
@@ -2034,6 +2189,12 @@ def _make_train_viz_panel(
                     "RAW preview distribution",
                     "RAM output distribution",
                 ),
+                axis_modes=(
+                    "unit",
+                    "imagenet_norm",
+                    _distribution_axis_mode_for_raw_preview(record["sample"], "raw"),
+                    "zero_center",
+                ),
             ),
         ],
         axis=0,
@@ -2186,6 +2347,12 @@ def _make_fixed_viz_panel(
                     "RGB after ImageNet norm",
                     "Input preview distribution",
                     "RAM output distribution",
+                ),
+                axis_modes=(
+                    "unit",
+                    "imagenet_norm",
+                    _distribution_axis_mode_for_raw_preview(sample, input_type),
+                    "zero_center",
                 ),
             ),
         ],

@@ -49,7 +49,7 @@ from finetune_stf.dataset.robotcar import (
     RobotCarValRGB,
     RobotCarValRaw,
 )
-from finetune_stf.dataset.raw_utils import DEFAULT_RAW_NPZ_ROOT, STF_RAW_DECODE_MODES
+from finetune_stf.dataset.raw_utils import DEFAULT_RAW_NPZ_ROOT
 from finetune_stf.dataset.stf import (
     DEFAULT_STF_ROOT,
     STF,
@@ -63,6 +63,7 @@ from finetune_stf.dataset.stf_raw import (
     STF_RAW_NATIVE_HW,
     STF_TRAIN_TARGET_MODES,
 )
+from finetune_stf.dataset.raw_storage import RAW_STORAGE_FORMAT_CHOICES, get_raw_storage_spec
 from finetune_stf.dataset.vkitti2 import DEFAULT_TRAIN_LIST as DEFAULT_VKITTI_TRAIN_LIST, VKITTI2
 from finetune_stf.models.lora_bridge import (
     DEFAULT_BRIDGE_FEATURE_KEYS,
@@ -83,6 +84,7 @@ from finetune_stf.models.raw_feature_adapter import (
     DEFAULT_FEATURE_ADAPTER_KEYS,
     RAW_RAM_BRIDGE_FEATURE_ADAPTER_INPUT_TYPES,
     RAW_RAM_BRIDGE_FEATURE_ADAPTER_LORA_INPUT_TYPES,
+    RAW_RAM_RGB_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES,
     RAW_RAM_FEATURE_ADAPTER_ONLY_INPUT_TYPES,
     RAW_RAM_FEATURE_ADAPTER_INPUT_TYPES,
     build_raw_ram_feature_adapter_depth_model,
@@ -171,6 +173,7 @@ RGB_EVAL_INPUT_TYPES = (
 PHASE1_BNCLEAN_GUARDED_INPUT_TYPES = (
     *RAW_RAM_RGB_INPUT_TYPES,
     *RAW_RAM_RGB_BRIDGE_INPUT_TYPES,
+    *RAW_RAM_RGB_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES,
 )
 ETH3D_EVAL_MODE_CHOICES = ("fast", "full", "both")
 ETH3D_FAST_EVAL_BACKEND_CHOICES = ETH3D_FAST_EVAL_BACKENDS
@@ -183,12 +186,28 @@ BEST_METRIC_CHOICES = ("stf", "kitti", "eth3d", "robotcar", "robotcar_day", "rob
 RAW_MIX_SOURCE_CHOICES = ("vkitti", "hypersim", "lod", "lod_day", "lod_night")
 DEFAULT_HEAVY_SAVE_ROOT = "/mnt/drive/3333_raw/0000_exp_ckpt"
 FIXED_VIZ_RGB_BASELINE_SPLITS = ("stf", "eth3d", "robotcar", "robotcar_night")
+FIXED_VIZ_SPLIT_CHOICES = (
+    "stf",
+    "kitti",
+    "eth3d",
+    "robotcar",
+    "robotcar_night",
+    "lod",
+    "lod_day",
+    "lod_night",
+)
 DAV2_VARIANT_NAMES = {
     "vits": "DAv2-S",
     "vitb": "DAv2-B",
     "vitl": "DAv2-L",
     "vitg": "DAv2-G",
 }
+FRONT_END_CHOICES = (
+    "dav2_rgb",
+    "raw_to_rgb_head",
+    "raw_ram4",
+    "raw_to_base_rgb_ram3",
+)
 
 
 def resolve_heavy_save_path(save_path, heavy_save_root):
@@ -253,9 +272,23 @@ def parse_args():
             *RAW_RAM_FEATURE_ADAPTER_INPUT_TYPES,
         ],
     )
+    parser.add_argument(
+        "--front-end",
+        default=None,
+        choices=FRONT_END_CHOICES,
+        help=(
+            "Explicit front-end selection. If omitted, derived from --input-type. "
+            "Use dav2_rgb/raw_to_rgb_head/raw_ram4/raw_to_base_rgb_ram3."
+        ),
+    )
     parser.add_argument("--stf-root", default=DEFAULT_STF_ROOT)
     parser.add_argument("--raw-npz-root", default=DEFAULT_RAW_NPZ_ROOT)
-    parser.add_argument("--stf-raw-decode-mode", default="legacy_companded", choices=STF_RAW_DECODE_MODES)
+    parser.add_argument(
+        "--raw-storage-format",
+        default="legacy_bggR_decomp16",
+        choices=RAW_STORAGE_FORMAT_CHOICES,
+        help="Explicit STF raw storage interpretation. Avoids raw root path inference coupling.",
+    )
     parser.add_argument("--stf-train-target-mode", default="gt_sparse", choices=STF_TRAIN_TARGET_MODES)
     parser.add_argument("--stf-pseudo-manifest", default=DEFAULT_STF_PSEUDO_MANIFEST)
     parser.add_argument("--vkitti-train-list", default=str(DEFAULT_VKITTI_TRAIN_LIST))
@@ -399,6 +432,20 @@ def parse_args():
         action=argparse.BooleanOptionalAction,
         default=True,
         help="Dump fixed eval samples after each epoch for qualitative edge comparison.",
+    )
+    parser.add_argument(
+        "--fixed-viz-splits",
+        default=None,
+        help=(
+            "Optional comma-separated fixed-viz splits to dump. "
+            "Supports eval splits plus lod_day/lod_night; 'lod' expands to both LOD splits."
+        ),
+    )
+    parser.add_argument(
+        "--fixed-viz-lod-n-per-split",
+        default=1,
+        type=int,
+        help="Number of fixed LOD samples per LOD split when fixed-viz includes lod_day/lod_night.",
     )
     parser.add_argument(
         "--enable-train-source-viz-dump",
@@ -554,6 +601,19 @@ def parse_args():
     parser.add_argument("--amp-dtype", choices=["fp16", "bf16"], default="bf16")
     parser.set_defaults(use_imagenet_norm=True)
     args = parser.parse_args()
+    args.input_type = str(args.input_type)
+    if args.front_end is None:
+        try:
+            args.front_end = _infer_front_end(args.input_type)
+        except ValueError as exc:
+            parser.error(str(exc))
+    else:
+        args.front_end = str(args.front_end)
+    if not _validate_front_end_and_input_type(args.front_end, args.input_type):
+        parser.error(
+            f"--front-end {args.front_end!r} is not compatible with --input-type {args.input_type!r}; "
+            "please pass a matching combination."
+        )
     try:
         _validate_dav2_train_mode(args.dav2_train_mode)
     except ValueError as exc:
@@ -575,16 +635,20 @@ def parse_args():
             parser.error("--lod-fraction must be in (0, 1)")
     if args.train_steps_per_epoch < 1:
         parser.error("--train-steps-per-epoch must be >= 1")
-    if args.stf_raw_decode_mode != "legacy_companded" and args.norm_mode != "passthrough":
+    try:
+        raw_storage_spec = get_raw_storage_spec(args.raw_storage_format)
+    except ValueError as exc:
+        parser.error(str(exc))
+    if raw_storage_spec.name == "raw_future":
         parser.error(
-            "--stf-raw-decode-mode legacy_online_decomp16/canonical_decomp16 already returns "
-            "[0,1] decompanded RAW; pass --norm-mode passthrough"
+            "raw_storage_format=raw_future is not supported yet. "
+            "Please use legacy_bggR_decomp16 for current experiments."
         )
-    raw_root_str = str(Path(args.raw_npz_root).expanduser())
-    if "cam_stereo_left_bayer_rect" in raw_root_str and args.stf_raw_decode_mode == "canonical_decomp16":
-        parser.error("The legacy STF raw NPZ root requires legacy_companded or legacy_online_decomp16 decode mode")
-    if "canonical" in raw_root_str.lower() and args.stf_raw_decode_mode != "canonical_decomp16":
-        parser.error("A canonical STF raw NPZ root requires --stf-raw-decode-mode canonical_decomp16")
+    args.raw_storage_channel_order = tuple(raw_storage_spec.storage_channel_order)
+    args.raw_model_channel_order = tuple(raw_storage_spec.model_channel_order)
+    args.raw_decompand = str(raw_storage_spec.decompand)
+    args.raw_post_decode_norm = str(raw_storage_spec.post_decode_norm)
+    args.raw_channel_count = 4
     if args.stf_train_target_mode in STF_PSEUDO_TRAIN_TARGET_MODES:
         pseudo_manifest = Path(args.stf_pseudo_manifest).expanduser()
         if not pseudo_manifest.is_file():
@@ -635,6 +699,18 @@ def parse_args():
         parser.error("--rgb-residual-scale must be >= 0")
     if args.train_viz_n_per_source < 0:
         parser.error("--train-viz-n-per-source must be >= 0")
+    if args.fixed_viz_lod_n_per_split < 0:
+        parser.error("--fixed-viz-lod-n-per-split must be >= 0")
+    if args.fixed_viz_splits:
+        requested_fixed_viz_splits = [
+            item.strip() for item in str(args.fixed_viz_splits).split(",") if item.strip()
+        ]
+        unknown_fixed_viz_splits = sorted(set(requested_fixed_viz_splits) - set(FIXED_VIZ_SPLIT_CHOICES))
+        if unknown_fixed_viz_splits:
+            parser.error(
+                "--fixed-viz-splits contains unknown split(s): "
+                f"{', '.join(unknown_fixed_viz_splits)}; valid choices: {', '.join(FIXED_VIZ_SPLIT_CHOICES)}"
+            )
     if args.train_viz_seed is None:
         args.train_viz_seed = args.seed
     if args.train_viz_rgb_baseline_checkpoint:
@@ -721,14 +797,14 @@ def parse_args():
     if args.eval_nyu and args.eval_kitti and args.kitti_eval_protocol != "rgb_checkpoint_decoder":
         parser.error("--eval-nyu with --eval-kitti requires --kitti-eval-protocol rgb_checkpoint_decoder")
     if args.bridge_feature_keys is None:
-        if args.input_type in RAW_RAM_RGB_BRIDGE_INPUT_TYPES:
+        if args.input_type in (*RAW_RAM_RGB_BRIDGE_INPUT_TYPES, *RAW_RAM_RGB_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES):
             args.bridge_feature_keys = list(DEFAULT_RGB_BRIDGE_FEATURE_KEYS)
         elif args.input_type in RAW_RAM_FEATURE_ADAPTER_INPUT_TYPES:
             args.bridge_feature_keys = list(DEFAULT_FEATURE_ADAPTER_KEYS)
         else:
             args.bridge_feature_keys = list(DEFAULT_BRIDGE_FEATURE_KEYS)
     args.bridge_feature_keys = list(dict.fromkeys(args.bridge_feature_keys))
-    if args.input_type in RAW_RAM_RGB_BRIDGE_INPUT_TYPES:
+    if args.input_type in (*RAW_RAM_RGB_BRIDGE_INPUT_TYPES, *RAW_RAM_RGB_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES):
         invalid_keys = [key for key in args.bridge_feature_keys if key == "x4"]
         if invalid_keys:
             parser.error(
@@ -748,6 +824,7 @@ def parse_args():
         *RAW_RAM_BRIDGE_INPUT_TYPES,
         *RAW_RAM_RGB_BRIDGE_INPUT_TYPES,
         *RAW_RAM_BRIDGE_FEATURE_ADAPTER_INPUT_TYPES,
+        *RAW_RAM_RGB_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES,
     ):
         args.bridge_layers = list(DEFAULT_BRIDGE_LAYERS_BY_ENCODER[args.encoder])
     args.heavy_save_path = resolve_heavy_save_path(args.save_path, args.heavy_save_root)
@@ -840,6 +917,49 @@ def resolve_stf_raw_input_mode(input_type):
     return "raw_naive"
 
 
+def _infer_front_end(input_type):
+    if input_type in RGB_INPUT_TYPES:
+        return "dav2_rgb"
+    if input_type in ("raw", *RAW_PACKED_INPUT_TYPES):
+        return "raw_to_rgb_head"
+    if input_type in (
+        *RAW_RAM_RGB_INPUT_TYPES,
+        *RAW_RAM_RGB_BRIDGE_INPUT_TYPES,
+        *RAW_RAM_RGB_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES,
+    ):
+        return "raw_to_base_rgb_ram3"
+    if input_type in (
+        *RAW_RAM_INPUT_TYPES,
+        *RAW_RAM_BRIDGE_INPUT_TYPES,
+        *RAW_RAM_FEATURE_ADAPTER_ONLY_INPUT_TYPES,
+        *RAW_RAM_BRIDGE_FEATURE_ADAPTER_INPUT_TYPES,
+    ):
+        return "raw_ram4"
+    raise ValueError(f"Unsupported input_type for front-end inference: {input_type!r}")
+
+
+def _validate_front_end_and_input_type(front_end, input_type):
+    front_end = str(front_end)
+    if front_end == "dav2_rgb":
+        return input_type in RGB_INPUT_TYPES
+    if front_end == "raw_to_rgb_head":
+        return input_type in ("raw", *RAW_PACKED_INPUT_TYPES)
+    if front_end == "raw_ram4":
+        return input_type in (
+            *RAW_RAM_INPUT_TYPES,
+            *RAW_RAM_BRIDGE_INPUT_TYPES,
+            *RAW_RAM_FEATURE_ADAPTER_ONLY_INPUT_TYPES,
+            *RAW_RAM_BRIDGE_FEATURE_ADAPTER_INPUT_TYPES,
+        )
+    if front_end == "raw_to_base_rgb_ram3":
+        return input_type in (
+            *RAW_RAM_RGB_INPUT_TYPES,
+            *RAW_RAM_RGB_BRIDGE_INPUT_TYPES,
+            *RAW_RAM_RGB_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES,
+        )
+    return False
+
+
 def iter_requested_eth3d_modes(args):
     if args.eth3d_eval_mode == "both":
         return ("fast", "full")
@@ -855,49 +975,7 @@ def iter_requested_robotcar_modes(args):
 def build_model(args):
     model = DepthAnythingV2(**MODEL_CONFIGS[args.encoder])
     sensor_hw = (args.input_height, args.input_width)
-    if args.input_type in (*RGB_INPUT_TYPES, "raw"):
-        model = build_dav2_padded_rgb_depth_model(model, sensor_hw=sensor_hw, backbone_hw=None)
-        if args.input_type in RGB_LORA_INPUT_TYPES:
-            dav2_module = model.dav2 if hasattr(model, "dav2") else model
-            model.lora_block_mode = str(args.lora_block_mode)
-            model.lora_rank = int(args.lora_rank)
-            model.lora_alpha = float(args.lora_alpha)
-            model.lora_block_indices = apply_lora_to_vit(
-                dav2_module.pretrained,
-                block_mode=args.lora_block_mode,
-                tap_layers=args.bridge_layers or DEFAULT_BRIDGE_LAYERS_BY_ENCODER[args.encoder],
-                rank=args.lora_rank,
-                alpha=args.lora_alpha,
-            )
-    elif args.input_type in RAW_PACKED_INPUT_TYPES:
-        model = build_dav2_raw_naive_depth_model(
-            model,
-            freeze_backbone=False,
-            sensor_hw=sensor_hw,
-            backbone_hw=None,
-        )
-    elif args.input_type in (*RAW_RAM_INPUT_TYPES, *RAW_RAM_RGB_INPUT_TYPES):
-        model = build_raw_ram_depth_model(
-            model,
-            input_type=args.input_type,
-            rgb_interface_mode=args.rgb_interface_mode,
-            rgb_residual_scale=args.rgb_residual_scale,
-            raw_ram_rgb_tail=args.raw_ram_rgb_tail,
-            sensor_hw=sensor_hw,
-            backbone_hw=None,
-        )
-        if args.input_type in RAW_RAM_RGB_LORA_INPUT_TYPES:
-            model.lora_block_mode = str(args.lora_block_mode)
-            model.lora_rank = int(args.lora_rank)
-            model.lora_alpha = float(args.lora_alpha)
-            model.lora_block_indices = apply_lora_to_vit(
-                model.dav2.pretrained,
-                block_mode=args.lora_block_mode,
-                tap_layers=args.bridge_layers or DEFAULT_BRIDGE_LAYERS_BY_ENCODER[args.encoder],
-                rank=args.lora_rank,
-                alpha=args.lora_alpha,
-            )
-    elif args.input_type in (*RAW_RAM_BRIDGE_INPUT_TYPES, *RAW_RAM_RGB_BRIDGE_INPUT_TYPES):
+    if args.input_type in (*RAW_RAM_BRIDGE_INPUT_TYPES, *RAW_RAM_RGB_BRIDGE_INPUT_TYPES):
         model = build_raw_ram_bridge_depth_model(
             model,
             input_type=args.input_type,
@@ -926,6 +1004,62 @@ def build_model(args):
             lora_alpha=args.lora_alpha,
             sensor_hw=sensor_hw,
             backbone_hw=None,
+        )
+    elif args.front_end == "dav2_rgb":
+        model = build_dav2_padded_rgb_depth_model(model, sensor_hw=sensor_hw, backbone_hw=None)
+        if args.input_type in RGB_LORA_INPUT_TYPES:
+            dav2_module = model.dav2 if hasattr(model, "dav2") else model
+            model.lora_block_mode = str(args.lora_block_mode)
+            model.lora_rank = int(args.lora_rank)
+            model.lora_alpha = float(args.lora_alpha)
+            model.lora_block_indices = apply_lora_to_vit(
+                dav2_module.pretrained,
+                block_mode=args.lora_block_mode,
+                tap_layers=args.bridge_layers or DEFAULT_BRIDGE_LAYERS_BY_ENCODER[args.encoder],
+                rank=args.lora_rank,
+                alpha=args.lora_alpha,
+            )
+    elif args.front_end == "raw_to_rgb_head":
+        model = build_dav2_raw_naive_depth_model(
+            model,
+            freeze_backbone=False,
+            sensor_hw=sensor_hw,
+            backbone_hw=None,
+        )
+    elif args.front_end == "raw_ram4":
+        model = build_raw_ram_depth_model(
+            model,
+            front_end="raw_ram4",
+            input_type=args.input_type,
+            rgb_interface_mode=args.rgb_interface_mode,
+            rgb_residual_scale=args.rgb_residual_scale,
+            raw_ram_rgb_tail=args.raw_ram_rgb_tail,
+            sensor_hw=sensor_hw,
+            backbone_hw=None,
+        )
+    elif args.front_end == "raw_to_base_rgb_ram3":
+        model = build_raw_ram_depth_model(
+            model,
+            front_end="raw_to_base_rgb_ram3",
+            input_type=args.input_type,
+            rgb_interface_mode=args.rgb_interface_mode,
+            rgb_residual_scale=args.rgb_residual_scale,
+            raw_ram_rgb_tail=args.raw_ram_rgb_tail,
+            sensor_hw=sensor_hw,
+            backbone_hw=None,
+        )
+    else:
+        raise ValueError(f"Unsupported --front-end: {args.front_end!r}")
+    if args.input_type in RAW_RAM_RGB_LORA_INPUT_TYPES and hasattr(model, "dav2"):
+        model.lora_block_mode = str(args.lora_block_mode)
+        model.lora_rank = int(args.lora_rank)
+        model.lora_alpha = float(args.lora_alpha)
+        model.lora_block_indices = apply_lora_to_vit(
+            model.dav2.pretrained,
+            block_mode=args.lora_block_mode,
+            tap_layers=args.bridge_layers or DEFAULT_BRIDGE_LAYERS_BY_ENCODER[args.encoder],
+            rank=args.lora_rank,
+            alpha=args.lora_alpha,
         )
     configure_dav2_train_mode(model, args.dav2_train_mode)
     if (
@@ -1191,11 +1325,9 @@ def build_datasets(args):
         stf_val_kwargs.update(
             {
                 "raw_npz_root": args.raw_npz_root,
-                "norm_mode": args.norm_mode,
-                "channel_mode": args.channel_mode,
+                "raw_storage_format": args.raw_storage_format,
                 "use_imagenet_norm": args.use_imagenet_norm,
                 "input_mode": resolve_stf_raw_input_mode(args.input_type),
-                "stf_raw_decode_mode": args.stf_raw_decode_mode,
                 "depth_mode": "fast",
                 "fast_eval_backend": args.stf_fast_eval_backend,
             }
@@ -2002,9 +2134,11 @@ def log_setup(logger, args, datasets, train_state, model):
     effective_bs = args.bs * args.accum_steps
     optimizer_steps_per_epoch = math.ceil(train_state["steps_per_epoch"] / args.accum_steps)
     logger.info(
-        "[SETUP] stage=%s input_type=%s encoder=%s dav2_train_mode=%s epochs=%d bs=%d accum_steps=%d effective_bs=%d lr=%.2e num_workers=%d",
+        "[SETUP] stage=%s input_type=%s front_end=%s encoder=%s dav2_train_mode=%s epochs=%d bs=%d accum_steps=%d "
+        "effective_bs=%d lr=%.2e num_workers=%d",
         args.stage,
         args.input_type,
+        args.front_end,
         args.encoder,
         args.dav2_train_mode,
         args.epochs,
@@ -2053,9 +2187,15 @@ def log_setup(logger, args, datasets, train_state, model):
         )
     if args.input_type in RAW_MODEL_INPUT_TYPES:
         logger.info(
-            "[STF_RAW] decode_mode=%s norm_mode=%s train_target_mode=%s pseudo_manifest=%s fast_eval_backend=%s raw_ram_rgb_tail=%s",
-            args.stf_raw_decode_mode,
-            args.norm_mode,
+            "[STF_RAW] raw_storage_format=%s raw_storage_channel_order=%s raw_model_channel_order=%s "
+            "raw_decompand=%s raw_post_decode_norm=%s raw_channel_count=%s train_target_mode=%s pseudo_manifest=%s "
+            "fast_eval_backend=%s raw_ram_rgb_tail=%s",
+            args.raw_storage_format,
+            args.raw_storage_channel_order,
+            args.raw_model_channel_order,
+            args.raw_decompand,
+            args.raw_post_decode_norm,
+            args.raw_channel_count,
             args.stf_train_target_mode,
             args.stf_pseudo_manifest,
             args.stf_fast_eval_backend,
@@ -2189,10 +2329,13 @@ def log_setup(logger, args, datasets, train_state, model):
         )
     if args.input_type in RAW_MODEL_INPUT_TYPES:
         logger.info(
-            "[DATASET] raw_npz_root=%s norm_mode=%s channel_mode=%s imagenet_norm=%s rgb_interface_mode=%s rgb_residual_scale=%.3g",
+            "[DATASET] raw_npz_root=%s raw_storage_format=%s raw_storage_channel_order=%s raw_model_channel_order=%s "
+            "raw_post_decode_norm=%s imagenet_norm=%s rgb_interface_mode=%s rgb_residual_scale=%.3g",
             args.raw_npz_root,
-            args.norm_mode,
-            args.channel_mode,
+            args.raw_storage_format,
+            args.raw_storage_channel_order,
+            args.raw_model_channel_order,
+            args.raw_post_decode_norm,
             args.use_imagenet_norm,
             args.rgb_interface_mode,
             args.rgb_residual_scale,
@@ -2236,6 +2379,8 @@ def log_setup(logger, args, datasets, train_state, model):
             hypersim_unproc_desc["preset_version"],
             hypersim_unproc_desc["preset_hash"],
         )
+    if args.input_type in RAW_MODEL_INPUT_TYPES or args.input_type in RGB_INPUT_TYPES:
+        logger.info("[MODEL] %s front_end=%s", args.input_type, args.front_end)
     if args.input_type in RAW_PACKED_INPUT_TYPES:
         logger.info(
             "[MODEL] %s packed_bayer4_native -> 1x1 stem -> imagenet norm -> center_pad -> DAv2 -> center_crop",
@@ -2303,7 +2448,12 @@ def log_setup(logger, args, datasets, train_state, model):
                 args.lr,
                 args.bridge_lr,
             )
-    if args.input_type in RAW_RAM_BRIDGE_FEATURE_ADAPTER_INPUT_TYPES:
+    if args.input_type in (*RAW_RAM_BRIDGE_FEATURE_ADAPTER_INPUT_TYPES, *RAW_RAM_RGB_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES):
+        feature_adapter_image_desc = (
+            "ramcore_bn_tanh25_no_clamp_no_imagenet_norm"
+            if args.input_type in RAW_RAM_RGB_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES
+            else describe_rgb_interface(args.rgb_interface_mode, args.rgb_residual_scale)
+        )
         if args.input_type in RAW_RAM_BRIDGE_FEATURE_ADAPTER_LORA_INPUT_TYPES:
             logger.info(
                 "[MODEL] %s bridge_source=%s feature_keys=%s bridge_layers=%s "
@@ -2317,7 +2467,7 @@ def log_setup(logger, args, datasets, train_state, model):
                 args.dav2_train_mode,
                 args.lr,
                 args.bridge_lr,
-                describe_rgb_interface(args.rgb_interface_mode, args.rgb_residual_scale),
+                feature_adapter_image_desc,
                 args.lora_block_mode,
                 getattr(model_ref, "lora_block_indices", ()),
                 args.lora_rank,
@@ -2336,7 +2486,7 @@ def log_setup(logger, args, datasets, train_state, model):
                 args.dav2_train_mode,
                 args.lr,
                 args.bridge_lr,
-                describe_rgb_interface(args.rgb_interface_mode, args.rgb_residual_scale),
+                feature_adapter_image_desc,
             )
     if args.input_type in RAW_RAM_FEATURE_ADAPTER_ONLY_INPUT_TYPES:
         logger.info(
@@ -2994,7 +3144,13 @@ def main():
     datasets = build_datasets(args)
     train_state = build_dataloaders(args, datasets)
     if rank == 0 and args.enable_fixed_viz_dump:
-        train_state["fixed_viz_samples"] = collect_fixed_samples(train_state)
+        train_state["fixed_viz_samples"] = collect_fixed_samples(
+            train_state,
+            datasets=datasets,
+            args=args,
+            fixed_splits=args.fixed_viz_splits,
+            lod_n_per_split=args.fixed_viz_lod_n_per_split,
+        )
     else:
         train_state["fixed_viz_samples"] = {}
     if rank == 0 and args.enable_train_source_viz_dump:
@@ -3033,6 +3189,7 @@ def main():
                 *RAW_RAM_BRIDGE_INPUT_TYPES,
                 *RAW_RAM_RGB_BRIDGE_INPUT_TYPES,
                 *RAW_RAM_BRIDGE_FEATURE_ADAPTER_INPUT_TYPES,
+                *RAW_RAM_RGB_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES,
             )
             and args.bridge_init_from
         ):

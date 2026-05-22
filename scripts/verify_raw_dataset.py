@@ -13,10 +13,11 @@ if str(PROJECT_ROOT) not in sys.path:
 from finetune_stf.dataset.raw_utils import (
     DEFAULT_RAW_NPZ_ROOT,
     bayer_to_3ch,
+    decode_stf_raw_by_storage_format,
     load_rectified_bayer_npz,
-    normalize_raw,
     pseudo_rgb_to_bgr,
 )
+from finetune_stf.dataset.raw_storage import RAW_STORAGE_FORMAT_CHOICES
 from finetune_stf.dataset.stf import DEFAULT_STF_ROOT, STF, _load_depth_npz
 from finetune_stf.dataset.stf_raw import STF_RAW
 
@@ -27,10 +28,13 @@ def parse_args():
     parser.add_argument("--raw-npz-root", default=DEFAULT_RAW_NPZ_ROOT)
     parser.add_argument("--output-dir", default=str(PROJECT_ROOT / "scripts" / "verify_output"))
     parser.add_argument("--num-samples", type=int, default=5)
-    parser.add_argument("--input-height", type=int, default=518)
-    parser.add_argument("--input-width", type=int, default=966)
-    parser.add_argument("--norm-mode", default="companded")
-    parser.add_argument("--channel-mode", default="rgb_avg_g")
+    parser.add_argument("--input-height", type=int, default=512)
+    parser.add_argument("--input-width", type=int, default=960)
+    parser.add_argument(
+        "--raw-storage-format",
+        default="legacy_bggR_decomp16",
+        choices=RAW_STORAGE_FORMAT_CHOICES,
+    )
     parser.add_argument("--no-imagenet-norm", action="store_false", dest="use_imagenet_norm")
     parser.set_defaults(use_imagenet_norm=True)
     return parser.parse_args()
@@ -92,8 +96,7 @@ def main():
         min_depth=1.0,
         max_depth=80.0,
         merge_test_into_train=False,
-        norm_mode=args.norm_mode,
-        channel_mode=args.channel_mode,
+        raw_storage_format=args.raw_storage_format,
         use_imagenet_norm=args.use_imagenet_norm,
     )
 
@@ -141,9 +144,11 @@ def main():
         if rgb_bgr is None:
             raise ValueError(f"Failed to read RGB image: {rgb_sample['image_path']}")
 
-        raw_bayer = load_rectified_bayer_npz(raw_sample["image_path"])
-        raw_rgb = bayer_to_3ch(raw_bayer, channel_mode=args.channel_mode)
-        raw_rgb = normalize_raw(raw_rgb, norm_mode=args.norm_mode)
+        raw_bayer = decode_stf_raw_by_storage_format(
+            load_rectified_bayer_npz(raw_sample["image_path"]),
+            args.raw_storage_format,
+        )
+        raw_rgb = bayer_to_3ch(raw_bayer, channel_mode="rgb_avg_g")
         raw_bgr = pseudo_rgb_to_bgr(raw_rgb)
         raw_bgr = cv2.resize(raw_bgr, (rgb_bgr.shape[1], rgb_bgr.shape[0]), interpolation=cv2.INTER_LINEAR)
 

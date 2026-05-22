@@ -2,6 +2,8 @@ from pathlib import Path
 
 import numpy as np
 
+from finetune_stf.dataset.raw_storage import RawStorageSpec, get_raw_storage_spec
+
 
 DEFAULT_RAW_NPZ_ROOT = "/mnt/drive/3333_raw/seeing_through_fog/cam_stereo_left_bayer_rect/npz"
 RECTIFIED_BAYER_KEY = "bayer_rect"
@@ -89,6 +91,52 @@ def decode_stf_raw_4ch(bayer_4ch, decode_mode="legacy_companded"):
     lut = get_stf_decompanding_lut()
     raw_codes = np.clip(bayer_4ch, 0, len(lut) - 1).astype(np.uint16, copy=False)
     return lut[raw_codes].astype(np.float32) / DECOMPANDED_MAX
+
+
+def _apply_post_decode_norm(decoded_bayer, *, mode):
+    if mode == "passthrough":
+        return np.clip(decoded_bayer, 0.0, 1.0)
+    if mode == "companded":
+        return np.clip(decoded_bayer / COMPANDED_MAX, 0.0, 1.0)
+    if mode == "sensor_linear":
+        return np.clip(decoded_bayer / SENSOR_LINEAR_MAX, 0.0, 1.0)
+    raise ValueError(f"Unsupported post-decode norm mode: {mode}")
+
+
+def decode_stf_raw_by_storage_format(bayer_4ch, spec):
+    """Decode STF raw packed Bayer with a storage-format spec.
+
+    Output is in model channel order and normalized to [0, 1].
+    """
+
+    bayer_4ch = np.asarray(bayer_4ch)
+    if bayer_4ch.ndim != 3 or bayer_4ch.shape[-1] != 4:
+        raise ValueError(f"Expected STF Bayer input with shape (H, W, 4), got {bayer_4ch.shape}")
+
+    if not isinstance(spec, RawStorageSpec):
+        spec = get_raw_storage_spec(spec)
+
+    if spec.name == "raw_future":
+        raise ValueError(
+            "raw_storage_format=raw_future is not implemented. Choose legacy_bggR_decomp16 for now."
+        )
+
+    decoded = bayer_4ch[..., spec.channel_reorder]
+
+    if spec.decompand == "stf_lut_to_0_1":
+        lut = get_stf_decompanding_lut()
+        raw_codes = np.clip(decoded, 0, len(lut) - 1).astype(np.uint16, copy=False)
+        decoded = lut[raw_codes].astype(np.float32) / DECOMPANDED_MAX
+    elif spec.decompand == "passthrough":
+        decoded = decoded.astype(np.float32)
+    elif spec.decompand == "companded":
+        decoded = decoded.astype(np.float32) / COMPANDED_MAX
+    elif spec.decompand == "sensor_linear":
+        decoded = decoded.astype(np.float32) / SENSOR_LINEAR_MAX
+    else:
+        raise ValueError(f"Unsupported stf_decompand mode: {spec.decompand}")
+
+    return _apply_post_decode_norm(decoded, mode=spec.post_decode_norm).astype(np.float32)
 
 
 def normalize_raw(image_3ch, norm_mode="companded"):

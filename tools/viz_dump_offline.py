@@ -37,7 +37,7 @@ from finetune_stf.train import (
 from finetune_stf.util.viz_dump import collect_fixed_samples, dump_fixed_samples
 
 
-_VALID_SPLITS = {"stf", "kitti", "nyu", "eth3d", "robotcar", "robotcar_night"}
+_VALID_SPLITS = {"stf", "kitti", "nyu", "eth3d", "robotcar", "robotcar_night", "lod", "lod_day", "lod_night"}
 _EVAL_FLAG_BY_SPLIT = {
     "stf": "eval_stf",
     "kitti": "eval_kitti",
@@ -55,6 +55,9 @@ def _parse_splits(value):
     unknown = sorted(splits - _VALID_SPLITS)
     if unknown:
         raise ValueError(f"Unknown split(s): {', '.join(unknown)}. Valid choices: {', '.join(sorted(_VALID_SPLITS))}")
+    if "lod" in splits:
+        splits.remove("lod")
+        splits.update({"lod_day", "lod_night"})
     return splits
 
 
@@ -63,6 +66,8 @@ def _load_args(run_dir, *, splits=None):
     with config_path.open("r", encoding="utf-8") as f:
         data = json.load(f)
     data.setdefault("enable_fixed_viz_dump", True)
+    data.setdefault("fixed_viz_splits", None)
+    data.setdefault("fixed_viz_lod_n_per_split", 1)
     data["eval_only"] = False
     data["num_workers"] = 0
     data["save_path"] = str(run_dir)
@@ -178,13 +183,30 @@ def main():
     parser.add_argument("--eval-json", default=None)
     parser.add_argument("--splits", default=None, help="Comma-separated fixed-viz splits to dump, or all. Example: kitti")
     parser.add_argument("--n-per-split", default=8, type=int)
+    parser.add_argument("--lod-n-per-split", default=1, type=int)
+    parser.add_argument("--lod-root", default=None, help="Override LOD root from the run config.")
+    parser.add_argument("--lod-day-manifest", default=None, help="Override LOD day manifest from the run config.")
+    parser.add_argument("--lod-night-manifest", default=None, help="Override LOD night manifest from the run config.")
     args_cli = parser.parse_args()
 
     splits = _parse_splits(args_cli.splits)
     args = _load_args(args_cli.run_dir, splits=splits)
+    if args_cli.lod_root is not None:
+        args.lod_root = args_cli.lod_root
+    if args_cli.lod_day_manifest is not None:
+        args.lod_day_manifest = args_cli.lod_day_manifest
+    if args_cli.lod_night_manifest is not None:
+        args.lod_night_manifest = args_cli.lod_night_manifest
     datasets = build_datasets(args)
     train_state = _make_loaders(datasets)
-    fixed_samples = collect_fixed_samples(train_state, n_per_split=args_cli.n_per_split)
+    fixed_samples = collect_fixed_samples(
+        train_state,
+        n_per_split=args_cli.n_per_split,
+        datasets=datasets,
+        args=args,
+        fixed_splits=splits,
+        lod_n_per_split=args_cli.lod_n_per_split,
+    )
     if splits is not None:
         fixed_samples = {split: samples for split, samples in fixed_samples.items() if split in splits}
 

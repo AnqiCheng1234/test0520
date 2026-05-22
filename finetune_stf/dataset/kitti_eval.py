@@ -17,6 +17,7 @@ RAW_LIKE_INPUT_TYPES = {
     "raw_ram_feature_adapter",
     "raw_ram_bridge_feature_adapter",
     "raw_ram_bridge_feature_adapter_lora",
+    "raw_ram_rgb_bridge_feature_adapter",
     "raw_ram_bridge",
     "raw_ram_bridge_lora",
 }

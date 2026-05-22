@@ -120,6 +120,11 @@ class DAV2PaddedRGBDepthModel(nn.Module):
         backbone_hw: tuple[int, int] = BACKBONE_INPUT_HW,
     ) -> None:
         super().__init__()
+        self.front_end = "dav2_rgb"
+        self.ram_core_type = None
+        self.imagenet_norm_enabled = True
+        self.uses_base_rgb = False
+        self.uses_clamp = False
         self.dav2 = dav2_model
         self.spatial_adapter = CenterPadCropAdapter(sensor_hw=sensor_hw, backbone_hw=backbone_hw)
 
