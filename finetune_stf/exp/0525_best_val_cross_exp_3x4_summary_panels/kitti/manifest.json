@@ -1,0 +1,4238 @@
+{
+  "experiments": [
+    {
+      "key": "c1_rgb",
+      "label": "C1 RGB residual | best VKITTI epoch 03"
+    },
+    {
+      "key": "c2_d0only",
+      "label": "C2 D0-only residual | best VKITTI epoch 11"
+    },
+    {
+      "key": "m2_ffm_mid",
+      "label": "M2 RAW FFM-mid residual | best VKITTI epoch 08"
+    }
+  ],
+  "layout": "three experiment 3x4 panels stacked vertically with per-experiment headers",
+  "output_dir": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_best_val_cross_exp_3x4_summary_panels/kitti",
+  "records": [
+    {
+      "dataset_index": 0,
+      "order": 1,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_best_val_cross_exp_3x4_summary_panels/kitti/01_kitti_idx0000_2011_09_26_drive_0002_sync_image_02_0000000069_cross_exp_3x4_summary.jpg",
+      "sample_name": "2011_09_26_drive_0002_sync_image_02_0000000069",
+      "source_records": [
+        {
+          "D0": {
+            "abs_rel": 0.09762803969640611,
+            "d1": 0.9284570208222104
+          },
+          "aux_stats": {
+            "B": {
+              "max": 2.640000104904175,
+              "min": -1.8000870943069458,
+              "p50": -0.5451850295066833,
+              "p99": 2.640000104904175
+            },
+            "D0n": {
+              "max": 3.6719021797180176,
+              "min": -2.8433704376220703,
+              "p50": -0.8097015023231506,
+              "p99": 2.014838457107544
+            },
+            "G": {
+              "max": 2.4285714626312256,
+              "min": -2.0007002353668213,
+              "p50": -0.7708333134651184,
+              "p99": 2.4285714626312256
+            },
+            "R": {
+              "max": 2.248908281326294,
+              "min": -2.1179039478302,
+              "p50": -0.884921669960022,
+              "p99": 2.248908281326294
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -2.8433704376220703,
+                "p99": 2.014838457107544
+              },
+              {
+                "p1": -2.032280206680298,
+                "p99": 2.248908281326294
+              },
+              {
+                "p1": -1.9394257068634033,
+                "p99": 2.4285714626312256
+              },
+              {
+                "p1": -1.720522849559784,
+                "p99": 2.640000104904175
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 0,
+          "depth_path": "/mnt/drive/kitti/annotated_depth/val/2011_09_26_drive_0002_sync/proj_depth/groundtruth/image_02/0000000069.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n",
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.26954057812690735,
+                  "p99": 1.0
+                },
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.41860470175743103,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.26753509044647217,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.2680000066757202,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0009803922148421407,
+                  "p50": 0.28333336114883423,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.007843137718737125,
+                  "p50": 0.28333333134651184,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.2823529541492462,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c1_rgb",
+          "final": {
+            "abs_rel": 0.060718038644966804,
+            "d1": 0.977637685325886
+          },
+          "image_path": "/mnt/drive/kitti/2011_09_26/2011_09_26_drive_0002_sync/image_02/data/0000000069.jpg",
+          "order": 1,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c1_rgb_residual_vits_halfrgb_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch03_3x4_panels/01_kitti_2011_09_26_drive_0002_sync_image_02_0000000069_epoch03_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0009803922148421407,
+              "p50": 0.28333336114883423,
+              "p99": 1.0
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.007843137718737125,
+              "p50": 0.28333333134651184,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.2823529541492462,
+              "p99": 1.0
+            }
+          },
+          "sample_name": "2011_09_26_drive_0002_sync_image_02_0000000069",
+          "variant": null
+        },
+        {
+          "D0": {
+            "abs_rel": 0.09762803969640611,
+            "d1": 0.9284570208222104
+          },
+          "aux_stats": {
+            "D0n": {
+              "max": 3.6719021797180176,
+              "min": -2.8433704376220703,
+              "p50": -0.8097015023231506,
+              "p99": 2.014838457107544
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -2.8433704376220703,
+                "p99": 2.014838457107544
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 0,
+          "depth_path": "/mnt/drive/kitti/annotated_depth/val/2011_09_26_drive_0002_sync/proj_depth/groundtruth/image_02/0000000069.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.41860470175743103,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0009803922148421407,
+                  "p50": 0.28333336114883423,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.007843137718737125,
+                  "p50": 0.28333333134651184,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.2823529541492462,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c2_d0only",
+          "final": {
+            "abs_rel": 0.04149116957897629,
+            "d1": 0.9822374635508645
+          },
+          "image_path": "/mnt/drive/kitti/2011_09_26/2011_09_26_drive_0002_sync/image_02/data/0000000069.jpg",
+          "order": 1,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c2_d0only_residual_vits_halfd0_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch11_3x4_panels/01_kitti_2011_09_26_drive_0002_sync_image_02_0000000069_epoch11_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0009803922148421407,
+              "p50": 0.28333336114883423,
+              "p99": 1.0
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.007843137718737125,
+              "p50": 0.28333333134651184,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.2823529541492462,
+              "p99": 1.0
+            }
+          },
+          "sample_name": "2011_09_26_drive_0002_sync_image_02_0000000069",
+          "variant": null
+        },
+        {
+          "D0": {
+            "abs_rel": 0.09762803969640611,
+            "d1": 0.9284570208222104
+          },
+          "aux_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0005027909064665437,
+              "p50": 0.07951273024082184,
+              "p99": 1.0
+            },
+            "Gb": {
+              "max": 1.0,
+              "min": 0.0018440642161294818,
+              "p50": 0.15255951881408691,
+              "p99": 1.0
+            },
+            "Gr": {
+              "max": 1.0,
+              "min": 0.002841613022610545,
+              "p50": 0.15235254168510437,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.001102836919017136,
+              "p50": 0.08094263821840286,
+              "p99": 1.0
+            }
+          },
+          "aux_stretch_meta": {
+            "stretch": "none"
+          },
+          "dataset_index": 0,
+          "depth_path": "/mnt/drive/kitti/annotated_depth/val/2011_09_26_drive_0002_sync/proj_depth/groundtruth/image_02/0000000069.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "Gr",
+                "Gb",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0005027909064665437,
+                  "p50": 0.07951273024082184,
+                  "p99": 1.0
+                },
+                "Gb": {
+                  "max": 1.0,
+                  "min": 0.0018440642161294818,
+                  "p50": 0.15255951881408691,
+                  "p99": 1.0
+                },
+                "Gr": {
+                  "max": 1.0,
+                  "min": 0.002841613022610545,
+                  "p50": 0.15235254168510437,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.001102836919017136,
+                  "p50": 0.08094263821840286,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0009803922148421407,
+                  "p50": 0.28333336114883423,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.007843137718737125,
+                  "p50": 0.28333333134651184,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.2823529541492462,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "m2_ffm_mid",
+          "final": {
+            "abs_rel": 0.05348272188279137,
+            "d1": 0.9813955398578997
+          },
+          "image_path": "/mnt/drive/kitti/2011_09_26/2011_09_26_drive_0002_sync/image_02/data/0000000069.jpg",
+          "order": 1,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0204_vkitti_m2_ffm_mid_residual_vits_halfraw187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch08_3x4_panels/01_kitti_2011_09_26_drive_0002_sync_image_02_0000000069_epoch08_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0009803922148421407,
+              "p50": 0.28333336114883423,
+              "p99": 1.0
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.007843137718737125,
+              "p50": 0.28333333134651184,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.2823529541492462,
+              "p99": 1.0
+            }
+          },
+          "sample_name": "2011_09_26_drive_0002_sync_image_02_0000000069",
+          "variant": null
+        }
+      ],
+      "variant": null
+    },
+    {
+      "dataset_index": 72,
+      "order": 2,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_best_val_cross_exp_3x4_summary_panels/kitti/02_kitti_idx0072_2011_09_26_drive_0020_sync_image_02_0000000018_cross_exp_3x4_summary.jpg",
+      "sample_name": "2011_09_26_drive_0020_sync_image_02_0000000018",
+      "source_records": [
+        {
+          "D0": {
+            "abs_rel": 0.0919907373597377,
+            "d1": 0.9087450344094444
+          },
+          "aux_stats": {
+            "B": {
+              "max": 2.640000104904175,
+              "min": -1.7957298755645752,
+              "p50": -1.1857080459594727,
+              "p99": 2.640000104904175
+            },
+            "D0n": {
+              "max": 6.457262992858887,
+              "min": -2.0112786293029785,
+              "p50": 0.11908886581659317,
+              "p99": 4.3930559158325195
+            },
+            "G": {
+              "max": 2.4285714626312256,
+              "min": -1.9700628519058228,
+              "p50": -1.304796814918518,
+              "p99": 2.4285714626312256
+            },
+            "R": {
+              "max": 2.248908281326294,
+              "min": -2.1179039478302,
+              "p50": -1.5442246198654175,
+              "p99": 2.248908281326294
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -1.9688863015174867,
+                "p99": 4.3930559158325195
+              },
+              {
+                "p1": -1.9809060096740723,
+                "p99": 2.248908281326294
+              },
+              {
+                "p1": -1.8518906831741333,
+                "p99": 2.4285714626312256
+              },
+              {
+                "p1": -1.6519389152526855,
+                "p99": 2.640000104904175
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 72,
+          "depth_path": "/mnt/drive/kitti/annotated_depth/val/2011_09_26_drive_0020_sync/proj_depth/groundtruth/image_02/0000000018.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n",
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.10862942785024643,
+                  "p99": 1.0
+                },
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.328197717666626,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.12781186401844025,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.10323889553546906,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0019607844296842813,
+                  "p50": 0.13921569287776947,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.014705883339047432,
+                  "p50": 0.16372549533843994,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.13137255609035492,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c1_rgb",
+          "final": {
+            "abs_rel": 0.07048109485369147,
+            "d1": 0.9288311978962681
+          },
+          "image_path": "/mnt/drive/kitti/2011_09_26/2011_09_26_drive_0020_sync/image_02/data/0000000018.jpg",
+          "order": 2,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c1_rgb_residual_vits_halfrgb_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch03_3x4_panels/02_kitti_2011_09_26_drive_0020_sync_image_02_0000000018_epoch03_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0019607844296842813,
+              "p50": 0.13921569287776947,
+              "p99": 1.0
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.014705883339047432,
+              "p50": 0.16372549533843994,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.13137255609035492,
+              "p99": 1.0
+            }
+          },
+          "sample_name": "2011_09_26_drive_0020_sync_image_02_0000000018",
+          "variant": null
+        },
+        {
+          "D0": {
+            "abs_rel": 0.0919907373597377,
+            "d1": 0.9087450344094444
+          },
+          "aux_stats": {
+            "D0n": {
+              "max": 6.457262992858887,
+              "min": -2.0112786293029785,
+              "p50": 0.11908886581659317,
+              "p99": 4.3930559158325195
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -1.9688863015174867,
+                "p99": 4.3930559158325195
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 72,
+          "depth_path": "/mnt/drive/kitti/annotated_depth/val/2011_09_26_drive_0020_sync/proj_depth/groundtruth/image_02/0000000018.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.328197717666626,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0019607844296842813,
+                  "p50": 0.13921569287776947,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.014705883339047432,
+                  "p50": 0.16372549533843994,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.13137255609035492,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c2_d0only",
+          "final": {
+            "abs_rel": 0.07631814353043505,
+            "d1": 0.9223409612264309
+          },
+          "image_path": "/mnt/drive/kitti/2011_09_26/2011_09_26_drive_0020_sync/image_02/data/0000000018.jpg",
+          "order": 2,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c2_d0only_residual_vits_halfd0_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch11_3x4_panels/02_kitti_2011_09_26_drive_0020_sync_image_02_0000000018_epoch11_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0019607844296842813,
+              "p50": 0.13921569287776947,
+              "p99": 1.0
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.014705883339047432,
+              "p50": 0.16372549533843994,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.13137255609035492,
+              "p99": 1.0
+            }
+          },
+          "sample_name": "2011_09_26_drive_0020_sync_image_02_0000000018",
+          "variant": null
+        },
+        {
+          "D0": {
+            "abs_rel": 0.0919907373597377,
+            "d1": 0.9087450344094444
+          },
+          "aux_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0017238794825971127,
+              "p50": 0.036388903856277466,
+              "p99": 1.0
+            },
+            "Gb": {
+              "max": 1.0,
+              "min": 0.004412285052239895,
+              "p50": 0.07650856673717499,
+              "p99": 1.0
+            },
+            "Gr": {
+              "max": 1.0,
+              "min": 0.004315240774303675,
+              "p50": 0.07683376967906952,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.002007437404245138,
+              "p50": 0.03585921600461006,
+              "p99": 1.0
+            }
+          },
+          "aux_stretch_meta": {
+            "stretch": "none"
+          },
+          "dataset_index": 72,
+          "depth_path": "/mnt/drive/kitti/annotated_depth/val/2011_09_26_drive_0020_sync/proj_depth/groundtruth/image_02/0000000018.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "Gr",
+                "Gb",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0017238794825971127,
+                  "p50": 0.036388903856277466,
+                  "p99": 1.0
+                },
+                "Gb": {
+                  "max": 1.0,
+                  "min": 0.004412285052239895,
+                  "p50": 0.07650856673717499,
+                  "p99": 1.0
+                },
+                "Gr": {
+                  "max": 1.0,
+                  "min": 0.004315240774303675,
+                  "p50": 0.07683376967906952,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.002007437404245138,
+                  "p50": 0.03585921600461006,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0019607844296842813,
+                  "p50": 0.13921569287776947,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.014705883339047432,
+                  "p50": 0.16372549533843994,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.13137255609035492,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "m2_ffm_mid",
+          "final": {
+            "abs_rel": 0.06728936019039738,
+            "d1": 0.9476864544284676
+          },
+          "image_path": "/mnt/drive/kitti/2011_09_26/2011_09_26_drive_0020_sync/image_02/data/0000000018.jpg",
+          "order": 2,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0204_vkitti_m2_ffm_mid_residual_vits_halfraw187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch08_3x4_panels/02_kitti_2011_09_26_drive_0020_sync_image_02_0000000018_epoch08_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0019607844296842813,
+              "p50": 0.13921569287776947,
+              "p99": 1.0
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.014705883339047432,
+              "p50": 0.16372549533843994,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.13137255609035492,
+              "p99": 1.0
+            }
+          },
+          "sample_name": "2011_09_26_drive_0020_sync_image_02_0000000018",
+          "variant": null
+        }
+      ],
+      "variant": null
+    },
+    {
+      "dataset_index": 144,
+      "order": 3,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_best_val_cross_exp_3x4_summary_panels/kitti/03_kitti_idx0144_2011_09_26_drive_0029_sync_image_02_0000000296_cross_exp_3x4_summary.jpg",
+      "sample_name": "2011_09_26_drive_0029_sync_image_02_0000000296",
+      "source_records": [
+        {
+          "D0": {
+            "abs_rel": 0.10743150456051184,
+            "d1": 0.871757288104046
+          },
+          "aux_stats": {
+            "B": {
+              "max": 2.640000104904175,
+              "min": -1.804444432258606,
+              "p50": -0.6105445623397827,
+              "p99": 2.640000104904175
+            },
+            "D0n": {
+              "max": 3.6202261447906494,
+              "min": -2.3467798233032227,
+              "p50": -0.909604549407959,
+              "p99": 2.2012431621551514
+            },
+            "G": {
+              "max": 2.4285714626312256,
+              "min": -1.9481792449951172,
+              "p50": -0.762079656124115,
+              "p99": 2.384803533554077
+            },
+            "R": {
+              "max": 2.248908281326294,
+              "min": -2.1007792949676514,
+              "p50": -0.9491395354270935,
+              "p99": 1.7351655960083008
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -2.3467798233032227,
+                "p99": 2.2012431621551514
+              },
+              {
+                "p1": -1.9766247272491455,
+                "p99": 1.7351655960083008
+              },
+              {
+                "p1": -1.869397759437561,
+                "p99": 2.384803533554077
+              },
+              {
+                "p1": -1.6693681478500366,
+                "p99": 2.640000104904175
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 144,
+          "depth_path": "/mnt/drive/kitti/annotated_depth/train/2011_09_26_drive_0029_sync/proj_depth/groundtruth/image_02/0000000296.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n",
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.24570274353027344,
+                  "p99": 1.0
+                },
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.31599998474121094,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.26028814911842346,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.27681657671928406,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.26862746477127075,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.019607843831181526,
+                  "p50": 0.28529414534568787,
+                  "p99": 0.9901960492134094
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.003921568859368563,
+                  "p50": 0.26764705777168274,
+                  "p99": 0.8823529481887817
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c1_rgb",
+          "final": {
+            "abs_rel": 0.07089908135718179,
+            "d1": 0.9606064834193758
+          },
+          "image_path": "/mnt/drive/kitti/2011_09_26/2011_09_26_drive_0029_sync/image_02/data/0000000296.jpg",
+          "order": 3,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c1_rgb_residual_vits_halfrgb_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch03_3x4_panels/03_kitti_2011_09_26_drive_0029_sync_image_02_0000000296_epoch03_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.26862746477127075,
+              "p99": 1.0
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.019607843831181526,
+              "p50": 0.28529414534568787,
+              "p99": 0.9901960492134094
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.003921568859368563,
+              "p50": 0.26764705777168274,
+              "p99": 0.8823529481887817
+            }
+          },
+          "sample_name": "2011_09_26_drive_0029_sync_image_02_0000000296",
+          "variant": null
+        },
+        {
+          "D0": {
+            "abs_rel": 0.10743150456051184,
+            "d1": 0.871757288104046
+          },
+          "aux_stats": {
+            "D0n": {
+              "max": 3.6202261447906494,
+              "min": -2.3467798233032227,
+              "p50": -0.909604549407959,
+              "p99": 2.2012431621551514
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -2.3467798233032227,
+                "p99": 2.2012431621551514
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 144,
+          "depth_path": "/mnt/drive/kitti/annotated_depth/train/2011_09_26_drive_0029_sync/proj_depth/groundtruth/image_02/0000000296.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.31599998474121094,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.26862746477127075,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.019607843831181526,
+                  "p50": 0.28529414534568787,
+                  "p99": 0.9901960492134094
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.003921568859368563,
+                  "p50": 0.26764705777168274,
+                  "p99": 0.8823529481887817
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c2_d0only",
+          "final": {
+            "abs_rel": 0.06177058418849909,
+            "d1": 0.9589321426910377
+          },
+          "image_path": "/mnt/drive/kitti/2011_09_26/2011_09_26_drive_0029_sync/image_02/data/0000000296.jpg",
+          "order": 3,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c2_d0only_residual_vits_halfd0_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch11_3x4_panels/03_kitti_2011_09_26_drive_0029_sync_image_02_0000000296_epoch11_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.26862746477127075,
+              "p99": 1.0
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.019607843831181526,
+              "p50": 0.28529414534568787,
+              "p99": 0.9901960492134094
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.003921568859368563,
+              "p50": 0.26764705777168274,
+              "p99": 0.8823529481887817
+            }
+          },
+          "sample_name": "2011_09_26_drive_0029_sync_image_02_0000000296",
+          "variant": null
+        },
+        {
+          "D0": {
+            "abs_rel": 0.10743150456051184,
+            "d1": 0.871757288104046
+          },
+          "aux_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0007872991263866425,
+              "p50": 0.07550759613513947,
+              "p99": 0.5071990489959717
+            },
+            "Gb": {
+              "max": 1.0,
+              "min": 0.004857607185840607,
+              "p50": 0.15020129084587097,
+              "p99": 0.9020119309425354
+            },
+            "Gr": {
+              "max": 1.0,
+              "min": 0.0020234698895365,
+              "p50": 0.1503565013408661,
+              "p99": 0.903081742525101
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.00260383659042418,
+              "p50": 0.0770212709903717,
+              "p99": 0.38781318962574013
+            }
+          },
+          "aux_stretch_meta": {
+            "stretch": "none"
+          },
+          "dataset_index": 144,
+          "depth_path": "/mnt/drive/kitti/annotated_depth/train/2011_09_26_drive_0029_sync/proj_depth/groundtruth/image_02/0000000296.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "Gr",
+                "Gb",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0007872991263866425,
+                  "p50": 0.07550759613513947,
+                  "p99": 0.5071990489959717
+                },
+                "Gb": {
+                  "max": 1.0,
+                  "min": 0.004857607185840607,
+                  "p50": 0.15020129084587097,
+                  "p99": 0.9020119309425354
+                },
+                "Gr": {
+                  "max": 1.0,
+                  "min": 0.0020234698895365,
+                  "p50": 0.1503565013408661,
+                  "p99": 0.903081742525101
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.00260383659042418,
+                  "p50": 0.0770212709903717,
+                  "p99": 0.38781318962574013
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.26862746477127075,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.019607843831181526,
+                  "p50": 0.28529414534568787,
+                  "p99": 0.9901960492134094
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.003921568859368563,
+                  "p50": 0.26764705777168274,
+                  "p99": 0.8823529481887817
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "m2_ffm_mid",
+          "final": {
+            "abs_rel": 0.059592090477268614,
+            "d1": 0.9525370912980792
+          },
+          "image_path": "/mnt/drive/kitti/2011_09_26/2011_09_26_drive_0029_sync/image_02/data/0000000296.jpg",
+          "order": 3,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0204_vkitti_m2_ffm_mid_residual_vits_halfraw187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch08_3x4_panels/03_kitti_2011_09_26_drive_0029_sync_image_02_0000000296_epoch08_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.26862746477127075,
+              "p99": 1.0
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.019607843831181526,
+              "p50": 0.28529414534568787,
+              "p99": 0.9901960492134094
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.003921568859368563,
+              "p50": 0.26764705777168274,
+              "p99": 0.8823529481887817
+            }
+          },
+          "sample_name": "2011_09_26_drive_0029_sync_image_02_0000000296",
+          "variant": null
+        }
+      ],
+      "variant": null
+    },
+    {
+      "dataset_index": 217,
+      "order": 4,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_best_val_cross_exp_3x4_summary_panels/kitti/04_kitti_idx0217_2011_09_26_drive_0048_sync_image_02_0000000013_cross_exp_3x4_summary.jpg",
+      "sample_name": "2011_09_26_drive_0048_sync_image_02_0000000013",
+      "source_records": [
+        {
+          "D0": {
+            "abs_rel": 0.11443115388820499,
+            "d1": 0.9011420499437355
+          },
+          "aux_stats": {
+            "B": {
+              "max": 2.640000104904175,
+              "min": -1.756514072418213,
+              "p50": -0.7412635684013367,
+              "p99": 2.640000104904175
+            },
+            "D0n": {
+              "max": 5.63761043548584,
+              "min": -3.1687698364257812,
+              "p50": -0.3181495666503906,
+              "p99": 2.8633460998535156
+            },
+            "G": {
+              "max": 2.4285714626312256,
+              "min": -1.9700628519058228,
+              "p50": -1.0684523582458496,
+              "p99": 2.4285714626312256
+            },
+            "R": {
+              "max": 2.248908281326294,
+              "min": -2.08793568611145,
+              "p50": -1.218854308128357,
+              "p99": 2.248908281326294
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -3.1687698364257812,
+                "p99": 2.8633460998535156
+              },
+              {
+                "p1": -1.9723435640335083,
+                "p99": 2.248908281326294
+              },
+              {
+                "p1": -1.8825279474258423,
+                "p99": 2.4285714626312256
+              },
+              {
+                "p1": -1.6301524639129639,
+                "p99": 2.640000104904175
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 217,
+          "depth_path": "/mnt/drive/kitti/annotated_depth/train/2011_09_26_drive_0048_sync/proj_depth/groundtruth/image_02/0000000013.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n",
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.20816326141357422,
+                  "p99": 1.0
+                },
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.472573846578598,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.18883247673511505,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.1784989982843399,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.010784314014017582,
+                  "p50": 0.239215686917305,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.014705883339047432,
+                  "p50": 0.21666666865348816,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0068627456203103065,
+                  "p50": 0.20588235557079315,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c1_rgb",
+          "final": {
+            "abs_rel": 0.07055116563559892,
+            "d1": 0.9537444933920705
+          },
+          "image_path": "/mnt/drive/kitti/2011_09_26/2011_09_26_drive_0048_sync/image_02/data/0000000013.jpg",
+          "order": 4,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c1_rgb_residual_vits_halfrgb_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch03_3x4_panels/04_kitti_2011_09_26_drive_0048_sync_image_02_0000000013_epoch03_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.010784314014017582,
+              "p50": 0.239215686917305,
+              "p99": 1.0
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.014705883339047432,
+              "p50": 0.21666666865348816,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0068627456203103065,
+              "p50": 0.20588235557079315,
+              "p99": 1.0
+            }
+          },
+          "sample_name": "2011_09_26_drive_0048_sync_image_02_0000000013",
+          "variant": null
+        },
+        {
+          "D0": {
+            "abs_rel": 0.11443115388820499,
+            "d1": 0.9011420499437355
+          },
+          "aux_stats": {
+            "D0n": {
+              "max": 5.63761043548584,
+              "min": -3.1687698364257812,
+              "p50": -0.3181495666503906,
+              "p99": 2.8633460998535156
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -3.1687698364257812,
+                "p99": 2.8633460998535156
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 217,
+          "depth_path": "/mnt/drive/kitti/annotated_depth/train/2011_09_26_drive_0048_sync/proj_depth/groundtruth/image_02/0000000013.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.472573846578598,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.010784314014017582,
+                  "p50": 0.239215686917305,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.014705883339047432,
+                  "p50": 0.21666666865348816,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0068627456203103065,
+                  "p50": 0.20588235557079315,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c2_d0only",
+          "final": {
+            "abs_rel": 0.06819735699772705,
+            "d1": 0.9654041371384792
+          },
+          "image_path": "/mnt/drive/kitti/2011_09_26/2011_09_26_drive_0048_sync/image_02/data/0000000013.jpg",
+          "order": 4,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c2_d0only_residual_vits_halfd0_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch11_3x4_panels/04_kitti_2011_09_26_drive_0048_sync_image_02_0000000013_epoch11_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.010784314014017582,
+              "p50": 0.239215686917305,
+              "p99": 1.0
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.014705883339047432,
+              "p50": 0.21666666865348816,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0068627456203103065,
+              "p50": 0.20588235557079315,
+              "p99": 1.0
+            }
+          },
+          "sample_name": "2011_09_26_drive_0048_sync_image_02_0000000013",
+          "variant": null
+        },
+        {
+          "D0": {
+            "abs_rel": 0.11443115388820499,
+            "d1": 0.9011420499437355
+          },
+          "aux_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.002136675175279379,
+              "p50": 0.06277751922607422,
+              "p99": 1.0
+            },
+            "Gb": {
+              "max": 1.0,
+              "min": 0.005512539763003588,
+              "p50": 0.11278305947780609,
+              "p99": 1.0
+            },
+            "Gr": {
+              "max": 1.0,
+              "min": 0.003905518678948283,
+              "p50": 0.11302295327186584,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0020588913466781378,
+              "p50": 0.05727587640285492,
+              "p99": 1.0
+            }
+          },
+          "aux_stretch_meta": {
+            "stretch": "none"
+          },
+          "dataset_index": 217,
+          "depth_path": "/mnt/drive/kitti/annotated_depth/train/2011_09_26_drive_0048_sync/proj_depth/groundtruth/image_02/0000000013.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "Gr",
+                "Gb",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.002136675175279379,
+                  "p50": 0.06277751922607422,
+                  "p99": 1.0
+                },
+                "Gb": {
+                  "max": 1.0,
+                  "min": 0.005512539763003588,
+                  "p50": 0.11278305947780609,
+                  "p99": 1.0
+                },
+                "Gr": {
+                  "max": 1.0,
+                  "min": 0.003905518678948283,
+                  "p50": 0.11302295327186584,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0020588913466781378,
+                  "p50": 0.05727587640285492,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.010784314014017582,
+                  "p50": 0.239215686917305,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.014705883339047432,
+                  "p50": 0.21666666865348816,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0068627456203103065,
+                  "p50": 0.20588235557079315,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "m2_ffm_mid",
+          "final": {
+            "abs_rel": 0.07214301559658544,
+            "d1": 0.9665054587243823
+          },
+          "image_path": "/mnt/drive/kitti/2011_09_26/2011_09_26_drive_0048_sync/image_02/data/0000000013.jpg",
+          "order": 4,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0204_vkitti_m2_ffm_mid_residual_vits_halfraw187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch08_3x4_panels/04_kitti_2011_09_26_drive_0048_sync_image_02_0000000013_epoch08_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.010784314014017582,
+              "p50": 0.239215686917305,
+              "p99": 1.0
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.014705883339047432,
+              "p50": 0.21666666865348816,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0068627456203103065,
+              "p50": 0.20588235557079315,
+              "p99": 1.0
+            }
+          },
+          "sample_name": "2011_09_26_drive_0048_sync_image_02_0000000013",
+          "variant": null
+        }
+      ],
+      "variant": null
+    },
+    {
+      "dataset_index": 289,
+      "order": 5,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_best_val_cross_exp_3x4_summary_panels/kitti/05_kitti_idx0289_2011_09_26_drive_0059_sync_image_02_0000000210_cross_exp_3x4_summary.jpg",
+      "sample_name": "2011_09_26_drive_0059_sync_image_02_0000000210",
+      "source_records": [
+        {
+          "D0": {
+            "abs_rel": 0.09864512279757895,
+            "d1": 0.9144872355034018
+          },
+          "aux_stats": {
+            "B": {
+              "max": 2.640000104904175,
+              "min": -1.7695860862731934,
+              "p50": -0.8284095525741577,
+              "p99": 2.640000104904175
+            },
+            "D0n": {
+              "max": 3.788480043411255,
+              "min": -2.659996747970581,
+              "p50": -1.0176502466201782,
+              "p99": 2.7809054851531982
+            },
+            "G": {
+              "max": 2.4285714626312256,
+              "min": -1.9875699281692505,
+              "p50": -0.9765405654907227,
+              "p99": 2.4285714626312256
+            },
+            "R": {
+              "max": 2.248908281326294,
+              "min": -2.109341621398926,
+              "p50": -1.0946999788284302,
+              "p99": 2.248908281326294
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -2.659996747970581,
+                "p99": 2.7809054851531982
+              },
+              {
+                "p1": -2.015155553817749,
+                "p99": 2.248908281326294
+              },
+              {
+                "p1": -1.9306721687316895,
+                "p99": 2.4285714626312256
+              },
+              {
+                "p1": -1.6824400424957275,
+                "p99": 2.640000104904175
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 289,
+          "depth_path": "/mnt/drive/kitti/annotated_depth/train/2011_09_26_drive_0059_sync/proj_depth/groundtruth/image_02/0000000210.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n",
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.19758063554763794,
+                  "p99": 1.0
+                },
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.30185186862945557,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.21887551248073578,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.21586346626281738,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.007843137718737125,
+                  "p50": 0.21960784494876862,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.010784314014017582,
+                  "p50": 0.23725490272045135,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0019607844296842813,
+                  "p50": 0.2343137264251709,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c1_rgb",
+          "final": {
+            "abs_rel": 0.07701573556810118,
+            "d1": 0.9226015854191374
+          },
+          "image_path": "/mnt/drive/kitti/2011_09_26/2011_09_26_drive_0059_sync/image_02/data/0000000210.jpg",
+          "order": 5,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c1_rgb_residual_vits_halfrgb_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch03_3x4_panels/05_kitti_2011_09_26_drive_0059_sync_image_02_0000000210_epoch03_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.007843137718737125,
+              "p50": 0.21960784494876862,
+              "p99": 1.0
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.010784314014017582,
+              "p50": 0.23725490272045135,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0019607844296842813,
+              "p50": 0.2343137264251709,
+              "p99": 1.0
+            }
+          },
+          "sample_name": "2011_09_26_drive_0059_sync_image_02_0000000210",
+          "variant": null
+        },
+        {
+          "D0": {
+            "abs_rel": 0.09864512279757895,
+            "d1": 0.9144872355034018
+          },
+          "aux_stats": {
+            "D0n": {
+              "max": 3.788480043411255,
+              "min": -2.659996747970581,
+              "p50": -1.0176502466201782,
+              "p99": 2.7809054851531982
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -2.659996747970581,
+                "p99": 2.7809054851531982
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 289,
+          "depth_path": "/mnt/drive/kitti/annotated_depth/train/2011_09_26_drive_0059_sync/proj_depth/groundtruth/image_02/0000000210.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.30185186862945557,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.007843137718737125,
+                  "p50": 0.21960784494876862,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.010784314014017582,
+                  "p50": 0.23725490272045135,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0019607844296842813,
+                  "p50": 0.2343137264251709,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c2_d0only",
+          "final": {
+            "abs_rel": 0.07883173927982674,
+            "d1": 0.9110230322701455
+          },
+          "image_path": "/mnt/drive/kitti/2011_09_26/2011_09_26_drive_0059_sync/image_02/data/0000000210.jpg",
+          "order": 5,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c2_d0only_residual_vits_halfd0_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch11_3x4_panels/05_kitti_2011_09_26_drive_0059_sync_image_02_0000000210_epoch11_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.007843137718737125,
+              "p50": 0.21960784494876862,
+              "p99": 1.0
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.010784314014017582,
+              "p50": 0.23725490272045135,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0019607844296842813,
+              "p50": 0.2343137264251709,
+              "p99": 1.0
+            }
+          },
+          "sample_name": "2011_09_26_drive_0059_sync_image_02_0000000210",
+          "variant": null
+        },
+        {
+          "D0": {
+            "abs_rel": 0.09864512279757895,
+            "d1": 0.9144872355034018
+          },
+          "aux_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.00028982883668504655,
+              "p50": 0.06048841401934624,
+              "p99": 1.0
+            },
+            "Gb": {
+              "max": 1.0,
+              "min": 0.002820415887981653,
+              "p50": 0.12192584574222565,
+              "p99": 1.0
+            },
+            "Gr": {
+              "max": 1.0,
+              "min": 0.004412285052239895,
+              "p50": 0.12160050123929977,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0019248592434450984,
+              "p50": 0.06404273957014084,
+              "p99": 1.0
+            }
+          },
+          "aux_stretch_meta": {
+            "stretch": "none"
+          },
+          "dataset_index": 289,
+          "depth_path": "/mnt/drive/kitti/annotated_depth/train/2011_09_26_drive_0059_sync/proj_depth/groundtruth/image_02/0000000210.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "Gr",
+                "Gb",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.00028982883668504655,
+                  "p50": 0.06048841401934624,
+                  "p99": 1.0
+                },
+                "Gb": {
+                  "max": 1.0,
+                  "min": 0.002820415887981653,
+                  "p50": 0.12192584574222565,
+                  "p99": 1.0
+                },
+                "Gr": {
+                  "max": 1.0,
+                  "min": 0.004412285052239895,
+                  "p50": 0.12160050123929977,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0019248592434450984,
+                  "p50": 0.06404273957014084,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.007843137718737125,
+                  "p50": 0.21960784494876862,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.010784314014017582,
+                  "p50": 0.23725490272045135,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0019607844296842813,
+                  "p50": 0.2343137264251709,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "m2_ffm_mid",
+          "final": {
+            "abs_rel": 0.07244889372246024,
+            "d1": 0.9217901504275638
+          },
+          "image_path": "/mnt/drive/kitti/2011_09_26/2011_09_26_drive_0059_sync/image_02/data/0000000210.jpg",
+          "order": 5,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0204_vkitti_m2_ffm_mid_residual_vits_halfraw187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch08_3x4_panels/05_kitti_2011_09_26_drive_0059_sync_image_02_0000000210_epoch08_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.007843137718737125,
+              "p50": 0.21960784494876862,
+              "p99": 1.0
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.010784314014017582,
+              "p50": 0.23725490272045135,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0019607844296842813,
+              "p50": 0.2343137264251709,
+              "p99": 1.0
+            }
+          },
+          "sample_name": "2011_09_26_drive_0059_sync_image_02_0000000210",
+          "variant": null
+        }
+      ],
+      "variant": null
+    },
+    {
+      "dataset_index": 361,
+      "order": 6,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_best_val_cross_exp_3x4_summary_panels/kitti/06_kitti_idx0361_2011_09_26_drive_0086_sync_image_02_0000000061_cross_exp_3x4_summary.jpg",
+      "sample_name": "2011_09_26_drive_0086_sync_image_02_0000000061",
+      "source_records": [
+        {
+          "D0": {
+            "abs_rel": 0.11962083053025332,
+            "d1": 0.8642470303102839
+          },
+          "aux_stats": {
+            "B": {
+              "max": 2.640000104904175,
+              "min": -1.7957298755645752,
+              "p50": -1.0332025289535522,
+              "p99": 2.640000104904175
+            },
+            "D0n": {
+              "max": 5.222887992858887,
+              "min": -2.882577657699585,
+              "p50": -0.3567546606063843,
+              "p99": 4.0241923332214355
+            },
+            "G": {
+              "max": 2.4285714626312256,
+              "min": -1.9788163900375366,
+              "p50": -1.0990896224975586,
+              "p99": 2.4285714626312256
+            },
+            "R": {
+              "max": 2.248908281326294,
+              "min": -2.062248468399048,
+              "p50": -1.1674801111221313,
+              "p99": 2.248908281326294
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -2.882577657699585,
+                "p99": 4.0241923332214355
+              },
+              {
+                "p1": -1.9637812376022339,
+                "p99": 2.248908281326294
+              },
+              {
+                "p1": -1.895658254623413,
+                "p99": 2.4285714626312256
+              },
+              {
+                "p1": -1.6780827045440674,
+                "p99": 2.640000104904175
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 361,
+          "depth_path": "/mnt/drive/kitti/annotated_depth/train/2011_09_26_drive_0086_sync/proj_depth/groundtruth/image_02/0000000061.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n",
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.14934410154819489,
+                  "p99": 1.0
+                },
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.3657025098800659,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.18421052396297455,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.1890244036912918,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0019607844296842813,
+                  "p50": 0.17352941632270813,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.01274509821087122,
+                  "p50": 0.20980392396450043,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.01274509821087122,
+                  "p50": 0.21764706075191498,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c1_rgb",
+          "final": {
+            "abs_rel": 0.09886157575055286,
+            "d1": 0.8989557463870022
+          },
+          "image_path": "/mnt/drive/kitti/2011_09_26/2011_09_26_drive_0086_sync/image_02/data/0000000061.jpg",
+          "order": 6,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c1_rgb_residual_vits_halfrgb_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch03_3x4_panels/06_kitti_2011_09_26_drive_0086_sync_image_02_0000000061_epoch03_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0019607844296842813,
+              "p50": 0.17352941632270813,
+              "p99": 1.0
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.01274509821087122,
+              "p50": 0.20980392396450043,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.01274509821087122,
+              "p50": 0.21764706075191498,
+              "p99": 1.0
+            }
+          },
+          "sample_name": "2011_09_26_drive_0086_sync_image_02_0000000061",
+          "variant": null
+        },
+        {
+          "D0": {
+            "abs_rel": 0.11962083053025332,
+            "d1": 0.8642470303102839
+          },
+          "aux_stats": {
+            "D0n": {
+              "max": 5.222887992858887,
+              "min": -2.882577657699585,
+              "p50": -0.3567546606063843,
+              "p99": 4.0241923332214355
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -2.882577657699585,
+                "p99": 4.0241923332214355
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 361,
+          "depth_path": "/mnt/drive/kitti/annotated_depth/train/2011_09_26_drive_0086_sync/proj_depth/groundtruth/image_02/0000000061.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.3657025098800659,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0019607844296842813,
+                  "p50": 0.17352941632270813,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.01274509821087122,
+                  "p50": 0.20980392396450043,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.01274509821087122,
+                  "p50": 0.21764706075191498,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c2_d0only",
+          "final": {
+            "abs_rel": 0.09561672395437229,
+            "d1": 0.8911762065767033
+          },
+          "image_path": "/mnt/drive/kitti/2011_09_26/2011_09_26_drive_0086_sync/image_02/data/0000000061.jpg",
+          "order": 6,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c2_d0only_residual_vits_halfd0_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch11_3x4_panels/06_kitti_2011_09_26_drive_0086_sync_image_02_0000000061_epoch11_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0019607844296842813,
+              "p50": 0.17352941632270813,
+              "p99": 1.0
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.01274509821087122,
+              "p50": 0.20980392396450043,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.01274509821087122,
+              "p50": 0.21764706075191498,
+              "p99": 1.0
+            }
+          },
+          "sample_name": "2011_09_26_drive_0086_sync_image_02_0000000061",
+          "variant": null
+        },
+        {
+          "D0": {
+            "abs_rel": 0.11962083053025332,
+            "d1": 0.8642470303102839
+          },
+          "aux_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0009948995430022478,
+              "p50": 0.04741073027253151,
+              "p99": 1.0
+            },
+            "Gb": {
+              "max": 1.0,
+              "min": 0.003359598806127906,
+              "p50": 0.10370390117168427,
+              "p99": 1.0
+            },
+            "Gr": {
+              "max": 1.0,
+              "min": 0.0029330430552363396,
+              "p50": 0.10450815409421921,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.002228592988103628,
+              "p50": 0.0576346218585968,
+              "p99": 1.0
+            }
+          },
+          "aux_stretch_meta": {
+            "stretch": "none"
+          },
+          "dataset_index": 361,
+          "depth_path": "/mnt/drive/kitti/annotated_depth/train/2011_09_26_drive_0086_sync/proj_depth/groundtruth/image_02/0000000061.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "Gr",
+                "Gb",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0009948995430022478,
+                  "p50": 0.04741073027253151,
+                  "p99": 1.0
+                },
+                "Gb": {
+                  "max": 1.0,
+                  "min": 0.003359598806127906,
+                  "p50": 0.10370390117168427,
+                  "p99": 1.0
+                },
+                "Gr": {
+                  "max": 1.0,
+                  "min": 0.0029330430552363396,
+                  "p50": 0.10450815409421921,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.002228592988103628,
+                  "p50": 0.0576346218585968,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0019607844296842813,
+                  "p50": 0.17352941632270813,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.01274509821087122,
+                  "p50": 0.20980392396450043,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.01274509821087122,
+                  "p50": 0.21764706075191498,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "m2_ffm_mid",
+          "final": {
+            "abs_rel": 0.103281895044383,
+            "d1": 0.8932407767571288
+          },
+          "image_path": "/mnt/drive/kitti/2011_09_26/2011_09_26_drive_0086_sync/image_02/data/0000000061.jpg",
+          "order": 6,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0204_vkitti_m2_ffm_mid_residual_vits_halfraw187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch08_3x4_panels/06_kitti_2011_09_26_drive_0086_sync_image_02_0000000061_epoch08_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0019607844296842813,
+              "p50": 0.17352941632270813,
+              "p99": 1.0
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.01274509821087122,
+              "p50": 0.20980392396450043,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.01274509821087122,
+              "p50": 0.21764706075191498,
+              "p99": 1.0
+            }
+          },
+          "sample_name": "2011_09_26_drive_0086_sync_image_02_0000000061",
+          "variant": null
+        }
+      ],
+      "variant": null
+    },
+    {
+      "dataset_index": 434,
+      "order": 7,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_best_val_cross_exp_3x4_summary_panels/kitti/07_kitti_idx0434_2011_09_26_drive_0101_sync_image_02_0000000556_cross_exp_3x4_summary.jpg",
+      "sample_name": "2011_09_26_drive_0101_sync_image_02_0000000556",
+      "source_records": [
+        {
+          "D0": {
+            "abs_rel": 0.1113774900936662,
+            "d1": 0.8602487305014139
+          },
+          "aux_stats": {
+            "B": {
+              "max": 2.640000104904175,
+              "min": -1.791372537612915,
+              "p50": 0.13455352187156677,
+              "p99": 2.640000104904175
+            },
+            "D0n": {
+              "max": 2.9770727157592773,
+              "min": -2.6814768314361572,
+              "p50": -2.290868043899536,
+              "p99": 1.9847151041030884
+            },
+            "G": {
+              "max": 2.4285714626312256,
+              "min": -1.9394257068634033,
+              "p50": -0.08368345350027084,
+              "p99": 2.4285714626312256
+            },
+            "R": {
+              "max": 2.248908281326294,
+              "min": -2.0964980125427246,
+              "p50": -0.24274343252182007,
+              "p99": 2.248908281326294
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -2.6814768314361572,
+                "p99": 1.9847151041030884
+              },
+              {
+                "p1": -1.9338128566741943,
+                "p99": 2.248908281326294
+              },
+              {
+                "p1": -1.8212534189224243,
+                "p99": 2.4285714626312256
+              },
+              {
+                "p1": -1.5865795612335205,
+                "p99": 2.640000104904175
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 434,
+          "depth_path": "/mnt/drive/kitti/annotated_depth/train/2011_09_26_drive_0101_sync/proj_depth/groundtruth/image_02/0000000556.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n",
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.40721651911735535,
+                  "p99": 1.0
+                },
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.08371039479970932,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.4088568091392517,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.4042988419532776,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0029411765281111,
+                  "p50": 0.43627452850341797,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.021568628028035164,
+                  "p50": 0.4372549057006836,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0049019609577953815,
+                  "p50": 0.42941176891326904,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c1_rgb",
+          "final": {
+            "abs_rel": 0.09562839615346506,
+            "d1": 0.8969162995594714
+          },
+          "image_path": "/mnt/drive/kitti/2011_09_26/2011_09_26_drive_0101_sync/image_02/data/0000000556.jpg",
+          "order": 7,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c1_rgb_residual_vits_halfrgb_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch03_3x4_panels/07_kitti_2011_09_26_drive_0101_sync_image_02_0000000556_epoch03_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0029411765281111,
+              "p50": 0.43627452850341797,
+              "p99": 1.0
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.021568628028035164,
+              "p50": 0.4372549057006836,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0049019609577953815,
+              "p50": 0.42941176891326904,
+              "p99": 1.0
+            }
+          },
+          "sample_name": "2011_09_26_drive_0101_sync_image_02_0000000556",
+          "variant": null
+        },
+        {
+          "D0": {
+            "abs_rel": 0.1113774900936662,
+            "d1": 0.8602487305014139
+          },
+          "aux_stats": {
+            "D0n": {
+              "max": 2.9770727157592773,
+              "min": -2.6814768314361572,
+              "p50": -2.290868043899536,
+              "p99": 1.9847151041030884
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -2.6814768314361572,
+                "p99": 1.9847151041030884
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 434,
+          "depth_path": "/mnt/drive/kitti/annotated_depth/train/2011_09_26_drive_0101_sync/proj_depth/groundtruth/image_02/0000000556.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.08371039479970932,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0029411765281111,
+                  "p50": 0.43627452850341797,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.021568628028035164,
+                  "p50": 0.4372549057006836,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0049019609577953815,
+                  "p50": 0.42941176891326904,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c2_d0only",
+          "final": {
+            "abs_rel": 0.09202504845984034,
+            "d1": 0.9013519671882121
+          },
+          "image_path": "/mnt/drive/kitti/2011_09_26/2011_09_26_drive_0101_sync/image_02/data/0000000556.jpg",
+          "order": 7,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c2_d0only_residual_vits_halfd0_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch11_3x4_panels/07_kitti_2011_09_26_drive_0101_sync_image_02_0000000556_epoch11_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0029411765281111,
+              "p50": 0.43627452850341797,
+              "p99": 1.0
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.021568628028035164,
+              "p50": 0.4372549057006836,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0049019609577953815,
+              "p50": 0.42941176891326904,
+              "p99": 1.0
+            }
+          },
+          "sample_name": "2011_09_26_drive_0101_sync_image_02_0000000556",
+          "variant": null
+        },
+        {
+          "D0": {
+            "abs_rel": 0.1113774900936662,
+            "d1": 0.8602487305014139
+          },
+          "aux_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0012610778212547302,
+              "p50": 0.13338741660118103,
+              "p99": 1.0
+            },
+            "Gb": {
+              "max": 1.0,
+              "min": 0.007317518815398216,
+              "p50": 0.25643354654312134,
+              "p99": 1.0
+            },
+            "Gr": {
+              "max": 1.0,
+              "min": 0.004263509996235371,
+              "p50": 0.25913962721824646,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0028290844056755304,
+              "p50": 0.13738083839416504,
+              "p99": 1.0
+            }
+          },
+          "aux_stretch_meta": {
+            "stretch": "none"
+          },
+          "dataset_index": 434,
+          "depth_path": "/mnt/drive/kitti/annotated_depth/train/2011_09_26_drive_0101_sync/proj_depth/groundtruth/image_02/0000000556.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "Gr",
+                "Gb",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0012610778212547302,
+                  "p50": 0.13338741660118103,
+                  "p99": 1.0
+                },
+                "Gb": {
+                  "max": 1.0,
+                  "min": 0.007317518815398216,
+                  "p50": 0.25643354654312134,
+                  "p99": 1.0
+                },
+                "Gr": {
+                  "max": 1.0,
+                  "min": 0.004263509996235371,
+                  "p50": 0.25913962721824646,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0028290844056755304,
+                  "p50": 0.13738083839416504,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0029411765281111,
+                  "p50": 0.43627452850341797,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.021568628028035164,
+                  "p50": 0.4372549057006836,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0049019609577953815,
+                  "p50": 0.42941176891326904,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "m2_ffm_mid",
+          "final": {
+            "abs_rel": 0.12000717580333783,
+            "d1": 0.8742176581393936
+          },
+          "image_path": "/mnt/drive/kitti/2011_09_26/2011_09_26_drive_0101_sync/image_02/data/0000000556.jpg",
+          "order": 7,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0204_vkitti_m2_ffm_mid_residual_vits_halfraw187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch08_3x4_panels/07_kitti_2011_09_26_drive_0101_sync_image_02_0000000556_epoch08_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0029411765281111,
+              "p50": 0.43627452850341797,
+              "p99": 1.0
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.021568628028035164,
+              "p50": 0.4372549057006836,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0049019609577953815,
+              "p50": 0.42941176891326904,
+              "p99": 1.0
+            }
+          },
+          "sample_name": "2011_09_26_drive_0101_sync_image_02_0000000556",
+          "variant": null
+        }
+      ],
+      "variant": null
+    },
+    {
+      "dataset_index": 506,
+      "order": 8,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_best_val_cross_exp_3x4_summary_panels/kitti/08_kitti_idx0506_2011_09_28_drive_0002_sync_image_02_0000000057_cross_exp_3x4_summary.jpg",
+      "sample_name": "2011_09_28_drive_0002_sync_image_02_0000000057",
+      "source_records": [
+        {
+          "D0": {
+            "abs_rel": 0.11671906532404648,
+            "d1": 0.8637856564384054
+          },
+          "aux_stats": {
+            "B": {
+              "max": 2.640000104904175,
+              "min": -1.7783006429672241,
+              "p50": -0.42753803730010986,
+              "p99": 2.640000104904175
+            },
+            "D0n": {
+              "max": 3.9843928813934326,
+              "min": -2.7367546558380127,
+              "p50": -1.3381925821304321,
+              "p99": 1.9519500732421875
+            },
+            "G": {
+              "max": 2.4285714626312256,
+              "min": -1.9525558948516846,
+              "p50": -0.6176469922065735,
+              "p99": 2.4285714626312256
+            },
+            "R": {
+              "max": 2.248908281326294,
+              "min": -2.0964980125427246,
+              "p50": -0.7650483846664429,
+              "p99": 2.248908281326294
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -2.7367546558380127,
+                "p99": 1.9519500732421875
+              },
+              {
+                "p1": -1.9124069213867188,
+                "p99": 2.248908281326294
+              },
+              {
+                "p1": -1.808123230934143,
+                "p99": 2.4285714626312256
+              },
+              {
+                "p1": -1.6257951259613037,
+                "p99": 2.640000104904175
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 506,
+          "depth_path": "/mnt/drive/kitti/annotated_depth/train/2011_09_28_drive_0002_sync/proj_depth/groundtruth/image_02/0000000057.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n",
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.2808988690376282,
+                  "p99": 1.0
+                },
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.29828324913978577,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.28099173307418823,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.27572017908096313,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0058823530562222,
+                  "p50": 0.30980393290519714,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.018627451732754707,
+                  "p50": 0.3176470696926117,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0049019609577953815,
+                  "p50": 0.30980393290519714,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c1_rgb",
+          "final": {
+            "abs_rel": 0.09814137595974798,
+            "d1": 0.857081796094664
+          },
+          "image_path": "/mnt/drive/kitti/2011_09_28/2011_09_28_drive_0002_sync/image_02/data/0000000057.jpg",
+          "order": 8,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c1_rgb_residual_vits_halfrgb_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch03_3x4_panels/08_kitti_2011_09_28_drive_0002_sync_image_02_0000000057_epoch03_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0058823530562222,
+              "p50": 0.30980393290519714,
+              "p99": 1.0
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.018627451732754707,
+              "p50": 0.3176470696926117,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0049019609577953815,
+              "p50": 0.30980393290519714,
+              "p99": 1.0
+            }
+          },
+          "sample_name": "2011_09_28_drive_0002_sync_image_02_0000000057",
+          "variant": null
+        },
+        {
+          "D0": {
+            "abs_rel": 0.11671906532404648,
+            "d1": 0.8637856564384054
+          },
+          "aux_stats": {
+            "D0n": {
+              "max": 3.9843928813934326,
+              "min": -2.7367546558380127,
+              "p50": -1.3381925821304321,
+              "p99": 1.9519500732421875
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -2.7367546558380127,
+                "p99": 1.9519500732421875
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 506,
+          "depth_path": "/mnt/drive/kitti/annotated_depth/train/2011_09_28_drive_0002_sync/proj_depth/groundtruth/image_02/0000000057.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.29828324913978577,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0058823530562222,
+                  "p50": 0.30980393290519714,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.018627451732754707,
+                  "p50": 0.3176470696926117,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0049019609577953815,
+                  "p50": 0.30980393290519714,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c2_d0only",
+          "final": {
+            "abs_rel": 0.10208586909204931,
+            "d1": 0.8619859623863944
+          },
+          "image_path": "/mnt/drive/kitti/2011_09_28/2011_09_28_drive_0002_sync/image_02/data/0000000057.jpg",
+          "order": 8,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c2_d0only_residual_vits_halfd0_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch11_3x4_panels/08_kitti_2011_09_28_drive_0002_sync_image_02_0000000057_epoch11_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0058823530562222,
+              "p50": 0.30980393290519714,
+              "p99": 1.0
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.018627451732754707,
+              "p50": 0.3176470696926117,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0049019609577953815,
+              "p50": 0.30980393290519714,
+              "p99": 1.0
+            }
+          },
+          "sample_name": "2011_09_28_drive_0002_sync_image_02_0000000057",
+          "variant": null
+        },
+        {
+          "D0": {
+            "abs_rel": 0.11671906532404648,
+            "d1": 0.8637856564384054
+          },
+          "aux_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.002108727116137743,
+              "p50": 0.0879153460264206,
+              "p99": 1.0
+            },
+            "Gb": {
+              "max": 1.0,
+              "min": 0.00854895357042551,
+              "p50": 0.17102868854999542,
+              "p99": 1.0
+            },
+            "Gr": {
+              "max": 1.0,
+              "min": 0.003454148769378662,
+              "p50": 0.17059804499149323,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0029953885823488235,
+              "p50": 0.08935841172933578,
+              "p99": 1.0
+            }
+          },
+          "aux_stretch_meta": {
+            "stretch": "none"
+          },
+          "dataset_index": 506,
+          "depth_path": "/mnt/drive/kitti/annotated_depth/train/2011_09_28_drive_0002_sync/proj_depth/groundtruth/image_02/0000000057.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "Gr",
+                "Gb",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.002108727116137743,
+                  "p50": 0.0879153460264206,
+                  "p99": 1.0
+                },
+                "Gb": {
+                  "max": 1.0,
+                  "min": 0.00854895357042551,
+                  "p50": 0.17102868854999542,
+                  "p99": 1.0
+                },
+                "Gr": {
+                  "max": 1.0,
+                  "min": 0.003454148769378662,
+                  "p50": 0.17059804499149323,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0029953885823488235,
+                  "p50": 0.08935841172933578,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0058823530562222,
+                  "p50": 0.30980393290519714,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.018627451732754707,
+                  "p50": 0.3176470696926117,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0049019609577953815,
+                  "p50": 0.30980393290519714,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "m2_ffm_mid",
+          "final": {
+            "abs_rel": 0.09928687543877979,
+            "d1": 0.8573967425537659
+          },
+          "image_path": "/mnt/drive/kitti/2011_09_28/2011_09_28_drive_0002_sync/image_02/data/0000000057.jpg",
+          "order": 8,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0204_vkitti_m2_ffm_mid_residual_vits_halfraw187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch08_3x4_panels/08_kitti_2011_09_28_drive_0002_sync_image_02_0000000057_epoch08_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0058823530562222,
+              "p50": 0.30980393290519714,
+              "p99": 1.0
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.018627451732754707,
+              "p50": 0.3176470696926117,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0049019609577953815,
+              "p50": 0.30980393290519714,
+              "p99": 1.0
+            }
+          },
+          "sample_name": "2011_09_28_drive_0002_sync_image_02_0000000057",
+          "variant": null
+        }
+      ],
+      "variant": null
+    },
+    {
+      "dataset_index": 578,
+      "order": 9,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_best_val_cross_exp_3x4_summary_panels/kitti/09_kitti_idx0578_2011_09_30_drive_0018_sync_image_02_0000000963_cross_exp_3x4_summary.jpg",
+      "sample_name": "2011_09_30_drive_0018_sync_image_02_0000000963",
+      "source_records": [
+        {
+          "D0": {
+            "abs_rel": 0.11038011371404098,
+            "d1": 0.8689113431132297
+          },
+          "aux_stats": {
+            "B": {
+              "max": 2.640000104904175,
+              "min": -1.7783006429672241,
+              "p50": -1.0070587396621704,
+              "p99": 2.640000104904175
+            },
+            "D0n": {
+              "max": 3.586984395980835,
+              "min": -2.84016752243042,
+              "p50": -0.13578489422798157,
+              "p99": 2.8627984523773193
+            },
+            "G": {
+              "max": 2.4285714626312256,
+              "min": -1.983193278312683,
+              "p50": -1.252275824546814,
+              "p99": 2.4285714626312256
+            },
+            "R": {
+              "max": 2.248908281326294,
+              "min": -2.0793731212615967,
+              "p50": -1.270228624343872,
+              "p99": 2.248908281326294
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -2.84016752243042,
+                "p99": 2.8627984523773193
+              },
+              {
+                "p1": -2.002311944961548,
+                "p99": 2.248908281326294
+              },
+              {
+                "p1": -1.9131652116775513,
+                "p99": 2.4285714626312256
+              },
+              {
+                "p1": -1.6824400424957275,
+                "p99": 2.640000104904175
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 578,
+          "depth_path": "/mnt/drive/kitti/annotated_depth/train/2011_09_30_drive_0018_sync/proj_depth/groundtruth/image_02/0000000963.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n",
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.15625,
+                  "p99": 1.0
+                },
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.4742063581943512,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.15221774578094482,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.17220546305179596,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0058823530562222,
+                  "p50": 0.17941176891326904,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.011764707043766975,
+                  "p50": 0.17549020051956177,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.008823529817163944,
+                  "p50": 0.19411765038967133,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c1_rgb",
+          "final": {
+            "abs_rel": 0.10320279868477698,
+            "d1": 0.8426264728591091
+          },
+          "image_path": "/mnt/drive/kitti/2011_09_30/2011_09_30_drive_0018_sync/image_02/data/0000000963.jpg",
+          "order": 9,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c1_rgb_residual_vits_halfrgb_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch03_3x4_panels/09_kitti_2011_09_30_drive_0018_sync_image_02_0000000963_epoch03_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0058823530562222,
+              "p50": 0.17941176891326904,
+              "p99": 1.0
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.011764707043766975,
+              "p50": 0.17549020051956177,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.008823529817163944,
+              "p50": 0.19411765038967133,
+              "p99": 1.0
+            }
+          },
+          "sample_name": "2011_09_30_drive_0018_sync_image_02_0000000963",
+          "variant": null
+        },
+        {
+          "D0": {
+            "abs_rel": 0.11038011371404098,
+            "d1": 0.8689113431132297
+          },
+          "aux_stats": {
+            "D0n": {
+              "max": 3.586984395980835,
+              "min": -2.84016752243042,
+              "p50": -0.13578489422798157,
+              "p99": 2.8627984523773193
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -2.84016752243042,
+                "p99": 2.8627984523773193
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 578,
+          "depth_path": "/mnt/drive/kitti/annotated_depth/train/2011_09_30_drive_0018_sync/proj_depth/groundtruth/image_02/0000000963.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.4742063581943512,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0058823530562222,
+                  "p50": 0.17941176891326904,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.011764707043766975,
+                  "p50": 0.17549020051956177,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.008823529817163944,
+                  "p50": 0.19411765038967133,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c2_d0only",
+          "final": {
+            "abs_rel": 0.10350877909620887,
+            "d1": 0.8518580684145154
+          },
+          "image_path": "/mnt/drive/kitti/2011_09_30/2011_09_30_drive_0018_sync/image_02/data/0000000963.jpg",
+          "order": 9,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c2_d0only_residual_vits_halfd0_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch11_3x4_panels/09_kitti_2011_09_30_drive_0018_sync_image_02_0000000963_epoch11_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0058823530562222,
+              "p50": 0.17941176891326904,
+              "p99": 1.0
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.011764707043766975,
+              "p50": 0.17549020051956177,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.008823529817163944,
+              "p50": 0.19411765038967133,
+              "p99": 1.0
+            }
+          },
+          "sample_name": "2011_09_30_drive_0018_sync_image_02_0000000963",
+          "variant": null
+        },
+        {
+          "D0": {
+            "abs_rel": 0.11038011371404098,
+            "d1": 0.8689113431132297
+          },
+          "aux_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0009312289184890687,
+              "p50": 0.04638075456023216,
+              "p99": 1.0
+            },
+            "Gb": {
+              "max": 1.0,
+              "min": 0.004412285052239895,
+              "p50": 0.08978226035833359,
+              "p99": 1.0
+            },
+            "Gr": {
+              "max": 1.0,
+              "min": 0.0033587045036256313,
+              "p50": 0.08968212455511093,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0010876873275265098,
+              "p50": 0.05093718320131302,
+              "p99": 1.0
+            }
+          },
+          "aux_stretch_meta": {
+            "stretch": "none"
+          },
+          "dataset_index": 578,
+          "depth_path": "/mnt/drive/kitti/annotated_depth/train/2011_09_30_drive_0018_sync/proj_depth/groundtruth/image_02/0000000963.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "Gr",
+                "Gb",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0009312289184890687,
+                  "p50": 0.04638075456023216,
+                  "p99": 1.0
+                },
+                "Gb": {
+                  "max": 1.0,
+                  "min": 0.004412285052239895,
+                  "p50": 0.08978226035833359,
+                  "p99": 1.0
+                },
+                "Gr": {
+                  "max": 1.0,
+                  "min": 0.0033587045036256313,
+                  "p50": 0.08968212455511093,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0010876873275265098,
+                  "p50": 0.05093718320131302,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0058823530562222,
+                  "p50": 0.17941176891326904,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.011764707043766975,
+                  "p50": 0.17549020051956177,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.008823529817163944,
+                  "p50": 0.19411765038967133,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "m2_ffm_mid",
+          "final": {
+            "abs_rel": 0.11447905396537023,
+            "d1": 0.8516230823458324
+          },
+          "image_path": "/mnt/drive/kitti/2011_09_30/2011_09_30_drive_0018_sync/image_02/data/0000000963.jpg",
+          "order": 9,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0204_vkitti_m2_ffm_mid_residual_vits_halfraw187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch08_3x4_panels/09_kitti_2011_09_30_drive_0018_sync_image_02_0000000963_epoch08_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0058823530562222,
+              "p50": 0.17941176891326904,
+              "p99": 1.0
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.011764707043766975,
+              "p50": 0.17549020051956177,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.008823529817163944,
+              "p50": 0.19411765038967133,
+              "p99": 1.0
+            }
+          },
+          "sample_name": "2011_09_30_drive_0018_sync_image_02_0000000963",
+          "variant": null
+        }
+      ],
+      "variant": null
+    },
+    {
+      "dataset_index": 651,
+      "order": 10,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_best_val_cross_exp_3x4_summary_panels/kitti/10_kitti_idx0651_2011_10_03_drive_0047_sync_image_02_0000000768_cross_exp_3x4_summary.jpg",
+      "sample_name": "2011_10_03_drive_0047_sync_image_02_0000000768",
+      "source_records": [
+        {
+          "D0": {
+            "abs_rel": 0.1133001310351214,
+            "d1": 0.9039672966090336
+          },
+          "aux_stats": {
+            "B": {
+              "max": 2.640000104904175,
+              "min": -1.8000870943069458,
+              "p50": -0.9634857773780823,
+              "p99": 2.640000104904175
+            },
+            "D0n": {
+              "max": 3.860396385192871,
+              "min": -2.3082783222198486,
+              "p50": -0.925301194190979,
+              "p99": 2.945044755935669
+            },
+            "G": {
+              "max": 2.4285714626312256,
+              "min": -1.983193278312683,
+              "p50": -1.0028010606765747,
+              "p99": 2.4285714626312256
+            },
+            "R": {
+              "max": 2.248908281326294,
+              "min": -2.0665297508239746,
+              "p50": -1.0304821729660034,
+              "p99": 2.2360646724700928
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -2.3082783222198486,
+                "p99": 2.945044755935669
+              },
+              {
+                "p1": -2.0194365978240967,
+                "p99": 2.2360646724700928
+              },
+              {
+                "p1": -1.9306721687316895,
+                "p99": 2.4285714626312256
+              },
+              {
+                "p1": -1.7085838317871094,
+                "p99": 2.640000104904175
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 651,
+          "depth_path": "/mnt/drive/kitti/annotated_depth/val/2011_10_03_drive_0047_sync/proj_depth/groundtruth/image_02/0000000768.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n",
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.171342670917511,
+                  "p99": 1.0
+                },
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.26325759291648865,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.2128514051437378,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.23239433765411377,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0009803922148421407,
+                  "p50": 0.18921568989753723,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.0117647061124444,
+                  "p50": 0.23137256503105164,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0117647061124444,
+                  "p50": 0.24901960790157318,
+                  "p99": 0.9970588088035583
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c1_rgb",
+          "final": {
+            "abs_rel": 0.08615724915898045,
+            "d1": 0.9450922575168654
+          },
+          "image_path": "/mnt/drive/kitti/2011_10_03/2011_10_03_drive_0047_sync/image_02/data/0000000768.jpg",
+          "order": 10,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c1_rgb_residual_vits_halfrgb_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch03_3x4_panels/10_kitti_2011_10_03_drive_0047_sync_image_02_0000000768_epoch03_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0009803922148421407,
+              "p50": 0.18921568989753723,
+              "p99": 1.0
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.0117647061124444,
+              "p50": 0.23137256503105164,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0117647061124444,
+              "p50": 0.24901960790157318,
+              "p99": 0.9970588088035583
+            }
+          },
+          "sample_name": "2011_10_03_drive_0047_sync_image_02_0000000768",
+          "variant": null
+        },
+        {
+          "D0": {
+            "abs_rel": 0.1133001310351214,
+            "d1": 0.9039672966090336
+          },
+          "aux_stats": {
+            "D0n": {
+              "max": 3.860396385192871,
+              "min": -2.3082783222198486,
+              "p50": -0.925301194190979,
+              "p99": 2.945044755935669
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -2.3082783222198486,
+                "p99": 2.945044755935669
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 651,
+          "depth_path": "/mnt/drive/kitti/annotated_depth/val/2011_10_03_drive_0047_sync/proj_depth/groundtruth/image_02/0000000768.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.26325759291648865,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0009803922148421407,
+                  "p50": 0.18921568989753723,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.0117647061124444,
+                  "p50": 0.23137256503105164,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0117647061124444,
+                  "p50": 0.24901960790157318,
+                  "p99": 0.9970588088035583
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c2_d0only",
+          "final": {
+            "abs_rel": 0.09941119754768594,
+            "d1": 0.920899790019211
+          },
+          "image_path": "/mnt/drive/kitti/2011_10_03/2011_10_03_drive_0047_sync/image_02/data/0000000768.jpg",
+          "order": 10,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c2_d0only_residual_vits_halfd0_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch11_3x4_panels/10_kitti_2011_10_03_drive_0047_sync_image_02_0000000768_epoch11_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0009803922148421407,
+              "p50": 0.18921568989753723,
+              "p99": 1.0
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.0117647061124444,
+              "p50": 0.23137256503105164,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0117647061124444,
+              "p50": 0.24901960790157318,
+              "p99": 0.9970588088035583
+            }
+          },
+          "sample_name": "2011_10_03_drive_0047_sync_image_02_0000000768",
+          "variant": null
+        },
+        {
+          "D0": {
+            "abs_rel": 0.1133001310351214,
+            "d1": 0.9039672966090336
+          },
+          "aux_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0016959875356405973,
+              "p50": 0.0521148145198822,
+              "p99": 0.7721317410469055
+            },
+            "Gb": {
+              "max": 1.0,
+              "min": 0.004412285052239895,
+              "p50": 0.11608462780714035,
+              "p99": 0.9897728562355042
+            },
+            "Gr": {
+              "max": 1.0,
+              "min": 0.003917166497558355,
+              "p50": 0.11604034900665283,
+              "p99": 0.9897728562355042
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.001969043631106615,
+              "p50": 0.06619510799646378,
+              "p99": 0.7541040778160095
+            }
+          },
+          "aux_stretch_meta": {
+            "stretch": "none"
+          },
+          "dataset_index": 651,
+          "depth_path": "/mnt/drive/kitti/annotated_depth/val/2011_10_03_drive_0047_sync/proj_depth/groundtruth/image_02/0000000768.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "Gr",
+                "Gb",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0016959875356405973,
+                  "p50": 0.0521148145198822,
+                  "p99": 0.7721317410469055
+                },
+                "Gb": {
+                  "max": 1.0,
+                  "min": 0.004412285052239895,
+                  "p50": 0.11608462780714035,
+                  "p99": 0.9897728562355042
+                },
+                "Gr": {
+                  "max": 1.0,
+                  "min": 0.003917166497558355,
+                  "p50": 0.11604034900665283,
+                  "p99": 0.9897728562355042
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.001969043631106615,
+                  "p50": 0.06619510799646378,
+                  "p99": 0.7541040778160095
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0009803922148421407,
+                  "p50": 0.18921568989753723,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.0117647061124444,
+                  "p50": 0.23137256503105164,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0117647061124444,
+                  "p50": 0.24901960790157318,
+                  "p99": 0.9970588088035583
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "m2_ffm_mid",
+          "final": {
+            "abs_rel": 0.09189344414025598,
+            "d1": 0.9427243890452576
+          },
+          "image_path": "/mnt/drive/kitti/2011_10_03/2011_10_03_drive_0047_sync/image_02/data/0000000768.jpg",
+          "order": 10,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0204_vkitti_m2_ffm_mid_residual_vits_halfraw187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch08_3x4_panels/10_kitti_2011_10_03_drive_0047_sync_image_02_0000000768_epoch08_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0009803922148421407,
+              "p50": 0.18921568989753723,
+              "p99": 1.0
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.0117647061124444,
+              "p50": 0.23137256503105164,
+              "p99": 1.0
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0117647061124444,
+              "p50": 0.24901960790157318,
+              "p99": 0.9970588088035583
+            }
+          },
+          "sample_name": "2011_10_03_drive_0047_sync_image_02_0000000768",
+          "variant": null
+        }
+      ],
+      "variant": null
+    }
+  ],
+  "selected_indices": [
+    0,
+    72,
+    144,
+    217,
+    289,
+    361,
+    434,
+    506,
+    578,
+    651
+  ],
+  "source_manifests": [
+    "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c1_rgb_residual_vits_halfrgb_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch03_3x4_panels/manifest.json",
+    "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c2_d0only_residual_vits_halfd0_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch11_3x4_panels/manifest.json",
+    "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0204_vkitti_m2_ffm_mid_residual_vits_halfraw187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/kitti_best_val_epoch08_3x4_panels/manifest.json"
+  ],
+  "split": "kitti"
+}

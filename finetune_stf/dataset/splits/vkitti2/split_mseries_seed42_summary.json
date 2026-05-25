@@ -1,0 +1,415 @@
+{
+  "input": "finetune_stf/dataset/splits/vkitti2/train.txt",
+  "missing_depth": 0,
+  "missing_rgb": 0,
+  "overlap_count": 0,
+  "per_scene_condition_camera": [
+    {
+      "camera": "Camera_0",
+      "condition": "15-deg-left",
+      "scene": "Scene01",
+      "total_count": 410,
+      "train_count": 369,
+      "val_count": 41
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "15-deg-right",
+      "scene": "Scene01",
+      "total_count": 413,
+      "train_count": 372,
+      "val_count": 41
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "30-deg-left",
+      "scene": "Scene01",
+      "total_count": 415,
+      "train_count": 373,
+      "val_count": 42
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "30-deg-right",
+      "scene": "Scene01",
+      "total_count": 402,
+      "train_count": 362,
+      "val_count": 40
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "clone",
+      "scene": "Scene01",
+      "total_count": 407,
+      "train_count": 366,
+      "val_count": 41
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "fog",
+      "scene": "Scene01",
+      "total_count": 415,
+      "train_count": 373,
+      "val_count": 42
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "morning",
+      "scene": "Scene01",
+      "total_count": 406,
+      "train_count": 365,
+      "val_count": 41
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "overcast",
+      "scene": "Scene01",
+      "total_count": 412,
+      "train_count": 371,
+      "val_count": 41
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "rain",
+      "scene": "Scene01",
+      "total_count": 414,
+      "train_count": 373,
+      "val_count": 41
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "sunset",
+      "scene": "Scene01",
+      "total_count": 419,
+      "train_count": 377,
+      "val_count": 42
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "15-deg-left",
+      "scene": "Scene02",
+      "total_count": 211,
+      "train_count": 190,
+      "val_count": 21
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "15-deg-right",
+      "scene": "Scene02",
+      "total_count": 211,
+      "train_count": 190,
+      "val_count": 21
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "30-deg-left",
+      "scene": "Scene02",
+      "total_count": 216,
+      "train_count": 194,
+      "val_count": 22
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "30-deg-right",
+      "scene": "Scene02",
+      "total_count": 214,
+      "train_count": 193,
+      "val_count": 21
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "clone",
+      "scene": "Scene02",
+      "total_count": 215,
+      "train_count": 193,
+      "val_count": 22
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "fog",
+      "scene": "Scene02",
+      "total_count": 219,
+      "train_count": 197,
+      "val_count": 22
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "morning",
+      "scene": "Scene02",
+      "total_count": 211,
+      "train_count": 190,
+      "val_count": 21
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "overcast",
+      "scene": "Scene02",
+      "total_count": 214,
+      "train_count": 193,
+      "val_count": 21
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "rain",
+      "scene": "Scene02",
+      "total_count": 219,
+      "train_count": 197,
+      "val_count": 22
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "sunset",
+      "scene": "Scene02",
+      "total_count": 218,
+      "train_count": 196,
+      "val_count": 22
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "15-deg-left",
+      "scene": "Scene06",
+      "total_count": 253,
+      "train_count": 228,
+      "val_count": 25
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "15-deg-right",
+      "scene": "Scene06",
+      "total_count": 247,
+      "train_count": 222,
+      "val_count": 25
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "30-deg-left",
+      "scene": "Scene06",
+      "total_count": 247,
+      "train_count": 222,
+      "val_count": 25
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "30-deg-right",
+      "scene": "Scene06",
+      "total_count": 247,
+      "train_count": 222,
+      "val_count": 25
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "clone",
+      "scene": "Scene06",
+      "total_count": 238,
+      "train_count": 214,
+      "val_count": 24
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "fog",
+      "scene": "Scene06",
+      "total_count": 240,
+      "train_count": 216,
+      "val_count": 24
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "morning",
+      "scene": "Scene06",
+      "total_count": 247,
+      "train_count": 222,
+      "val_count": 25
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "overcast",
+      "scene": "Scene06",
+      "total_count": 253,
+      "train_count": 228,
+      "val_count": 25
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "rain",
+      "scene": "Scene06",
+      "total_count": 247,
+      "train_count": 222,
+      "val_count": 25
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "sunset",
+      "scene": "Scene06",
+      "total_count": 251,
+      "train_count": 226,
+      "val_count": 25
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "15-deg-left",
+      "scene": "Scene18",
+      "total_count": 314,
+      "train_count": 283,
+      "val_count": 31
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "15-deg-right",
+      "scene": "Scene18",
+      "total_count": 313,
+      "train_count": 282,
+      "val_count": 31
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "30-deg-left",
+      "scene": "Scene18",
+      "total_count": 309,
+      "train_count": 278,
+      "val_count": 31
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "30-deg-right",
+      "scene": "Scene18",
+      "total_count": 321,
+      "train_count": 289,
+      "val_count": 32
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "clone",
+      "scene": "Scene18",
+      "total_count": 314,
+      "train_count": 283,
+      "val_count": 31
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "fog",
+      "scene": "Scene18",
+      "total_count": 308,
+      "train_count": 277,
+      "val_count": 31
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "morning",
+      "scene": "Scene18",
+      "total_count": 316,
+      "train_count": 284,
+      "val_count": 32
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "overcast",
+      "scene": "Scene18",
+      "total_count": 310,
+      "train_count": 279,
+      "val_count": 31
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "rain",
+      "scene": "Scene18",
+      "total_count": 318,
+      "train_count": 286,
+      "val_count": 32
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "sunset",
+      "scene": "Scene18",
+      "total_count": 316,
+      "train_count": 284,
+      "val_count": 32
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "15-deg-left",
+      "scene": "Scene20",
+      "total_count": 768,
+      "train_count": 691,
+      "val_count": 77
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "15-deg-right",
+      "scene": "Scene20",
+      "total_count": 780,
+      "train_count": 702,
+      "val_count": 78
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "30-deg-left",
+      "scene": "Scene20",
+      "total_count": 764,
+      "train_count": 688,
+      "val_count": 76
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "30-deg-right",
+      "scene": "Scene20",
+      "total_count": 765,
+      "train_count": 689,
+      "val_count": 76
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "clone",
+      "scene": "Scene20",
+      "total_count": 772,
+      "train_count": 695,
+      "val_count": 77
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "fog",
+      "scene": "Scene20",
+      "total_count": 765,
+      "train_count": 689,
+      "val_count": 76
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "morning",
+      "scene": "Scene20",
+      "total_count": 760,
+      "train_count": 684,
+      "val_count": 76
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "overcast",
+      "scene": "Scene20",
+      "total_count": 778,
+      "train_count": 700,
+      "val_count": 78
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "rain",
+      "scene": "Scene20",
+      "total_count": 774,
+      "train_count": 697,
+      "val_count": 77
+    },
+    {
+      "camera": "Camera_0",
+      "condition": "sunset",
+      "scene": "Scene20",
+      "total_count": 763,
+      "train_count": 687,
+      "val_count": 76
+    }
+  ],
+  "seed": 42,
+  "total": 19559,
+  "train": 17603,
+  "train_output": "finetune_stf/dataset/splits/vkitti2/train_mseries_seed42.txt",
+  "val": 1956,
+  "val_fraction": 0.1,
+  "val_output": "finetune_stf/dataset/splits/vkitti2/val_mseries_seed42.txt"
+}

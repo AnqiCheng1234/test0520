@@ -1,0 +1,4238 @@
+{
+  "experiments": [
+    {
+      "key": "c1_rgb",
+      "label": "C1 RGB residual | best VKITTI epoch 03"
+    },
+    {
+      "key": "c2_d0only",
+      "label": "C2 D0-only residual | best VKITTI epoch 11"
+    },
+    {
+      "key": "m2_ffm_mid",
+      "label": "M2 RAW FFM-mid residual | best VKITTI epoch 08"
+    }
+  ],
+  "layout": "three experiment 3x4 panels stacked vertically with per-experiment headers",
+  "output_dir": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_best_val_cross_exp_3x4_summary_panels/vkitti",
+  "records": [
+    {
+      "dataset_index": 740,
+      "order": 1,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_best_val_cross_exp_3x4_summary_panels/vkitti/01_vkitti_idx0740_clone_Camera_0_rgb_00460_cross_exp_3x4_summary.jpg",
+      "sample_name": "Camera_0_rgb_00460",
+      "source_records": [
+        {
+          "D0": {
+            "abs_rel": 0.12381870934378895,
+            "d1": 0.8601675254584972
+          },
+          "aux_stats": {
+            "B": {
+              "max": 2.491852045059204,
+              "min": -1.804444432258606,
+              "p50": -1.2510675191879272,
+              "p99": 2.117124319076538
+            },
+            "D0n": {
+              "max": 3.393279790878296,
+              "min": -2.37353777885437,
+              "p50": -0.8527153730392456,
+              "p99": 2.0043206214904785
+            },
+            "G": {
+              "max": 2.2928922176361084,
+              "min": -2.0357141494750977,
+              "p50": -1.2872898578643799,
+              "p99": 1.8508403301239014
+            },
+            "R": {
+              "max": 2.2060961723327637,
+              "min": -2.1179039478302,
+              "p50": -1.454319715499878,
+              "p99": 1.6195734739303589
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -2.37353777885437,
+                "p99": 2.0043206214904785
+              },
+              {
+                "p1": -2.092216730117798,
+                "p99": 1.6195734739303589
+              },
+              {
+                "p1": -2.0007002353668213,
+                "p99": 1.8508403301239014
+              },
+              {
+                "p1": -1.7826578617095947,
+                "p99": 2.117124319076538
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 740,
+          "depth_path": "/mnt/drive/1111_new_works/VKITTI2/depth/Scene20/clone/frames/depth/Camera_0/depth_00460.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n",
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.1363128274679184,
+                  "p99": 1.0
+                },
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.3473896086215973,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.18522727489471436,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.17185696959495544,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.9666666388511658,
+                  "min": 0.0,
+                  "p50": 0.12450981140136719,
+                  "p99": 0.8823529481887817
+                },
+                "G": {
+                  "max": 0.9696078300476074,
+                  "min": 0.0,
+                  "p50": 0.16764706373214722,
+                  "p99": 0.8705882430076599
+                },
+                "R": {
+                  "max": 0.9901960492134094,
+                  "min": 0.0,
+                  "p50": 0.15196079015731812,
+                  "p99": 0.8558823466300964
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c1_rgb",
+          "final": {
+            "abs_rel": 0.10855469426836417,
+            "d1": 0.8768937091165527
+          },
+          "image_path": "/mnt/drive/1111_new_works/VKITTI2/rgb/Scene20/clone/frames/rgb/Camera_0/rgb_00460.jpg",
+          "order": 1,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c1_rgb_residual_vits_halfrgb_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch03_3x4_condition_panels/01_vkitti_clone_validx0740_Camera_0_rgb_00460_epoch03_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 0.9666666388511658,
+              "min": 0.0,
+              "p50": 0.12450981140136719,
+              "p99": 0.8823529481887817
+            },
+            "G": {
+              "max": 0.9696078300476074,
+              "min": 0.0,
+              "p50": 0.16764706373214722,
+              "p99": 0.8705882430076599
+            },
+            "R": {
+              "max": 0.9901960492134094,
+              "min": 0.0,
+              "p50": 0.15196079015731812,
+              "p99": 0.8558823466300964
+            }
+          },
+          "sample_name": "Camera_0_rgb_00460",
+          "variant": "clone"
+        },
+        {
+          "D0": {
+            "abs_rel": 0.12381870934378895,
+            "d1": 0.8601675254584972
+          },
+          "aux_stats": {
+            "D0n": {
+              "max": 3.393279790878296,
+              "min": -2.37353777885437,
+              "p50": -0.8527153730392456,
+              "p99": 2.0043206214904785
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -2.37353777885437,
+                "p99": 2.0043206214904785
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 740,
+          "depth_path": "/mnt/drive/1111_new_works/VKITTI2/depth/Scene20/clone/frames/depth/Camera_0/depth_00460.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.3473896086215973,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.9666666388511658,
+                  "min": 0.0,
+                  "p50": 0.12450981140136719,
+                  "p99": 0.8823529481887817
+                },
+                "G": {
+                  "max": 0.9696078300476074,
+                  "min": 0.0,
+                  "p50": 0.16764706373214722,
+                  "p99": 0.8705882430076599
+                },
+                "R": {
+                  "max": 0.9901960492134094,
+                  "min": 0.0,
+                  "p50": 0.15196079015731812,
+                  "p99": 0.8558823466300964
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c2_d0only",
+          "final": {
+            "abs_rel": 0.11425253987533247,
+            "d1": 0.8840107478510377
+          },
+          "image_path": "/mnt/drive/1111_new_works/VKITTI2/rgb/Scene20/clone/frames/rgb/Camera_0/rgb_00460.jpg",
+          "order": 1,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c2_d0only_residual_vits_halfd0_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch11_3x4_condition_panels/01_vkitti_clone_validx0740_Camera_0_rgb_00460_epoch11_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 0.9666666388511658,
+              "min": 0.0,
+              "p50": 0.12450981140136719,
+              "p99": 0.8823529481887817
+            },
+            "G": {
+              "max": 0.9696078300476074,
+              "min": 0.0,
+              "p50": 0.16764706373214722,
+              "p99": 0.8705882430076599
+            },
+            "R": {
+              "max": 0.9901960492134094,
+              "min": 0.0,
+              "p50": 0.15196079015731812,
+              "p99": 0.8558823466300964
+            }
+          },
+          "sample_name": "Camera_0_rgb_00460",
+          "variant": "clone"
+        },
+        {
+          "D0": {
+            "abs_rel": 0.12381870934378895,
+            "d1": 0.8601675254584972
+          },
+          "aux_stats": {
+            "B": {
+              "max": 0.4433707594871521,
+              "min": 4.999999873689376e-05,
+              "p50": 0.03206730633974075,
+              "p99": 0.352873831987381
+            },
+            "Gb": {
+              "max": 0.8575040102005005,
+              "min": 4.999999873689376e-05,
+              "p50": 0.07584314793348312,
+              "p99": 0.6700968742370605
+            },
+            "Gr": {
+              "max": 0.8518242239952087,
+              "min": 4.999999873689376e-05,
+              "p50": 0.07712136209011078,
+              "p99": 0.6674169301986694
+            },
+            "R": {
+              "max": 0.4839255213737488,
+              "min": 4.999999873689376e-05,
+              "p50": 0.03942720592021942,
+              "p99": 0.3501954674720764
+            }
+          },
+          "aux_stretch_meta": {
+            "stretch": "none"
+          },
+          "dataset_index": 740,
+          "depth_path": "/mnt/drive/1111_new_works/VKITTI2/depth/Scene20/clone/frames/depth/Camera_0/depth_00460.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "Gr",
+                "Gb",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.4433707594871521,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.03206730633974075,
+                  "p99": 0.352873831987381
+                },
+                "Gb": {
+                  "max": 0.8575040102005005,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.07584314793348312,
+                  "p99": 0.6700968742370605
+                },
+                "Gr": {
+                  "max": 0.8518242239952087,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.07712136209011078,
+                  "p99": 0.6674169301986694
+                },
+                "R": {
+                  "max": 0.4839255213737488,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.03942720592021942,
+                  "p99": 0.3501954674720764
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.9666666388511658,
+                  "min": 0.0,
+                  "p50": 0.12450981140136719,
+                  "p99": 0.8823529481887817
+                },
+                "G": {
+                  "max": 0.9696078300476074,
+                  "min": 0.0,
+                  "p50": 0.16764706373214722,
+                  "p99": 0.8705882430076599
+                },
+                "R": {
+                  "max": 0.9901960492134094,
+                  "min": 0.0,
+                  "p50": 0.15196079015731812,
+                  "p99": 0.8558823466300964
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "m2_ffm_mid",
+          "final": {
+            "abs_rel": 0.11913099766615877,
+            "d1": 0.8579279487397716
+          },
+          "image_path": "/mnt/drive/1111_new_works/VKITTI2/rgb/Scene20/clone/frames/rgb/Camera_0/rgb_00460.jpg",
+          "order": 1,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0204_vkitti_m2_ffm_mid_residual_vits_halfraw187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch08_3x4_condition_panels/01_vkitti_clone_validx0740_Camera_0_rgb_00460_epoch08_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 0.9666666388511658,
+              "min": 0.0,
+              "p50": 0.12450981140136719,
+              "p99": 0.8823529481887817
+            },
+            "G": {
+              "max": 0.9696078300476074,
+              "min": 0.0,
+              "p50": 0.16764706373214722,
+              "p99": 0.8705882430076599
+            },
+            "R": {
+              "max": 0.9901960492134094,
+              "min": 0.0,
+              "p50": 0.15196079015731812,
+              "p99": 0.8558823466300964
+            }
+          },
+          "sample_name": "Camera_0_rgb_00460",
+          "variant": "clone"
+        }
+      ],
+      "variant": "clone"
+    },
+    {
+      "dataset_index": 505,
+      "order": 2,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_best_val_cross_exp_3x4_summary_panels/vkitti/02_vkitti_idx0505_fog_Camera_0_rgb_00502_cross_exp_3x4_summary.jpg",
+      "sample_name": "Camera_0_rgb_00502",
+      "source_records": [
+        {
+          "D0": {
+            "abs_rel": 0.11878945259748776,
+            "d1": 0.9145329022109586
+          },
+          "aux_stats": {
+            "B": {
+              "max": 2.3175599575042725,
+              "min": -1.4253593683242798,
+              "p50": -0.43189525604248047,
+              "p99": 1.1018738746643066
+            },
+            "D0n": {
+              "max": 1.9090958833694458,
+              "min": -1.844744324684143,
+              "p50": -0.7239549160003662,
+              "p99": 1.844744324684143
+            },
+            "G": {
+              "max": 2.2753849029541016,
+              "min": -1.5674018859863281,
+              "p50": -0.38130247592926025,
+              "p99": 1.2118346691131592
+            },
+            "R": {
+              "max": 2.081941843032837,
+              "min": -1.6598167419433594,
+              "p50": -0.542426586151123,
+              "p99": 1.092987298965454
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -1.844744324684143,
+                "p99": 1.844744324684143
+              },
+              {
+                "p1": -1.5913177728652954,
+                "p99": 1.092987298965454
+              },
+              {
+                "p1": -1.4973738193511963,
+                "p99": 1.2118346691131592
+              },
+              {
+                "p1": -1.290283203125,
+                "p99": 1.1018738746643066
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 505,
+          "depth_path": "/mnt/drive/1111_new_works/VKITTI2/depth/Scene20/fog/frames/depth/Camera_0/depth_00502.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n",
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.35883426666259766,
+                  "p99": 1.0
+                },
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.30377906560897827,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.41195476055145264,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.39074960350990295,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.9274510145187378,
+                  "min": 0.08529412001371384,
+                  "p50": 0.3088235557079315,
+                  "p99": 0.6539216041564941
+                },
+                "G": {
+                  "max": 0.9656862616539001,
+                  "min": 0.10490196198225021,
+                  "p50": 0.3705882430076599,
+                  "p99": 0.727450966835022
+                },
+                "R": {
+                  "max": 0.9617646932601929,
+                  "min": 0.10490196198225021,
+                  "p50": 0.3607843220233917,
+                  "p99": 0.7352941036224365
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c1_rgb",
+          "final": {
+            "abs_rel": 0.09386838838643977,
+            "d1": 0.9117910512977366
+          },
+          "image_path": "/mnt/drive/1111_new_works/VKITTI2/rgb/Scene20/fog/frames/rgb/Camera_0/rgb_00502.jpg",
+          "order": 2,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c1_rgb_residual_vits_halfrgb_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch03_3x4_condition_panels/02_vkitti_fog_validx0505_Camera_0_rgb_00502_epoch03_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 0.9274510145187378,
+              "min": 0.08529412001371384,
+              "p50": 0.3088235557079315,
+              "p99": 0.6539216041564941
+            },
+            "G": {
+              "max": 0.9656862616539001,
+              "min": 0.10490196198225021,
+              "p50": 0.3705882430076599,
+              "p99": 0.727450966835022
+            },
+            "R": {
+              "max": 0.9617646932601929,
+              "min": 0.10490196198225021,
+              "p50": 0.3607843220233917,
+              "p99": 0.7352941036224365
+            }
+          },
+          "sample_name": "Camera_0_rgb_00502",
+          "variant": "fog"
+        },
+        {
+          "D0": {
+            "abs_rel": 0.11878945259748776,
+            "d1": 0.9145329022109586
+          },
+          "aux_stats": {
+            "D0n": {
+              "max": 1.9090958833694458,
+              "min": -1.844744324684143,
+              "p50": -0.7239549160003662,
+              "p99": 1.844744324684143
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -1.844744324684143,
+                "p99": 1.844744324684143
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 505,
+          "depth_path": "/mnt/drive/1111_new_works/VKITTI2/depth/Scene20/fog/frames/depth/Camera_0/depth_00502.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.30377906560897827,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.9274510145187378,
+                  "min": 0.08529412001371384,
+                  "p50": 0.3088235557079315,
+                  "p99": 0.6539216041564941
+                },
+                "G": {
+                  "max": 0.9656862616539001,
+                  "min": 0.10490196198225021,
+                  "p50": 0.3705882430076599,
+                  "p99": 0.727450966835022
+                },
+                "R": {
+                  "max": 0.9617646932601929,
+                  "min": 0.10490196198225021,
+                  "p50": 0.3607843220233917,
+                  "p99": 0.7352941036224365
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c2_d0only",
+          "final": {
+            "abs_rel": 0.0957221087891979,
+            "d1": 0.8801669142707332
+          },
+          "image_path": "/mnt/drive/1111_new_works/VKITTI2/rgb/Scene20/fog/frames/rgb/Camera_0/rgb_00502.jpg",
+          "order": 2,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c2_d0only_residual_vits_halfd0_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch11_3x4_condition_panels/02_vkitti_fog_validx0505_Camera_0_rgb_00502_epoch11_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 0.9274510145187378,
+              "min": 0.08529412001371384,
+              "p50": 0.3088235557079315,
+              "p99": 0.6539216041564941
+            },
+            "G": {
+              "max": 0.9656862616539001,
+              "min": 0.10490196198225021,
+              "p50": 0.3705882430076599,
+              "p99": 0.727450966835022
+            },
+            "R": {
+              "max": 0.9617646932601929,
+              "min": 0.10490196198225021,
+              "p50": 0.3607843220233917,
+              "p99": 0.7352941036224365
+            }
+          },
+          "sample_name": "Camera_0_rgb_00502",
+          "variant": "fog"
+        },
+        {
+          "D0": {
+            "abs_rel": 0.11878945259748776,
+            "d1": 0.9145329022109586
+          },
+          "aux_stats": {
+            "B": {
+              "max": 0.4066638946533203,
+              "min": 0.01833268254995346,
+              "p50": 0.09228729456663132,
+              "p99": 0.23409263789653778
+            },
+            "Gb": {
+              "max": 0.8247441649436951,
+              "min": 0.04214237630367279,
+              "p50": 0.2013382762670517,
+              "p99": 0.49037158489227295
+            },
+            "Gr": {
+              "max": 0.8167953491210938,
+              "min": 0.04496486112475395,
+              "p50": 0.20166945457458496,
+              "p99": 0.48926419019699097
+            },
+            "R": {
+              "max": 0.4331877827644348,
+              "min": 0.023629337549209595,
+              "p50": 0.1067814901471138,
+              "p99": 0.26481008529663086
+            }
+          },
+          "aux_stretch_meta": {
+            "stretch": "none"
+          },
+          "dataset_index": 505,
+          "depth_path": "/mnt/drive/1111_new_works/VKITTI2/depth/Scene20/fog/frames/depth/Camera_0/depth_00502.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "Gr",
+                "Gb",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.4066638946533203,
+                  "min": 0.01833268254995346,
+                  "p50": 0.09228729456663132,
+                  "p99": 0.23409263789653778
+                },
+                "Gb": {
+                  "max": 0.8247441649436951,
+                  "min": 0.04214237630367279,
+                  "p50": 0.2013382762670517,
+                  "p99": 0.49037158489227295
+                },
+                "Gr": {
+                  "max": 0.8167953491210938,
+                  "min": 0.04496486112475395,
+                  "p50": 0.20166945457458496,
+                  "p99": 0.48926419019699097
+                },
+                "R": {
+                  "max": 0.4331877827644348,
+                  "min": 0.023629337549209595,
+                  "p50": 0.1067814901471138,
+                  "p99": 0.26481008529663086
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.9274510145187378,
+                  "min": 0.08529412001371384,
+                  "p50": 0.3088235557079315,
+                  "p99": 0.6539216041564941
+                },
+                "G": {
+                  "max": 0.9656862616539001,
+                  "min": 0.10490196198225021,
+                  "p50": 0.3705882430076599,
+                  "p99": 0.727450966835022
+                },
+                "R": {
+                  "max": 0.9617646932601929,
+                  "min": 0.10490196198225021,
+                  "p50": 0.3607843220233917,
+                  "p99": 0.7352941036224365
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "m2_ffm_mid",
+          "final": {
+            "abs_rel": 0.08102597911201721,
+            "d1": 0.9345342130560168
+          },
+          "image_path": "/mnt/drive/1111_new_works/VKITTI2/rgb/Scene20/fog/frames/rgb/Camera_0/rgb_00502.jpg",
+          "order": 2,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0204_vkitti_m2_ffm_mid_residual_vits_halfraw187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch08_3x4_condition_panels/02_vkitti_fog_validx0505_Camera_0_rgb_00502_epoch08_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 0.9274510145187378,
+              "min": 0.08529412001371384,
+              "p50": 0.3088235557079315,
+              "p99": 0.6539216041564941
+            },
+            "G": {
+              "max": 0.9656862616539001,
+              "min": 0.10490196198225021,
+              "p50": 0.3705882430076599,
+              "p99": 0.727450966835022
+            },
+            "R": {
+              "max": 0.9617646932601929,
+              "min": 0.10490196198225021,
+              "p50": 0.3607843220233917,
+              "p99": 0.7352941036224365
+            }
+          },
+          "sample_name": "Camera_0_rgb_00502",
+          "variant": "fog"
+        }
+      ],
+      "variant": "fog"
+    },
+    {
+      "dataset_index": 268,
+      "order": 3,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_best_val_cross_exp_3x4_summary_panels/vkitti/03_vkitti_idx0268_rain_Camera_0_rgb_00416_cross_exp_3x4_summary.jpg",
+      "sample_name": "Camera_0_rgb_00416",
+      "source_records": [
+        {
+          "D0": {
+            "abs_rel": 0.1695456364959461,
+            "d1": 0.7715646847738662
+          },
+          "aux_stats": {
+            "B": {
+              "max": 2.30448842048645,
+              "min": -1.804444432258606,
+              "p50": -1.0680609941482544,
+              "p99": 0.696645200252533
+            },
+            "D0n": {
+              "max": 3.468975305557251,
+              "min": -1.2194691896438599,
+              "p50": -0.4499012231826782,
+              "p99": 3.3979382514953613
+            },
+            "G": {
+              "max": 2.244748115539551,
+              "min": -2.0357141494750977,
+              "p50": -0.9196428060531616,
+              "p99": 0.5071778893470764
+            },
+            "R": {
+              "max": 2.04769229888916,
+              "min": -2.0964980125427246,
+              "p50": -1.1161057949066162,
+              "p99": 0.5107457041740417
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -1.2194691896438599,
+                "p99": 3.3979382514953613
+              },
+              {
+                "p1": -1.878157377243042,
+                "p99": 0.5107457041740417
+              },
+              {
+                "p1": -1.9131652116775513,
+                "p99": 0.5071778893470764
+              },
+              {
+                "p1": -1.6911547183990479,
+                "p99": 0.696645200252533
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 268,
+          "depth_path": "/mnt/drive/1111_new_works/VKITTI2/depth/Scene20/rain/frames/depth/Camera_0/depth_00416.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n",
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.26094886660575867,
+                  "p99": 1.0
+                },
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.1666666865348816,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.4104882478713989,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.3189964294433594,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.9245098233222961,
+                  "min": 0.0,
+                  "p50": 0.16568627953529358,
+                  "p99": 0.5627451539039612
+                },
+                "G": {
+                  "max": 0.958823561668396,
+                  "min": 0.0,
+                  "p50": 0.25,
+                  "p99": 0.5696078538894653
+                },
+                "R": {
+                  "max": 0.9539215564727783,
+                  "min": 0.0049019609577953815,
+                  "p50": 0.2294117659330368,
+                  "p99": 0.6019607782363892
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c1_rgb",
+          "final": {
+            "abs_rel": 0.15110881590066494,
+            "d1": 0.758336942399307
+          },
+          "image_path": "/mnt/drive/1111_new_works/VKITTI2/rgb/Scene20/rain/frames/rgb/Camera_0/rgb_00416.jpg",
+          "order": 3,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c1_rgb_residual_vits_halfrgb_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch03_3x4_condition_panels/03_vkitti_rain_validx0268_Camera_0_rgb_00416_epoch03_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 0.9245098233222961,
+              "min": 0.0,
+              "p50": 0.16568627953529358,
+              "p99": 0.5627451539039612
+            },
+            "G": {
+              "max": 0.958823561668396,
+              "min": 0.0,
+              "p50": 0.25,
+              "p99": 0.5696078538894653
+            },
+            "R": {
+              "max": 0.9539215564727783,
+              "min": 0.0049019609577953815,
+              "p50": 0.2294117659330368,
+              "p99": 0.6019607782363892
+            }
+          },
+          "sample_name": "Camera_0_rgb_00416",
+          "variant": "rain"
+        },
+        {
+          "D0": {
+            "abs_rel": 0.1695456364959461,
+            "d1": 0.7715646847738662
+          },
+          "aux_stats": {
+            "D0n": {
+              "max": 3.468975305557251,
+              "min": -1.2194691896438599,
+              "p50": -0.4499012231826782,
+              "p99": 3.3979382514953613
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -1.2194691896438599,
+                "p99": 3.3979382514953613
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 268,
+          "depth_path": "/mnt/drive/1111_new_works/VKITTI2/depth/Scene20/rain/frames/depth/Camera_0/depth_00416.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.1666666865348816,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.9245098233222961,
+                  "min": 0.0,
+                  "p50": 0.16568627953529358,
+                  "p99": 0.5627451539039612
+                },
+                "G": {
+                  "max": 0.958823561668396,
+                  "min": 0.0,
+                  "p50": 0.25,
+                  "p99": 0.5696078538894653
+                },
+                "R": {
+                  "max": 0.9539215564727783,
+                  "min": 0.0049019609577953815,
+                  "p50": 0.2294117659330368,
+                  "p99": 0.6019607782363892
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c2_d0only",
+          "final": {
+            "abs_rel": 0.13356733876482116,
+            "d1": 0.8393738786116439
+          },
+          "image_path": "/mnt/drive/1111_new_works/VKITTI2/rgb/Scene20/rain/frames/rgb/Camera_0/rgb_00416.jpg",
+          "order": 3,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c2_d0only_residual_vits_halfd0_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch11_3x4_condition_panels/03_vkitti_rain_validx0268_Camera_0_rgb_00416_epoch11_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 0.9245098233222961,
+              "min": 0.0,
+              "p50": 0.16568627953529358,
+              "p99": 0.5627451539039612
+            },
+            "G": {
+              "max": 0.958823561668396,
+              "min": 0.0,
+              "p50": 0.25,
+              "p99": 0.5696078538894653
+            },
+            "R": {
+              "max": 0.9539215564727783,
+              "min": 0.0049019609577953815,
+              "p50": 0.2294117659330368,
+              "p99": 0.6019607782363892
+            }
+          },
+          "sample_name": "Camera_0_rgb_00416",
+          "variant": "rain"
+        },
+        {
+          "D0": {
+            "abs_rel": 0.1695456364959461,
+            "d1": 0.7715646847738662
+          },
+          "aux_stats": {
+            "B": {
+              "max": 0.4098472595214844,
+              "min": 4.999999873689376e-05,
+              "p50": 0.048620861023664474,
+              "p99": 0.1891528946161274
+            },
+            "Gb": {
+              "max": 0.824093222618103,
+              "min": 4.999999873689376e-05,
+              "p50": 0.12185519188642502,
+              "p99": 0.37155998349189845
+            },
+            "Gr": {
+              "max": 0.8594671487808228,
+              "min": 0.00015733318286947906,
+              "p50": 0.12191503494977951,
+              "p99": 0.3713264465332031
+            },
+            "R": {
+              "max": 0.43533140420913696,
+              "min": 0.0004517044872045517,
+              "p50": 0.06296692788600922,
+              "p99": 0.20420083731412897
+            }
+          },
+          "aux_stretch_meta": {
+            "stretch": "none"
+          },
+          "dataset_index": 268,
+          "depth_path": "/mnt/drive/1111_new_works/VKITTI2/depth/Scene20/rain/frames/depth/Camera_0/depth_00416.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "Gr",
+                "Gb",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.4098472595214844,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.048620861023664474,
+                  "p99": 0.1891528946161274
+                },
+                "Gb": {
+                  "max": 0.824093222618103,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.12185519188642502,
+                  "p99": 0.37155998349189845
+                },
+                "Gr": {
+                  "max": 0.8594671487808228,
+                  "min": 0.00015733318286947906,
+                  "p50": 0.12191503494977951,
+                  "p99": 0.3713264465332031
+                },
+                "R": {
+                  "max": 0.43533140420913696,
+                  "min": 0.0004517044872045517,
+                  "p50": 0.06296692788600922,
+                  "p99": 0.20420083731412897
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.9245098233222961,
+                  "min": 0.0,
+                  "p50": 0.16568627953529358,
+                  "p99": 0.5627451539039612
+                },
+                "G": {
+                  "max": 0.958823561668396,
+                  "min": 0.0,
+                  "p50": 0.25,
+                  "p99": 0.5696078538894653
+                },
+                "R": {
+                  "max": 0.9539215564727783,
+                  "min": 0.0049019609577953815,
+                  "p50": 0.2294117659330368,
+                  "p99": 0.6019607782363892
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "m2_ffm_mid",
+          "final": {
+            "abs_rel": 0.13473850753661376,
+            "d1": 0.8307739899771082
+          },
+          "image_path": "/mnt/drive/1111_new_works/VKITTI2/rgb/Scene20/rain/frames/rgb/Camera_0/rgb_00416.jpg",
+          "order": 3,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0204_vkitti_m2_ffm_mid_residual_vits_halfraw187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch08_3x4_condition_panels/03_vkitti_rain_validx0268_Camera_0_rgb_00416_epoch08_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 0.9245098233222961,
+              "min": 0.0,
+              "p50": 0.16568627953529358,
+              "p99": 0.5627451539039612
+            },
+            "G": {
+              "max": 0.958823561668396,
+              "min": 0.0,
+              "p50": 0.25,
+              "p99": 0.5696078538894653
+            },
+            "R": {
+              "max": 0.9539215564727783,
+              "min": 0.0049019609577953815,
+              "p50": 0.2294117659330368,
+              "p99": 0.6019607782363892
+            }
+          },
+          "sample_name": "Camera_0_rgb_00416",
+          "variant": "rain"
+        }
+      ],
+      "variant": "rain"
+    },
+    {
+      "dataset_index": 632,
+      "order": 4,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_best_val_cross_exp_3x4_summary_panels/vkitti/04_vkitti_idx0632_overcast_Camera_0_rgb_00423_cross_exp_3x4_summary.jpg",
+      "sample_name": "Camera_0_rgb_00423",
+      "source_records": [
+        {
+          "D0": {
+            "abs_rel": 0.12452085033536744,
+            "d1": 0.8646740409508119
+          },
+          "aux_stats": {
+            "B": {
+              "max": 2.3698477745056152,
+              "min": -1.804444432258606,
+              "p50": -1.2205665111541748,
+              "p99": 1.2195206880569458
+            },
+            "D0n": {
+              "max": 3.4472219944000244,
+              "min": -1.7851685285568237,
+              "p50": -0.5924912691116333,
+              "p99": 2.46230149269104
+            },
+            "G": {
+              "max": 2.2753853797912598,
+              "min": -2.0357141494750977,
+              "p50": -0.8058473467826843,
+              "p99": 1.1855742931365967
+            },
+            "R": {
+              "max": 2.1076290607452393,
+              "min": -2.1179039478302,
+              "p50": -1.0904186964035034,
+              "p99": 1.0844250917434692
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -1.7851685285568237,
+                "p99": 2.46230149269104
+              },
+              {
+                "p1": -2.062248468399048,
+                "p99": 1.0844250917434692
+              },
+              {
+                "p1": -1.9219187498092651,
+                "p99": 1.1855742931365967
+              },
+              {
+                "p1": -1.7521568536758423,
+                "p99": 1.2195206880569458
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 632,
+          "depth_path": "/mnt/drive/1111_new_works/VKITTI2/depth/Scene20/overcast/frames/depth/Camera_0/depth_00423.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n",
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.17888560891151428,
+                  "p99": 1.0
+                },
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.2807970941066742,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.35915493965148926,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.3088435232639313,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.9392157196998596,
+                  "min": 0.0,
+                  "p50": 0.13137255609035492,
+                  "p99": 0.6803921461105347
+                },
+                "G": {
+                  "max": 0.9656863212585449,
+                  "min": 0.0,
+                  "p50": 0.2754901945590973,
+                  "p99": 0.7215686440467834
+                },
+                "R": {
+                  "max": 0.9676470756530762,
+                  "min": 0.0,
+                  "p50": 0.23529411852359772,
+                  "p99": 0.7333333492279053
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c1_rgb",
+          "final": {
+            "abs_rel": 0.1409061946698949,
+            "d1": 0.7655639264620658
+          },
+          "image_path": "/mnt/drive/1111_new_works/VKITTI2/rgb/Scene20/overcast/frames/rgb/Camera_0/rgb_00423.jpg",
+          "order": 4,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c1_rgb_residual_vits_halfrgb_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch03_3x4_condition_panels/04_vkitti_overcast_validx0632_Camera_0_rgb_00423_epoch03_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 0.9392157196998596,
+              "min": 0.0,
+              "p50": 0.13137255609035492,
+              "p99": 0.6803921461105347
+            },
+            "G": {
+              "max": 0.9656863212585449,
+              "min": 0.0,
+              "p50": 0.2754901945590973,
+              "p99": 0.7215686440467834
+            },
+            "R": {
+              "max": 0.9676470756530762,
+              "min": 0.0,
+              "p50": 0.23529411852359772,
+              "p99": 0.7333333492279053
+            }
+          },
+          "sample_name": "Camera_0_rgb_00423",
+          "variant": "overcast"
+        },
+        {
+          "D0": {
+            "abs_rel": 0.12452085033536744,
+            "d1": 0.8646740409508119
+          },
+          "aux_stats": {
+            "D0n": {
+              "max": 3.4472219944000244,
+              "min": -1.7851685285568237,
+              "p50": -0.5924912691116333,
+              "p99": 2.46230149269104
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -1.7851685285568237,
+                "p99": 2.46230149269104
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 632,
+          "depth_path": "/mnt/drive/1111_new_works/VKITTI2/depth/Scene20/overcast/frames/depth/Camera_0/depth_00423.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.2807970941066742,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.9392157196998596,
+                  "min": 0.0,
+                  "p50": 0.13137255609035492,
+                  "p99": 0.6803921461105347
+                },
+                "G": {
+                  "max": 0.9656863212585449,
+                  "min": 0.0,
+                  "p50": 0.2754901945590973,
+                  "p99": 0.7215686440467834
+                },
+                "R": {
+                  "max": 0.9676470756530762,
+                  "min": 0.0,
+                  "p50": 0.23529411852359772,
+                  "p99": 0.7333333492279053
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c2_d0only",
+          "final": {
+            "abs_rel": 0.10686628140743631,
+            "d1": 0.8804980276134122
+          },
+          "image_path": "/mnt/drive/1111_new_works/VKITTI2/rgb/Scene20/overcast/frames/rgb/Camera_0/rgb_00423.jpg",
+          "order": 4,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c2_d0only_residual_vits_halfd0_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch11_3x4_condition_panels/04_vkitti_overcast_validx0632_Camera_0_rgb_00423_epoch11_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 0.9392157196998596,
+              "min": 0.0,
+              "p50": 0.13137255609035492,
+              "p99": 0.6803921461105347
+            },
+            "G": {
+              "max": 0.9656863212585449,
+              "min": 0.0,
+              "p50": 0.2754901945590973,
+              "p99": 0.7215686440467834
+            },
+            "R": {
+              "max": 0.9676470756530762,
+              "min": 0.0,
+              "p50": 0.23529411852359772,
+              "p99": 0.7333333492279053
+            }
+          },
+          "sample_name": "Camera_0_rgb_00423",
+          "variant": "overcast"
+        },
+        {
+          "D0": {
+            "abs_rel": 0.12452085033536744,
+            "d1": 0.8646740409508119
+          },
+          "aux_stats": {
+            "B": {
+              "max": 0.42298486828804016,
+              "min": 4.999999873689376e-05,
+              "p50": 0.04064679518342018,
+              "p99": 0.24231348931789398
+            },
+            "Gb": {
+              "max": 0.8302114605903625,
+              "min": 4.999999873689376e-05,
+              "p50": 0.12929241359233856,
+              "p99": 0.505493700504303
+            },
+            "Gr": {
+              "max": 0.8400689363479614,
+              "min": 4.999999873689376e-05,
+              "p50": 0.1298021525144577,
+              "p99": 0.5087052297592198
+            },
+            "R": {
+              "max": 0.46112069487571716,
+              "min": 4.999999873689376e-05,
+              "p50": 0.06573940068483353,
+              "p99": 0.27475404739379883
+            }
+          },
+          "aux_stretch_meta": {
+            "stretch": "none"
+          },
+          "dataset_index": 632,
+          "depth_path": "/mnt/drive/1111_new_works/VKITTI2/depth/Scene20/overcast/frames/depth/Camera_0/depth_00423.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "Gr",
+                "Gb",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.42298486828804016,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.04064679518342018,
+                  "p99": 0.24231348931789398
+                },
+                "Gb": {
+                  "max": 0.8302114605903625,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.12929241359233856,
+                  "p99": 0.505493700504303
+                },
+                "Gr": {
+                  "max": 0.8400689363479614,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.1298021525144577,
+                  "p99": 0.5087052297592198
+                },
+                "R": {
+                  "max": 0.46112069487571716,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.06573940068483353,
+                  "p99": 0.27475404739379883
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.9392157196998596,
+                  "min": 0.0,
+                  "p50": 0.13137255609035492,
+                  "p99": 0.6803921461105347
+                },
+                "G": {
+                  "max": 0.9656863212585449,
+                  "min": 0.0,
+                  "p50": 0.2754901945590973,
+                  "p99": 0.7215686440467834
+                },
+                "R": {
+                  "max": 0.9676470756530762,
+                  "min": 0.0,
+                  "p50": 0.23529411852359772,
+                  "p99": 0.7333333492279053
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "m2_ffm_mid",
+          "final": {
+            "abs_rel": 0.12247439676763362,
+            "d1": 0.833715483234714
+          },
+          "image_path": "/mnt/drive/1111_new_works/VKITTI2/rgb/Scene20/overcast/frames/rgb/Camera_0/rgb_00423.jpg",
+          "order": 4,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0204_vkitti_m2_ffm_mid_residual_vits_halfraw187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch08_3x4_condition_panels/04_vkitti_overcast_validx0632_Camera_0_rgb_00423_epoch08_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 0.9392157196998596,
+              "min": 0.0,
+              "p50": 0.13137255609035492,
+              "p99": 0.6803921461105347
+            },
+            "G": {
+              "max": 0.9656863212585449,
+              "min": 0.0,
+              "p50": 0.2754901945590973,
+              "p99": 0.7215686440467834
+            },
+            "R": {
+              "max": 0.9676470756530762,
+              "min": 0.0,
+              "p50": 0.23529411852359772,
+              "p99": 0.7333333492279053
+            }
+          },
+          "sample_name": "Camera_0_rgb_00423",
+          "variant": "overcast"
+        }
+      ],
+      "variant": "overcast"
+    },
+    {
+      "dataset_index": 955,
+      "order": 5,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_best_val_cross_exp_3x4_summary_panels/vkitti/05_vkitti_idx0955_morning_Camera_0_rgb_00407_cross_exp_3x4_summary.jpg",
+      "sample_name": "Camera_0_rgb_00407",
+      "source_records": [
+        {
+          "D0": {
+            "abs_rel": 0.10168002657242389,
+            "d1": 0.9214665568122238
+          },
+          "aux_stats": {
+            "B": {
+              "max": 2.361132860183716,
+              "min": -1.804444432258606,
+              "p50": -0.9504138827323914,
+              "p99": 2.2216994762420654
+            },
+            "D0n": {
+              "max": 2.664048194885254,
+              "min": -2.242616891860962,
+              "p50": -0.9030671715736389,
+              "p99": 1.9716967344284058
+            },
+            "G": {
+              "max": 2.271008253097534,
+              "min": -2.0357141494750977,
+              "p50": -0.04429277032613754,
+              "p99": 1.9558823108673096
+            },
+            "R": {
+              "max": 2.1076290607452393,
+              "min": -2.1179039478302,
+              "p50": -0.12287016212940216,
+              "p99": 1.8079459929466248
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -2.242616891860962,
+                "p99": 1.9716967344284058
+              },
+              {
+                "p1": -2.0964980125427246,
+                "p99": 1.8079459929466248
+              },
+              {
+                "p1": -2.0138304233551025,
+                "p99": 1.9558823108673096
+              },
+              {
+                "p1": -1.791372537612915,
+                "p99": 2.2216994762420654
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 955,
+          "depth_path": "/mnt/drive/1111_new_works/VKITTI2/depth/Scene20/morning/frames/depth/Camera_0/depth_00407.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n",
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.20955483615398407,
+                  "p99": 1.0
+                },
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.31785717606544495,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.49614110589027405,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.5054824352264404,
+                  "p99": 0.9999999845027924
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.9372549057006836,
+                  "min": 0.0,
+                  "p50": 0.1921568661928177,
+                  "p99": 0.9058823585510254
+                },
+                "G": {
+                  "max": 0.9647058844566345,
+                  "min": 0.0,
+                  "p50": 0.44607841968536377,
+                  "p99": 0.8941176533699036
+                },
+                "R": {
+                  "max": 0.9676470756530762,
+                  "min": 0.0,
+                  "p50": 0.45686274766921997,
+                  "p99": 0.8990196430683136
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c1_rgb",
+          "final": {
+            "abs_rel": 0.09876432877197151,
+            "d1": 0.8964197084388134
+          },
+          "image_path": "/mnt/drive/1111_new_works/VKITTI2/rgb/Scene20/morning/frames/rgb/Camera_0/rgb_00407.jpg",
+          "order": 5,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c1_rgb_residual_vits_halfrgb_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch03_3x4_condition_panels/05_vkitti_morning_validx0955_Camera_0_rgb_00407_epoch03_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 0.9372549057006836,
+              "min": 0.0,
+              "p50": 0.1921568661928177,
+              "p99": 0.9058823585510254
+            },
+            "G": {
+              "max": 0.9647058844566345,
+              "min": 0.0,
+              "p50": 0.44607841968536377,
+              "p99": 0.8941176533699036
+            },
+            "R": {
+              "max": 0.9676470756530762,
+              "min": 0.0,
+              "p50": 0.45686274766921997,
+              "p99": 0.8990196430683136
+            }
+          },
+          "sample_name": "Camera_0_rgb_00407",
+          "variant": "morning"
+        },
+        {
+          "D0": {
+            "abs_rel": 0.10168002657242389,
+            "d1": 0.9214665568122238
+          },
+          "aux_stats": {
+            "D0n": {
+              "max": 2.664048194885254,
+              "min": -2.242616891860962,
+              "p50": -0.9030671715736389,
+              "p99": 1.9716967344284058
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -2.242616891860962,
+                "p99": 1.9716967344284058
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 955,
+          "depth_path": "/mnt/drive/1111_new_works/VKITTI2/depth/Scene20/morning/frames/depth/Camera_0/depth_00407.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.31785717606544495,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.9372549057006836,
+                  "min": 0.0,
+                  "p50": 0.1921568661928177,
+                  "p99": 0.9058823585510254
+                },
+                "G": {
+                  "max": 0.9647058844566345,
+                  "min": 0.0,
+                  "p50": 0.44607841968536377,
+                  "p99": 0.8941176533699036
+                },
+                "R": {
+                  "max": 0.9676470756530762,
+                  "min": 0.0,
+                  "p50": 0.45686274766921997,
+                  "p99": 0.8990196430683136
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c2_d0only",
+          "final": {
+            "abs_rel": 0.08839349358423201,
+            "d1": 0.9277964833520389
+          },
+          "image_path": "/mnt/drive/1111_new_works/VKITTI2/rgb/Scene20/morning/frames/rgb/Camera_0/rgb_00407.jpg",
+          "order": 5,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c2_d0only_residual_vits_halfd0_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch11_3x4_condition_panels/05_vkitti_morning_validx0955_Camera_0_rgb_00407_epoch11_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 0.9372549057006836,
+              "min": 0.0,
+              "p50": 0.1921568661928177,
+              "p99": 0.9058823585510254
+            },
+            "G": {
+              "max": 0.9647058844566345,
+              "min": 0.0,
+              "p50": 0.44607841968536377,
+              "p99": 0.8941176533699036
+            },
+            "R": {
+              "max": 0.9676470756530762,
+              "min": 0.0,
+              "p50": 0.45686274766921997,
+              "p99": 0.8990196430683136
+            }
+          },
+          "sample_name": "Camera_0_rgb_00407",
+          "variant": "morning"
+        },
+        {
+          "D0": {
+            "abs_rel": 0.10168002657242389,
+            "d1": 0.9214665568122238
+          },
+          "aux_stats": {
+            "B": {
+              "max": 0.4207981526851654,
+              "min": 4.999999873689376e-05,
+              "p50": 0.07273982465267181,
+              "p99": 0.3715194761753082
+            },
+            "Gb": {
+              "max": 0.8543024063110352,
+              "min": 4.999999873689376e-05,
+              "p50": 0.23782922327518463,
+              "p99": 0.6998944878578186
+            },
+            "Gr": {
+              "max": 0.8228517174720764,
+              "min": 4.999999873689376e-05,
+              "p50": 0.23817375302314758,
+              "p99": 0.7004275918006897
+            },
+            "R": {
+              "max": 0.48658937215805054,
+              "min": 4.999999873689376e-05,
+              "p50": 0.13575126230716705,
+              "p99": 0.3687082529067993
+            }
+          },
+          "aux_stretch_meta": {
+            "stretch": "none"
+          },
+          "dataset_index": 955,
+          "depth_path": "/mnt/drive/1111_new_works/VKITTI2/depth/Scene20/morning/frames/depth/Camera_0/depth_00407.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "Gr",
+                "Gb",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.4207981526851654,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.07273982465267181,
+                  "p99": 0.3715194761753082
+                },
+                "Gb": {
+                  "max": 0.8543024063110352,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.23782922327518463,
+                  "p99": 0.6998944878578186
+                },
+                "Gr": {
+                  "max": 0.8228517174720764,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.23817375302314758,
+                  "p99": 0.7004275918006897
+                },
+                "R": {
+                  "max": 0.48658937215805054,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.13575126230716705,
+                  "p99": 0.3687082529067993
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.9372549057006836,
+                  "min": 0.0,
+                  "p50": 0.1921568661928177,
+                  "p99": 0.9058823585510254
+                },
+                "G": {
+                  "max": 0.9647058844566345,
+                  "min": 0.0,
+                  "p50": 0.44607841968536377,
+                  "p99": 0.8941176533699036
+                },
+                "R": {
+                  "max": 0.9676470756530762,
+                  "min": 0.0,
+                  "p50": 0.45686274766921997,
+                  "p99": 0.8990196430683136
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "m2_ffm_mid",
+          "final": {
+            "abs_rel": 0.08899414125381755,
+            "d1": 0.9103628881406659
+          },
+          "image_path": "/mnt/drive/1111_new_works/VKITTI2/rgb/Scene20/morning/frames/rgb/Camera_0/rgb_00407.jpg",
+          "order": 5,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0204_vkitti_m2_ffm_mid_residual_vits_halfraw187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch08_3x4_condition_panels/05_vkitti_morning_validx0955_Camera_0_rgb_00407_epoch08_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 0.9372549057006836,
+              "min": 0.0,
+              "p50": 0.1921568661928177,
+              "p99": 0.9058823585510254
+            },
+            "G": {
+              "max": 0.9647058844566345,
+              "min": 0.0,
+              "p50": 0.44607841968536377,
+              "p99": 0.8941176533699036
+            },
+            "R": {
+              "max": 0.9676470756530762,
+              "min": 0.0,
+              "p50": 0.45686274766921997,
+              "p99": 0.8990196430683136
+            }
+          },
+          "sample_name": "Camera_0_rgb_00407",
+          "variant": "morning"
+        }
+      ],
+      "variant": "morning"
+    },
+    {
+      "dataset_index": 553,
+      "order": 6,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_best_val_cross_exp_3x4_summary_panels/vkitti/06_vkitti_idx0553_sunset_Camera_0_rgb_00427_cross_exp_3x4_summary.jpg",
+      "sample_name": "Camera_0_rgb_00427",
+      "source_records": [
+        {
+          "D0": {
+            "abs_rel": 0.15111795845992224,
+            "d1": 0.8131874884778467
+          },
+          "aux_stats": {
+            "B": {
+              "max": 2.361132860183716,
+              "min": -1.804444432258606,
+              "p50": -1.3948583602905273,
+              "p99": 2.204270362854004
+            },
+            "D0n": {
+              "max": 2.314056634902954,
+              "min": -2.155559539794922,
+              "p50": -0.7528608441352844,
+              "p99": 2.1238601207733154
+            },
+            "G": {
+              "max": 2.065300941467285,
+              "min": -2.0357141494750977,
+              "p50": -1.488620400428772,
+              "p99": 1.9033613204956055
+            },
+            "R": {
+              "max": 2.1975338459014893,
+              "min": -2.1179039478302,
+              "p50": -1.6598167419433594,
+              "p99": 1.6923538446426392
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -2.155559539794922,
+                "p99": 2.1238601207733154
+              },
+              {
+                "p1": -2.08793568611145,
+                "p99": 1.6923538446426392
+              },
+              {
+                "p1": -2.0007002353668213,
+                "p99": 1.9033613204956055
+              },
+              {
+                "p1": -1.7826578617095947,
+                "p99": 2.204270362854004
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 553,
+          "depth_path": "/mnt/drive/1111_new_works/VKITTI2/depth/Scene20/sunset/frames/depth/Camera_0/depth_00427.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n",
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.09726773947477341,
+                  "p99": 1.0
+                },
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.32777777314186096,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.13116592168807983,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.11325030028820038,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.9372549057006836,
+                  "min": 0.0,
+                  "p50": 0.09215686470270157,
+                  "p99": 0.9019607901573181
+                },
+                "G": {
+                  "max": 0.9186274409294128,
+                  "min": 0.0,
+                  "p50": 0.12254902720451355,
+                  "p99": 0.8823529481887817
+                },
+                "R": {
+                  "max": 0.9882352948188782,
+                  "min": 0.0,
+                  "p50": 0.10490196198225021,
+                  "p99": 0.8725490570068359
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c1_rgb",
+          "final": {
+            "abs_rel": 0.10912125726736847,
+            "d1": 0.8791809040918054
+          },
+          "image_path": "/mnt/drive/1111_new_works/VKITTI2/rgb/Scene20/sunset/frames/rgb/Camera_0/rgb_00427.jpg",
+          "order": 6,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c1_rgb_residual_vits_halfrgb_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch03_3x4_condition_panels/06_vkitti_sunset_validx0553_Camera_0_rgb_00427_epoch03_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 0.9372549057006836,
+              "min": 0.0,
+              "p50": 0.09215686470270157,
+              "p99": 0.9019607901573181
+            },
+            "G": {
+              "max": 0.9186274409294128,
+              "min": 0.0,
+              "p50": 0.12254902720451355,
+              "p99": 0.8823529481887817
+            },
+            "R": {
+              "max": 0.9882352948188782,
+              "min": 0.0,
+              "p50": 0.10490196198225021,
+              "p99": 0.8725490570068359
+            }
+          },
+          "sample_name": "Camera_0_rgb_00427",
+          "variant": "sunset"
+        },
+        {
+          "D0": {
+            "abs_rel": 0.15111795845992224,
+            "d1": 0.8131874884778467
+          },
+          "aux_stats": {
+            "D0n": {
+              "max": 2.314056634902954,
+              "min": -2.155559539794922,
+              "p50": -0.7528608441352844,
+              "p99": 2.1238601207733154
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -2.155559539794922,
+                "p99": 2.1238601207733154
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 553,
+          "depth_path": "/mnt/drive/1111_new_works/VKITTI2/depth/Scene20/sunset/frames/depth/Camera_0/depth_00427.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.32777777314186096,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.9372549057006836,
+                  "min": 0.0,
+                  "p50": 0.09215686470270157,
+                  "p99": 0.9019607901573181
+                },
+                "G": {
+                  "max": 0.9186274409294128,
+                  "min": 0.0,
+                  "p50": 0.12254902720451355,
+                  "p99": 0.8823529481887817
+                },
+                "R": {
+                  "max": 0.9882352948188782,
+                  "min": 0.0,
+                  "p50": 0.10490196198225021,
+                  "p99": 0.8725490570068359
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c2_d0only",
+          "final": {
+            "abs_rel": 0.10968938815838315,
+            "d1": 0.8746040094426165
+          },
+          "image_path": "/mnt/drive/1111_new_works/VKITTI2/rgb/Scene20/sunset/frames/rgb/Camera_0/rgb_00427.jpg",
+          "order": 6,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c2_d0only_residual_vits_halfd0_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch11_3x4_condition_panels/06_vkitti_sunset_validx0553_Camera_0_rgb_00427_epoch11_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 0.9372549057006836,
+              "min": 0.0,
+              "p50": 0.09215686470270157,
+              "p99": 0.9019607901573181
+            },
+            "G": {
+              "max": 0.9186274409294128,
+              "min": 0.0,
+              "p50": 0.12254902720451355,
+              "p99": 0.8823529481887817
+            },
+            "R": {
+              "max": 0.9882352948188782,
+              "min": 0.0,
+              "p50": 0.10490196198225021,
+              "p99": 0.8725490570068359
+            }
+          },
+          "sample_name": "Camera_0_rgb_00427",
+          "variant": "sunset"
+        },
+        {
+          "D0": {
+            "abs_rel": 0.15111795845992224,
+            "d1": 0.8131874884778467
+          },
+          "aux_stats": {
+            "B": {
+              "max": 0.4137572646141052,
+              "min": 4.999999873689376e-05,
+              "p50": 0.02420645020902157,
+              "p99": 0.3669104278087616
+            },
+            "Gb": {
+              "max": 0.7561038136482239,
+              "min": 4.999999873689376e-05,
+              "p50": 0.05504418537020683,
+              "p99": 0.6841968297958374
+            },
+            "Gr": {
+              "max": 0.7527404427528381,
+              "min": 4.999999873689376e-05,
+              "p50": 0.05517008155584335,
+              "p99": 0.6847836399078375
+            },
+            "R": {
+              "max": 0.4561062455177307,
+              "min": 4.999999873689376e-05,
+              "p50": 0.0269186832010746,
+              "p99": 0.3584919273853302
+            }
+          },
+          "aux_stretch_meta": {
+            "stretch": "none"
+          },
+          "dataset_index": 553,
+          "depth_path": "/mnt/drive/1111_new_works/VKITTI2/depth/Scene20/sunset/frames/depth/Camera_0/depth_00427.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "Gr",
+                "Gb",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.4137572646141052,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.02420645020902157,
+                  "p99": 0.3669104278087616
+                },
+                "Gb": {
+                  "max": 0.7561038136482239,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.05504418537020683,
+                  "p99": 0.6841968297958374
+                },
+                "Gr": {
+                  "max": 0.7527404427528381,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.05517008155584335,
+                  "p99": 0.6847836399078375
+                },
+                "R": {
+                  "max": 0.4561062455177307,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.0269186832010746,
+                  "p99": 0.3584919273853302
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.9372549057006836,
+                  "min": 0.0,
+                  "p50": 0.09215686470270157,
+                  "p99": 0.9019607901573181
+                },
+                "G": {
+                  "max": 0.9186274409294128,
+                  "min": 0.0,
+                  "p50": 0.12254902720451355,
+                  "p99": 0.8823529481887817
+                },
+                "R": {
+                  "max": 0.9882352948188782,
+                  "min": 0.0,
+                  "p50": 0.10490196198225021,
+                  "p99": 0.8725490570068359
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "m2_ffm_mid",
+          "final": {
+            "abs_rel": 0.10731824435607493,
+            "d1": 0.8975597822763134
+          },
+          "image_path": "/mnt/drive/1111_new_works/VKITTI2/rgb/Scene20/sunset/frames/rgb/Camera_0/rgb_00427.jpg",
+          "order": 6,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0204_vkitti_m2_ffm_mid_residual_vits_halfraw187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch08_3x4_condition_panels/06_vkitti_sunset_validx0553_Camera_0_rgb_00427_epoch08_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 0.9372549057006836,
+              "min": 0.0,
+              "p50": 0.09215686470270157,
+              "p99": 0.9019607901573181
+            },
+            "G": {
+              "max": 0.9186274409294128,
+              "min": 0.0,
+              "p50": 0.12254902720451355,
+              "p99": 0.8823529481887817
+            },
+            "R": {
+              "max": 0.9882352948188782,
+              "min": 0.0,
+              "p50": 0.10490196198225021,
+              "p99": 0.8725490570068359
+            }
+          },
+          "sample_name": "Camera_0_rgb_00427",
+          "variant": "sunset"
+        }
+      ],
+      "variant": "sunset"
+    },
+    {
+      "dataset_index": 637,
+      "order": 7,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_best_val_cross_exp_3x4_summary_panels/vkitti/07_vkitti_idx0637_15-deg-left_Camera_0_rgb_00413_cross_exp_3x4_summary.jpg",
+      "sample_name": "Camera_0_rgb_00413",
+      "source_records": [
+        {
+          "D0": {
+            "abs_rel": 0.16214288425337528,
+            "d1": 0.8233841310336405
+          },
+          "aux_stats": {
+            "B": {
+              "max": 2.4744224548339844,
+              "min": -1.804444432258606,
+              "p50": -0.6933333277702332,
+              "p99": 2.1519827842712402
+            },
+            "D0n": {
+              "max": 2.415329933166504,
+              "min": -2.0536763668060303,
+              "p50": -1.1689163446426392,
+              "p99": 1.5628606081008911
+            },
+            "G": {
+              "max": 2.310398817062378,
+              "min": -2.0357141494750977,
+              "p50": -0.5082283020019531,
+              "p99": 1.9077379703521729
+            },
+            "R": {
+              "max": 2.248908281326294,
+              "min": -2.1179039478302,
+              "p50": -0.6109256148338318,
+              "p99": 2.0091617107391357
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -2.0536763668060303,
+                "p99": 1.5628606081008911
+              },
+              {
+                "p1": -2.0793731212615967,
+                "p99": 2.0091617107391357
+              },
+              {
+                "p1": -1.9875699281692505,
+                "p99": 1.9077379703521729
+              },
+              {
+                "p1": -1.7783006429672241,
+                "p99": 2.1519827842712402
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 637,
+          "depth_path": "/mnt/drive/1111_new_works/VKITTI2/depth/Scene20/15-deg-left/frames/depth/Camera_0/depth_00413.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n",
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.27605322003364563,
+                  "p99": 1.0
+                },
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.24464286863803864,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.3797752559185028,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.35916227102279663,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.9627450704574585,
+                  "min": 0.0,
+                  "p50": 0.25,
+                  "p99": 0.8901960849761963
+                },
+                "G": {
+                  "max": 0.9735293984413147,
+                  "min": 0.0,
+                  "p50": 0.34215685725212097,
+                  "p99": 0.8833333253860474
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.3450980484485626,
+                  "p99": 0.9450980424880981
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c1_rgb",
+          "final": {
+            "abs_rel": 0.1221282491100939,
+            "d1": 0.8635169181589142
+          },
+          "image_path": "/mnt/drive/1111_new_works/VKITTI2/rgb/Scene20/15-deg-left/frames/rgb/Camera_0/rgb_00413.jpg",
+          "order": 7,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c1_rgb_residual_vits_halfrgb_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch03_3x4_condition_panels/07_vkitti_15-deg-left_validx0637_Camera_0_rgb_00413_epoch03_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 0.9627450704574585,
+              "min": 0.0,
+              "p50": 0.25,
+              "p99": 0.8901960849761963
+            },
+            "G": {
+              "max": 0.9735293984413147,
+              "min": 0.0,
+              "p50": 0.34215685725212097,
+              "p99": 0.8833333253860474
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.3450980484485626,
+              "p99": 0.9450980424880981
+            }
+          },
+          "sample_name": "Camera_0_rgb_00413",
+          "variant": "15-deg-left"
+        },
+        {
+          "D0": {
+            "abs_rel": 0.16214288425337528,
+            "d1": 0.8233841310336405
+          },
+          "aux_stats": {
+            "D0n": {
+              "max": 2.415329933166504,
+              "min": -2.0536763668060303,
+              "p50": -1.1689163446426392,
+              "p99": 1.5628606081008911
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -2.0536763668060303,
+                "p99": 1.5628606081008911
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 637,
+          "depth_path": "/mnt/drive/1111_new_works/VKITTI2/depth/Scene20/15-deg-left/frames/depth/Camera_0/depth_00413.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.24464286863803864,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.9627450704574585,
+                  "min": 0.0,
+                  "p50": 0.25,
+                  "p99": 0.8901960849761963
+                },
+                "G": {
+                  "max": 0.9735293984413147,
+                  "min": 0.0,
+                  "p50": 0.34215685725212097,
+                  "p99": 0.8833333253860474
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.3450980484485626,
+                  "p99": 0.9450980424880981
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c2_d0only",
+          "final": {
+            "abs_rel": 0.13201733088959727,
+            "d1": 0.7945877126449236
+          },
+          "image_path": "/mnt/drive/1111_new_works/VKITTI2/rgb/Scene20/15-deg-left/frames/rgb/Camera_0/rgb_00413.jpg",
+          "order": 7,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c2_d0only_residual_vits_halfd0_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch11_3x4_condition_panels/07_vkitti_15-deg-left_validx0637_Camera_0_rgb_00413_epoch11_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 0.9627450704574585,
+              "min": 0.0,
+              "p50": 0.25,
+              "p99": 0.8901960849761963
+            },
+            "G": {
+              "max": 0.9735293984413147,
+              "min": 0.0,
+              "p50": 0.34215685725212097,
+              "p99": 0.8833333253860474
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.3450980484485626,
+              "p99": 0.9450980424880981
+            }
+          },
+          "sample_name": "Camera_0_rgb_00413",
+          "variant": "15-deg-left"
+        },
+        {
+          "D0": {
+            "abs_rel": 0.16214288425337528,
+            "d1": 0.8233841310336405
+          },
+          "aux_stats": {
+            "B": {
+              "max": 0.4363045394420624,
+              "min": 4.999999873689376e-05,
+              "p50": 0.07720451056957245,
+              "p99": 0.3582661747932434
+            },
+            "Gb": {
+              "max": 0.8540660738945007,
+              "min": 4.999999873689376e-05,
+              "p50": 0.18055376410484314,
+              "p99": 0.6858062291145329
+            },
+            "Gr": {
+              "max": 0.8540660738945007,
+              "min": 4.999999873689376e-05,
+              "p50": 0.18185535073280334,
+              "p99": 0.685612678527832
+            },
+            "R": {
+              "max": 0.4804971516132355,
+              "min": 4.999999873689376e-05,
+              "p50": 0.09869680553674698,
+              "p99": 0.38112244546413426
+            }
+          },
+          "aux_stretch_meta": {
+            "stretch": "none"
+          },
+          "dataset_index": 637,
+          "depth_path": "/mnt/drive/1111_new_works/VKITTI2/depth/Scene20/15-deg-left/frames/depth/Camera_0/depth_00413.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "Gr",
+                "Gb",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.4363045394420624,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.07720451056957245,
+                  "p99": 0.3582661747932434
+                },
+                "Gb": {
+                  "max": 0.8540660738945007,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.18055376410484314,
+                  "p99": 0.6858062291145329
+                },
+                "Gr": {
+                  "max": 0.8540660738945007,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.18185535073280334,
+                  "p99": 0.685612678527832
+                },
+                "R": {
+                  "max": 0.4804971516132355,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.09869680553674698,
+                  "p99": 0.38112244546413426
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.9627450704574585,
+                  "min": 0.0,
+                  "p50": 0.25,
+                  "p99": 0.8901960849761963
+                },
+                "G": {
+                  "max": 0.9735293984413147,
+                  "min": 0.0,
+                  "p50": 0.34215685725212097,
+                  "p99": 0.8833333253860474
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.3450980484485626,
+                  "p99": 0.9450980424880981
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "m2_ffm_mid",
+          "final": {
+            "abs_rel": 0.13048334769913564,
+            "d1": 0.8101094376422148
+          },
+          "image_path": "/mnt/drive/1111_new_works/VKITTI2/rgb/Scene20/15-deg-left/frames/rgb/Camera_0/rgb_00413.jpg",
+          "order": 7,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0204_vkitti_m2_ffm_mid_residual_vits_halfraw187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch08_3x4_condition_panels/07_vkitti_15-deg-left_validx0637_Camera_0_rgb_00413_epoch08_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 0.9627450704574585,
+              "min": 0.0,
+              "p50": 0.25,
+              "p99": 0.8901960849761963
+            },
+            "G": {
+              "max": 0.9735293984413147,
+              "min": 0.0,
+              "p50": 0.34215685725212097,
+              "p99": 0.8833333253860474
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.3450980484485626,
+              "p99": 0.9450980424880981
+            }
+          },
+          "sample_name": "Camera_0_rgb_00413",
+          "variant": "15-deg-left"
+        }
+      ],
+      "variant": "15-deg-left"
+    },
+    {
+      "dataset_index": 674,
+      "order": 8,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_best_val_cross_exp_3x4_summary_panels/vkitti/08_vkitti_idx0674_15-deg-right_Camera_0_rgb_00478_cross_exp_3x4_summary.jpg",
+      "sample_name": "Camera_0_rgb_00478",
+      "source_records": [
+        {
+          "D0": {
+            "abs_rel": 0.158071827058093,
+            "d1": 0.8923289533808106
+          },
+          "aux_stats": {
+            "B": {
+              "max": 2.42649245262146,
+              "min": -1.804444432258606,
+              "p50": -1.3425707817077637,
+              "p99": 2.1345534324645996
+            },
+            "D0n": {
+              "max": 3.2878975868225098,
+              "min": -2.208289384841919,
+              "p50": -0.44983676075935364,
+              "p99": 2.4372973442077637
+            },
+            "G": {
+              "max": 2.2316174507141113,
+              "min": -2.0357141494750977,
+              "p50": -1.4054620265960693,
+              "p99": 1.8508403301239014
+            },
+            "R": {
+              "max": 2.2060964107513428,
+              "min": -2.1179039478302,
+              "p50": -1.6041613817214966,
+              "p99": 1.619573712348938
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -2.208289384841919,
+                "p99": 2.4372973442077637
+              },
+              {
+                "p1": -2.092216730117798,
+                "p99": 1.619573712348938
+              },
+              {
+                "p1": -2.0007002353668213,
+                "p99": 1.8508403301239014
+              },
+              {
+                "p1": -1.7826578617095947,
+                "p99": 2.1345534324645996
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 674,
+          "depth_path": "/mnt/drive/1111_new_works/VKITTI2/depth/Scene20/15-deg-right/frames/depth/Camera_0/depth_00478.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n",
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.11234703660011292,
+                  "p99": 1.0
+                },
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.3785210847854614,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.15454548597335815,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.13148784637451172,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.9519608020782471,
+                  "min": 0.0,
+                  "p50": 0.1039215698838234,
+                  "p99": 0.886274516582489
+                },
+                "G": {
+                  "max": 0.9558823108673096,
+                  "min": 0.0,
+                  "p50": 0.1411764770746231,
+                  "p99": 0.8705882430076599
+                },
+                "R": {
+                  "max": 0.9901961088180542,
+                  "min": 0.0,
+                  "p50": 0.11764705926179886,
+                  "p99": 0.8558824062347412
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c1_rgb",
+          "final": {
+            "abs_rel": 0.1179181349508136,
+            "d1": 0.9064154469012768
+          },
+          "image_path": "/mnt/drive/1111_new_works/VKITTI2/rgb/Scene20/15-deg-right/frames/rgb/Camera_0/rgb_00478.jpg",
+          "order": 8,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c1_rgb_residual_vits_halfrgb_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch03_3x4_condition_panels/08_vkitti_15-deg-right_validx0674_Camera_0_rgb_00478_epoch03_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 0.9519608020782471,
+              "min": 0.0,
+              "p50": 0.1039215698838234,
+              "p99": 0.886274516582489
+            },
+            "G": {
+              "max": 0.9558823108673096,
+              "min": 0.0,
+              "p50": 0.1411764770746231,
+              "p99": 0.8705882430076599
+            },
+            "R": {
+              "max": 0.9901961088180542,
+              "min": 0.0,
+              "p50": 0.11764705926179886,
+              "p99": 0.8558824062347412
+            }
+          },
+          "sample_name": "Camera_0_rgb_00478",
+          "variant": "15-deg-right"
+        },
+        {
+          "D0": {
+            "abs_rel": 0.158071827058093,
+            "d1": 0.8923289533808106
+          },
+          "aux_stats": {
+            "D0n": {
+              "max": 3.2878975868225098,
+              "min": -2.208289384841919,
+              "p50": -0.44983676075935364,
+              "p99": 2.4372973442077637
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -2.208289384841919,
+                "p99": 2.4372973442077637
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 674,
+          "depth_path": "/mnt/drive/1111_new_works/VKITTI2/depth/Scene20/15-deg-right/frames/depth/Camera_0/depth_00478.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.3785210847854614,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.9519608020782471,
+                  "min": 0.0,
+                  "p50": 0.1039215698838234,
+                  "p99": 0.886274516582489
+                },
+                "G": {
+                  "max": 0.9558823108673096,
+                  "min": 0.0,
+                  "p50": 0.1411764770746231,
+                  "p99": 0.8705882430076599
+                },
+                "R": {
+                  "max": 0.9901961088180542,
+                  "min": 0.0,
+                  "p50": 0.11764705926179886,
+                  "p99": 0.8558824062347412
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c2_d0only",
+          "final": {
+            "abs_rel": 0.10393713354110586,
+            "d1": 0.8895837730357797
+          },
+          "image_path": "/mnt/drive/1111_new_works/VKITTI2/rgb/Scene20/15-deg-right/frames/rgb/Camera_0/rgb_00478.jpg",
+          "order": 8,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c2_d0only_residual_vits_halfd0_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch11_3x4_condition_panels/08_vkitti_15-deg-right_validx0674_Camera_0_rgb_00478_epoch11_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 0.9519608020782471,
+              "min": 0.0,
+              "p50": 0.1039215698838234,
+              "p99": 0.886274516582489
+            },
+            "G": {
+              "max": 0.9558823108673096,
+              "min": 0.0,
+              "p50": 0.1411764770746231,
+              "p99": 0.8705882430076599
+            },
+            "R": {
+              "max": 0.9901961088180542,
+              "min": 0.0,
+              "p50": 0.11764705926179886,
+              "p99": 0.8558824062347412
+            }
+          },
+          "sample_name": "Camera_0_rgb_00478",
+          "variant": "15-deg-right"
+        },
+        {
+          "D0": {
+            "abs_rel": 0.158071827058093,
+            "d1": 0.8923289533808106
+          },
+          "aux_stats": {
+            "B": {
+              "max": 0.41723814606666565,
+              "min": 4.999999873689376e-05,
+              "p50": 0.02687411569058895,
+              "p99": 0.3569064736366272
+            },
+            "Gb": {
+              "max": 0.8287813067436218,
+              "min": 4.999999873689376e-05,
+              "p50": 0.06353583186864853,
+              "p99": 0.6729683876037598
+            },
+            "Gr": {
+              "max": 0.8263037204742432,
+              "min": 4.999999873689376e-05,
+              "p50": 0.06353583186864853,
+              "p99": 0.6715879571437838
+            },
+            "R": {
+              "max": 0.4709024429321289,
+              "min": 4.999999873689376e-05,
+              "p50": 0.030703241005539894,
+              "p99": 0.3494051694869995
+            }
+          },
+          "aux_stretch_meta": {
+            "stretch": "none"
+          },
+          "dataset_index": 674,
+          "depth_path": "/mnt/drive/1111_new_works/VKITTI2/depth/Scene20/15-deg-right/frames/depth/Camera_0/depth_00478.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "Gr",
+                "Gb",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.41723814606666565,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.02687411569058895,
+                  "p99": 0.3569064736366272
+                },
+                "Gb": {
+                  "max": 0.8287813067436218,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.06353583186864853,
+                  "p99": 0.6729683876037598
+                },
+                "Gr": {
+                  "max": 0.8263037204742432,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.06353583186864853,
+                  "p99": 0.6715879571437838
+                },
+                "R": {
+                  "max": 0.4709024429321289,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.030703241005539894,
+                  "p99": 0.3494051694869995
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.9519608020782471,
+                  "min": 0.0,
+                  "p50": 0.1039215698838234,
+                  "p99": 0.886274516582489
+                },
+                "G": {
+                  "max": 0.9558823108673096,
+                  "min": 0.0,
+                  "p50": 0.1411764770746231,
+                  "p99": 0.8705882430076599
+                },
+                "R": {
+                  "max": 0.9901961088180542,
+                  "min": 0.0,
+                  "p50": 0.11764705926179886,
+                  "p99": 0.8558824062347412
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "m2_ffm_mid",
+          "final": {
+            "abs_rel": 0.1160315537387184,
+            "d1": 0.9132656461753793
+          },
+          "image_path": "/mnt/drive/1111_new_works/VKITTI2/rgb/Scene20/15-deg-right/frames/rgb/Camera_0/rgb_00478.jpg",
+          "order": 8,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0204_vkitti_m2_ffm_mid_residual_vits_halfraw187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch08_3x4_condition_panels/08_vkitti_15-deg-right_validx0674_Camera_0_rgb_00478_epoch08_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 0.9519608020782471,
+              "min": 0.0,
+              "p50": 0.1039215698838234,
+              "p99": 0.886274516582489
+            },
+            "G": {
+              "max": 0.9558823108673096,
+              "min": 0.0,
+              "p50": 0.1411764770746231,
+              "p99": 0.8705882430076599
+            },
+            "R": {
+              "max": 0.9901961088180542,
+              "min": 0.0,
+              "p50": 0.11764705926179886,
+              "p99": 0.8558824062347412
+            }
+          },
+          "sample_name": "Camera_0_rgb_00478",
+          "variant": "15-deg-right"
+        }
+      ],
+      "variant": "15-deg-right"
+    },
+    {
+      "dataset_index": 127,
+      "order": 9,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_best_val_cross_exp_3x4_summary_panels/vkitti/09_vkitti_idx0127_30-deg-left_Camera_0_rgb_00509_cross_exp_3x4_summary.jpg",
+      "sample_name": "Camera_0_rgb_00509",
+      "source_records": [
+        {
+          "D0": {
+            "abs_rel": 0.20235920226416365,
+            "d1": 0.7491652754590985
+          },
+          "aux_stats": {
+            "B": {
+              "max": 2.4482791423797607,
+              "min": -1.804444432258606,
+              "p50": -0.5669716000556946,
+              "p99": 2.1258389949798584
+            },
+            "D0n": {
+              "max": 3.9758567810058594,
+              "min": -2.2088093757629395,
+              "p50": -0.818077564239502,
+              "p99": 2.2742555141448975
+            },
+            "G": {
+              "max": 2.2359941005706787,
+              "min": -2.0357141494750977,
+              "p50": -0.3200279772281647,
+              "p99": 1.9558823108673096
+            },
+            "R": {
+              "max": 2.248908281326294,
+              "min": -2.1179039478302,
+              "p50": -0.4996147155761719,
+              "p99": 1.8122268915176392
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -2.2088093757629395,
+                "p99": 2.2742555141448975
+              },
+              {
+                "p1": -2.0536861419677734,
+                "p99": 1.8122268915176392
+              },
+              {
+                "p1": -1.9525558948516846,
+                "p99": 1.9558823108673096
+              },
+              {
+                "p1": -1.7521568536758423,
+                "p99": 2.1258389949798584
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 127,
+          "depth_path": "/mnt/drive/1111_new_works/VKITTI2/depth/Scene20/30-deg-left/frames/depth/Camera_0/depth_00509.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n",
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.30561795830726624,
+                  "p99": 1.0
+                },
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.3102189898490906,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.417693167924881,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.40199339389801025,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.9568628072738647,
+                  "min": 0.0,
+                  "p50": 0.27843138575553894,
+                  "p99": 0.8843137621879578
+                },
+                "G": {
+                  "max": 0.95686274766922,
+                  "min": 0.0,
+                  "p50": 0.3843137323856354,
+                  "p99": 0.8941176533699036
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.3705882430076599,
+                  "p99": 0.8999999761581421
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c1_rgb",
+          "final": {
+            "abs_rel": 0.19003054874613576,
+            "d1": 0.7368190501685263
+          },
+          "image_path": "/mnt/drive/1111_new_works/VKITTI2/rgb/Scene20/30-deg-left/frames/rgb/Camera_0/rgb_00509.jpg",
+          "order": 9,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c1_rgb_residual_vits_halfrgb_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch03_3x4_condition_panels/09_vkitti_30-deg-left_validx0127_Camera_0_rgb_00509_epoch03_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 0.9568628072738647,
+              "min": 0.0,
+              "p50": 0.27843138575553894,
+              "p99": 0.8843137621879578
+            },
+            "G": {
+              "max": 0.95686274766922,
+              "min": 0.0,
+              "p50": 0.3843137323856354,
+              "p99": 0.8941176533699036
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.3705882430076599,
+              "p99": 0.8999999761581421
+            }
+          },
+          "sample_name": "Camera_0_rgb_00509",
+          "variant": "30-deg-left"
+        },
+        {
+          "D0": {
+            "abs_rel": 0.20235920226416365,
+            "d1": 0.7491652754590985
+          },
+          "aux_stats": {
+            "D0n": {
+              "max": 3.9758567810058594,
+              "min": -2.2088093757629395,
+              "p50": -0.818077564239502,
+              "p99": 2.2742555141448975
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -2.2088093757629395,
+                "p99": 2.2742555141448975
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 127,
+          "depth_path": "/mnt/drive/1111_new_works/VKITTI2/depth/Scene20/30-deg-left/frames/depth/Camera_0/depth_00509.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.3102189898490906,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.9568628072738647,
+                  "min": 0.0,
+                  "p50": 0.27843138575553894,
+                  "p99": 0.8843137621879578
+                },
+                "G": {
+                  "max": 0.95686274766922,
+                  "min": 0.0,
+                  "p50": 0.3843137323856354,
+                  "p99": 0.8941176533699036
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.3705882430076599,
+                  "p99": 0.8999999761581421
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c2_d0only",
+          "final": {
+            "abs_rel": 0.16676661361019238,
+            "d1": 0.7792531523972811
+          },
+          "image_path": "/mnt/drive/1111_new_works/VKITTI2/rgb/Scene20/30-deg-left/frames/rgb/Camera_0/rgb_00509.jpg",
+          "order": 9,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c2_d0only_residual_vits_halfd0_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch11_3x4_condition_panels/09_vkitti_30-deg-left_validx0127_Camera_0_rgb_00509_epoch11_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 0.9568628072738647,
+              "min": 0.0,
+              "p50": 0.27843138575553894,
+              "p99": 0.8843137621879578
+            },
+            "G": {
+              "max": 0.95686274766922,
+              "min": 0.0,
+              "p50": 0.3843137323856354,
+              "p99": 0.8941176533699036
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.3705882430076599,
+              "p99": 0.8999999761581421
+            }
+          },
+          "sample_name": "Camera_0_rgb_00509",
+          "variant": "30-deg-left"
+        },
+        {
+          "D0": {
+            "abs_rel": 0.20235920226416365,
+            "d1": 0.7491652754590985
+          },
+          "aux_stats": {
+            "B": {
+              "max": 0.4283277988433838,
+              "min": 4.999999873689376e-05,
+              "p50": 0.08622320741415024,
+              "p99": 0.3552703261375427
+            },
+            "Gb": {
+              "max": 0.8247441649436951,
+              "min": 4.999999873689376e-05,
+              "p50": 0.2012261301279068,
+              "p99": 0.6951434016227722
+            },
+            "Gr": {
+              "max": 0.8612945675849915,
+              "min": 4.999999873689376e-05,
+              "p50": 0.20257112383842468,
+              "p99": 0.6951860189437866
+            },
+            "R": {
+              "max": 0.4735686779022217,
+              "min": 4.999999873689376e-05,
+              "p50": 0.10834022611379623,
+              "p99": 0.3742947578430176
+            }
+          },
+          "aux_stretch_meta": {
+            "stretch": "none"
+          },
+          "dataset_index": 127,
+          "depth_path": "/mnt/drive/1111_new_works/VKITTI2/depth/Scene20/30-deg-left/frames/depth/Camera_0/depth_00509.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "Gr",
+                "Gb",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.4283277988433838,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.08622320741415024,
+                  "p99": 0.3552703261375427
+                },
+                "Gb": {
+                  "max": 0.8247441649436951,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.2012261301279068,
+                  "p99": 0.6951434016227722
+                },
+                "Gr": {
+                  "max": 0.8612945675849915,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.20257112383842468,
+                  "p99": 0.6951860189437866
+                },
+                "R": {
+                  "max": 0.4735686779022217,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.10834022611379623,
+                  "p99": 0.3742947578430176
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.9568628072738647,
+                  "min": 0.0,
+                  "p50": 0.27843138575553894,
+                  "p99": 0.8843137621879578
+                },
+                "G": {
+                  "max": 0.95686274766922,
+                  "min": 0.0,
+                  "p50": 0.3843137323856354,
+                  "p99": 0.8941176533699036
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.3705882430076599,
+                  "p99": 0.8999999761581421
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "m2_ffm_mid",
+          "final": {
+            "abs_rel": 0.1665250004680928,
+            "d1": 0.7906775950967992
+          },
+          "image_path": "/mnt/drive/1111_new_works/VKITTI2/rgb/Scene20/30-deg-left/frames/rgb/Camera_0/rgb_00509.jpg",
+          "order": 9,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0204_vkitti_m2_ffm_mid_residual_vits_halfraw187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch08_3x4_condition_panels/09_vkitti_30-deg-left_validx0127_Camera_0_rgb_00509_epoch08_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 0.9568628072738647,
+              "min": 0.0,
+              "p50": 0.27843138575553894,
+              "p99": 0.8843137621879578
+            },
+            "G": {
+              "max": 0.95686274766922,
+              "min": 0.0,
+              "p50": 0.3843137323856354,
+              "p99": 0.8941176533699036
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.3705882430076599,
+              "p99": 0.8999999761581421
+            }
+          },
+          "sample_name": "Camera_0_rgb_00509",
+          "variant": "30-deg-left"
+        }
+      ],
+      "variant": "30-deg-left"
+    },
+    {
+      "dataset_index": 276,
+      "order": 10,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_best_val_cross_exp_3x4_summary_panels/vkitti/10_vkitti_idx0276_30-deg-right_Camera_0_rgb_00453_cross_exp_3x4_summary.jpg",
+      "sample_name": "Camera_0_rgb_00453",
+      "source_records": [
+        {
+          "D0": {
+            "abs_rel": 0.1653136146859139,
+            "d1": 0.8016829980565138
+          },
+          "aux_stats": {
+            "B": {
+              "max": 2.3437039852142334,
+              "min": -1.804444432258606,
+              "p50": -1.4427886009216309,
+              "p99": 2.1519827842712402
+            },
+            "D0n": {
+              "max": 3.1218583583831787,
+              "min": -2.6449077129364014,
+              "p50": -0.3035140037536621,
+              "p99": 2.3847527503967285
+            },
+            "G": {
+              "max": 2.196603298187256,
+              "min": -2.0357141494750977,
+              "p50": -1.5280112028121948,
+              "p99": 1.8595939874649048
+            },
+            "R": {
+              "max": 2.0733795166015625,
+              "min": -2.1179039478302,
+              "p50": -1.73259699344635,
+              "p99": 1.6152923107147217
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -2.6449077129364014,
+                "p99": 2.3847527503967285
+              },
+              {
+                "p1": -2.092216730117798,
+                "p99": 1.6152923107147217
+              },
+              {
+                "p1": -2.0007002353668213,
+                "p99": 1.8595939874649048
+              },
+              {
+                "p1": -1.7783006429672241,
+                "p99": 2.1519827842712402
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 276,
+          "depth_path": "/mnt/drive/1111_new_works/VKITTI2/depth/Scene20/30-deg-right/frames/depth/Camera_0/depth_00453.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n",
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.08536586165428162,
+                  "p99": 1.0
+                },
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.4655172824859619,
+                  "p99": 1.0
+                },
+                "G": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.12244895845651627,
+                  "p99": 1.0
+                },
+                "R": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.09699767082929611,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.9333333373069763,
+                  "min": 0.0,
+                  "p50": 0.08137255162000656,
+                  "p99": 0.8901960849761963
+                },
+                "G": {
+                  "max": 0.948039174079895,
+                  "min": 0.0,
+                  "p50": 0.11372549086809158,
+                  "p99": 0.8725490570068359
+                },
+                "R": {
+                  "max": 0.9598039388656616,
+                  "min": 0.0,
+                  "p50": 0.0882352963089943,
+                  "p99": 0.8549019694328308
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c1_rgb",
+          "final": {
+            "abs_rel": 0.11725799015640621,
+            "d1": 0.8426757792695045
+          },
+          "image_path": "/mnt/drive/1111_new_works/VKITTI2/rgb/Scene20/30-deg-right/frames/rgb/Camera_0/rgb_00453.jpg",
+          "order": 10,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c1_rgb_residual_vits_halfrgb_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch03_3x4_condition_panels/10_vkitti_30-deg-right_validx0276_Camera_0_rgb_00453_epoch03_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 0.9333333373069763,
+              "min": 0.0,
+              "p50": 0.08137255162000656,
+              "p99": 0.8901960849761963
+            },
+            "G": {
+              "max": 0.948039174079895,
+              "min": 0.0,
+              "p50": 0.11372549086809158,
+              "p99": 0.8725490570068359
+            },
+            "R": {
+              "max": 0.9598039388656616,
+              "min": 0.0,
+              "p50": 0.0882352963089943,
+              "p99": 0.8549019694328308
+            }
+          },
+          "sample_name": "Camera_0_rgb_00453",
+          "variant": "30-deg-right"
+        },
+        {
+          "D0": {
+            "abs_rel": 0.1653136146859139,
+            "d1": 0.8016829980565138
+          },
+          "aux_stats": {
+            "D0n": {
+              "max": 3.1218583583831787,
+              "min": -2.6449077129364014,
+              "p50": -0.3035140037536621,
+              "p99": 2.3847527503967285
+            }
+          },
+          "aux_stretch_meta": {
+            "ranges": [
+              {
+                "p1": -2.6449077129364014,
+                "p99": 2.3847527503967285
+              }
+            ],
+            "stretch": "per_channel_p1_p99_to_0_1"
+          },
+          "dataset_index": 276,
+          "depth_path": "/mnt/drive/1111_new_works/VKITTI2/depth/Scene20/30-deg-right/frames/depth/Camera_0/depth_00453.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "D0n"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "D0n": {
+                  "max": 1.0,
+                  "min": 0.0,
+                  "p50": 0.4655172824859619,
+                  "p99": 1.0
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.9333333373069763,
+                  "min": 0.0,
+                  "p50": 0.08137255162000656,
+                  "p99": 0.8901960849761963
+                },
+                "G": {
+                  "max": 0.948039174079895,
+                  "min": 0.0,
+                  "p50": 0.11372549086809158,
+                  "p99": 0.8725490570068359
+                },
+                "R": {
+                  "max": 0.9598039388656616,
+                  "min": 0.0,
+                  "p50": 0.0882352963089943,
+                  "p99": 0.8549019694328308
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "c2_d0only",
+          "final": {
+            "abs_rel": 0.12220252271179712,
+            "d1": 0.839138014920532
+          },
+          "image_path": "/mnt/drive/1111_new_works/VKITTI2/rgb/Scene20/30-deg-right/frames/rgb/Camera_0/rgb_00453.jpg",
+          "order": 10,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c2_d0only_residual_vits_halfd0_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch11_3x4_condition_panels/10_vkitti_30-deg-right_validx0276_Camera_0_rgb_00453_epoch11_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 0.9333333373069763,
+              "min": 0.0,
+              "p50": 0.08137255162000656,
+              "p99": 0.8901960849761963
+            },
+            "G": {
+              "max": 0.948039174079895,
+              "min": 0.0,
+              "p50": 0.11372549086809158,
+              "p99": 0.8725490570068359
+            },
+            "R": {
+              "max": 0.9598039388656616,
+              "min": 0.0,
+              "p50": 0.0882352963089943,
+              "p99": 0.8549019694328308
+            }
+          },
+          "sample_name": "Camera_0_rgb_00453",
+          "variant": "30-deg-right"
+        },
+        {
+          "D0": {
+            "abs_rel": 0.1653136146859139,
+            "d1": 0.8016829980565138
+          },
+          "aux_stats": {
+            "B": {
+              "max": 0.41082361340522766,
+              "min": 4.999999873689376e-05,
+              "p50": 0.02118680812418461,
+              "p99": 0.3582661747932434
+            },
+            "Gb": {
+              "max": 0.7979243993759155,
+              "min": 4.999999873689376e-05,
+              "p50": 0.04975249618291855,
+              "p99": 0.6710386872291565
+            },
+            "Gr": {
+              "max": 0.8202354311943054,
+              "min": 4.999999873689376e-05,
+              "p50": 0.049566078931093216,
+              "p99": 0.6710386872291565
+            },
+            "R": {
+              "max": 0.4387596547603607,
+              "min": 4.999999873689376e-05,
+              "p50": 0.02309213951230049,
+              "p99": 0.3478127419948578
+            }
+          },
+          "aux_stretch_meta": {
+            "stretch": "none"
+          },
+          "dataset_index": 276,
+          "depth_path": "/mnt/drive/1111_new_works/VKITTI2/depth/Scene20/30-deg-right/frames/depth/Camera_0/depth_00453.png",
+          "distribution_meta": {
+            "aux_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "Gr",
+                "Gb",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.41082361340522766,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.02118680812418461,
+                  "p99": 0.3582661747932434
+                },
+                "Gb": {
+                  "max": 0.7979243993759155,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.04975249618291855,
+                  "p99": 0.6710386872291565
+                },
+                "Gr": {
+                  "max": 0.8202354311943054,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.049566078931093216,
+                  "p99": 0.6710386872291565
+                },
+                "R": {
+                  "max": 0.4387596547603607,
+                  "min": 4.999999873689376e-05,
+                  "p50": 0.02309213951230049,
+                  "p99": 0.3478127419948578
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            },
+            "rgb_distribution": {
+              "bins": 128,
+              "channels": [
+                "R",
+                "G",
+                "B"
+              ],
+              "normalization": "per_channel_max",
+              "stats": {
+                "B": {
+                  "max": 0.9333333373069763,
+                  "min": 0.0,
+                  "p50": 0.08137255162000656,
+                  "p99": 0.8901960849761963
+                },
+                "G": {
+                  "max": 0.948039174079895,
+                  "min": 0.0,
+                  "p50": 0.11372549086809158,
+                  "p99": 0.8725490570068359
+                },
+                "R": {
+                  "max": 0.9598039388656616,
+                  "min": 0.0,
+                  "p50": 0.0882352963089943,
+                  "p99": 0.8549019694328308
+                }
+              },
+              "x_range": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "experiment": "m2_ffm_mid",
+          "final": {
+            "abs_rel": 0.11872292991132487,
+            "d1": 0.8413679857281868
+          },
+          "image_path": "/mnt/drive/1111_new_works/VKITTI2/rgb/Scene20/30-deg-right/frames/rgb/Camera_0/rgb_00453.jpg",
+          "order": 10,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0204_vkitti_m2_ffm_mid_residual_vits_halfraw187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch08_3x4_condition_panels/10_vkitti_30-deg-right_validx0276_Camera_0_rgb_00453_epoch08_panel.jpg",
+          "rgb_stats": {
+            "B": {
+              "max": 0.9333333373069763,
+              "min": 0.0,
+              "p50": 0.08137255162000656,
+              "p99": 0.8901960849761963
+            },
+            "G": {
+              "max": 0.948039174079895,
+              "min": 0.0,
+              "p50": 0.11372549086809158,
+              "p99": 0.8725490570068359
+            },
+            "R": {
+              "max": 0.9598039388656616,
+              "min": 0.0,
+              "p50": 0.0882352963089943,
+              "p99": 0.8549019694328308
+            }
+          },
+          "sample_name": "Camera_0_rgb_00453",
+          "variant": "30-deg-right"
+        }
+      ],
+      "variant": "30-deg-right"
+    }
+  ],
+  "selected_indices": [
+    740,
+    505,
+    268,
+    632,
+    955,
+    553,
+    637,
+    674,
+    127,
+    276
+  ],
+  "source_manifests": [
+    "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c1_rgb_residual_vits_halfrgb_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch03_3x4_condition_panels/manifest.json",
+    "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c2_d0only_residual_vits_halfd0_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch11_3x4_condition_panels/manifest.json",
+    "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0204_vkitti_m2_ffm_mid_residual_vits_halfraw187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/vkitti_best_val_epoch08_3x4_condition_panels/manifest.json"
+  ],
+  "split": "vkitti"
+}
