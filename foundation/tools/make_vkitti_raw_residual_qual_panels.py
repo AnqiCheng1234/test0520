@@ -315,6 +315,7 @@ def build_model(config: dict[str, Any], checkpoint: Path, device: torch.device) 
     model = build_raw_residual_dav2_model(
         base_model,
         residual_feature_source=str(config["residual_feature_source"]),
+        residual_head_d0_mode=str(config.get("residual_head_d0_mode", "concat")),
         residual_alpha=float(config["residual_alpha"]),
         d0_sign=int(config["d0_sign"]),
         sensor_hw=(int(config["input_height"]), int(config["input_width"])),

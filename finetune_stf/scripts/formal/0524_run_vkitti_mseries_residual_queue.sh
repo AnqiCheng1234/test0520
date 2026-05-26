@@ -129,6 +129,7 @@ common_args=(
   --min-depth 1.0
   --max-depth 80.0
   --residual-alpha 0.5
+  --residual-head-d0-mode concat
   --vkitti-unprocessing-preset sensor_linear_dual
   --randomize-unprocessing
   --hflip-prob 0.5

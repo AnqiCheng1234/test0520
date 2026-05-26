@@ -96,6 +96,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--min-depth", type=float, required=True)
     parser.add_argument("--max-depth", type=float, required=True)
     parser.add_argument("--residual-feature-source", required=True, choices=["ffm_mid", "x3", "x3_ffm_mid"])
+    parser.add_argument(
+        "--residual-head-d0-mode",
+        required=True,
+        choices=["concat", "none"],
+        help="Whether residual head input explicitly concatenates D0_norm.",
+    )
     parser.add_argument("--residual-alpha", type=float, required=True)
     parser.add_argument("--d0-sign", type=int, required=True, choices=[-1, 1])
     parser.add_argument("--unprocessing-method", default="old_brooks_preset", choices=["old_brooks_preset", "raw_adapter_style"])
@@ -190,6 +196,11 @@ def validate_args(args: argparse.Namespace) -> None:
         raise ValueError(f"Expected 0 < min_depth < max_depth, got {args.min_depth}, {args.max_depth}")
     if args.residual_alpha <= 0.0:
         raise ValueError(f"--residual-alpha must be positive, got {args.residual_alpha}")
+    if args.residual_head_d0_mode == "none" and args.residual_feature_source == "x3_ffm_mid":
+        raise ValueError(
+            "--residual-head-d0-mode none with --residual-feature-source x3_ffm_mid is not part of the "
+            "defined ablation matrix; use ffm_mid or x3, or confirm a new semantic experiment."
+        )
     if not (0.0 <= args.hflip_prob <= 1.0):
         raise ValueError(f"--hflip-prob must be in [0, 1], got {args.hflip_prob}")
     if args.bs <= 0 or args.accum_steps <= 0 or args.epochs <= 0:
@@ -921,6 +932,7 @@ def main() -> None:
     model = build_raw_residual_dav2_model(
         base_model,
         residual_feature_source=args.residual_feature_source,
+        residual_head_d0_mode=args.residual_head_d0_mode,
         residual_alpha=args.residual_alpha,
         d0_sign=args.d0_sign,
         sensor_hw=(args.input_height, args.input_width),
@@ -952,11 +964,13 @@ def main() -> None:
     scaler = torch.cuda.amp.GradScaler(enabled=args.amp and args.amp_dtype == "fp16")
     total_params, trainable_param_count = count_parameters(model)
     logger.info(
-        "[MODEL] total_params=%d trainable_params=%d frozen_params=%d residual_feature_source=%s d0_sign=%d",
+        "[MODEL] total_params=%d trainable_params=%d frozen_params=%d residual_feature_source=%s "
+        "residual_head_d0_mode=%s d0_sign=%d",
         total_params,
         trainable_param_count,
         total_params - trainable_param_count,
         args.residual_feature_source,
+        args.residual_head_d0_mode,
         args.d0_sign,
     )
     logger.info("[DATASET] train_samples=%d vkitti_val_samples=%d", len(train_dataset), len(val_dataset))

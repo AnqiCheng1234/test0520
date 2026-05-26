@@ -8,7 +8,7 @@ HEAVY_ROOT="${HEAVY_ROOT:-/mnt/drive/3333_raw/0000_exp_ckpt}"
 CONDA_BIN="${CONDA_BIN:-conda}"
 CONDA_ENV="${CONDA_ENV:-dav3}"
 GPU="${GPU:-${CUDA_VISIBLE_DEVICES:-0}}"
-SESSION_PREFIX="${SESSION_PREFIX:-vkitti_mseries_rawadapter}"
+SESSION_PREFIX="${SESSION_PREFIX:-vkitti_rawadapter_feature_d0_ablation}"
 SPLIT_TAG="${SPLIT_TAG:-sceneholdout_Scene20_n1000_seed42}"
 EPOCHS="${EPOCHS:-20}"
 D0_SIGN="${D0_SIGN:-1}"
@@ -25,23 +25,24 @@ KITTI_NUM_WORKERS="${KITTI_NUM_WORKERS:-2}"
 
 RUN_SMOKE="${RUN_SMOKE:-1}"
 KEEP_SMOKE="${KEEP_SMOKE:-0}"
-RUN_RA0="${RUN_RA0:-1}"
-RUN_RA1="${RUN_RA1:-0}"
-RUN_RA2="${RUN_RA2:-0}"
-RUN_RA3="${RUN_RA3:-0}"
-RUN_RA4="${RUN_RA4:-0}"
-RA1_DARK_LIGHT_SCALE="${RA1_DARK_LIGHT_SCALE:-0.20}"
-RA2_OVER_LIGHT_SCALE="${RA2_OVER_LIGHT_SCALE:-1.80}"
+RUN_M1_X3_D0="${RUN_M1_X3_D0:-1}"
+RUN_FFM_MID_ONLY="${RUN_FFM_MID_ONLY:-1}"
+RUN_X3_ONLY="${RUN_X3_ONLY:-1}"
 
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
   cat <<'EOF'
 Usage:
-  bash finetune_stf/scripts/formal/0525_run_vkitti_mseries_rawadapter_queue.sh
+  bash finetune_stf/scripts/formal/0526_run_vkitti_rawadapter_feature_d0_ablation_queue.sh
 
-Starts one new tmux session. By default it runs smoke checks and launches only
-RA0. Useful overrides:
-  RUN_SMOKE=0 GPU=1 D0_SIGN=1 bash ...
-  RUN_RA0=0 RUN_RA3=1 bash ...
+Starts one tmux queue. Each formal run computes its own MMDD_HHMM timestamp
+at actual launch time. By default it runs smoke checks, then launches:
+  1. M1 x3 with D0_norm concatenated
+  2. ffm_mid only, no D0_norm in residual head input
+  3. x3 only, no D0_norm in residual head input
+
+Useful overrides:
+  RUN_SMOKE=0 GPU=1 bash ...
+  RUN_M1_X3_D0=0 RUN_FFM_MID_ONLY=1 RUN_X3_ONLY=0 bash ...
   EPOCHS=20 EVAL_KITTI=1 bash ...
 EOF
   exit 0
@@ -49,8 +50,8 @@ fi
 
 if [[ "${1:-}" != "--run-internal" ]]; then
   mkdir -p "${LOG_ROOT}"
-  run_timestamp="$(date +%m%d_%H%M)"
-  session="${run_timestamp}_${SESSION_PREFIX}"
+  queue_timestamp="$(date +%m%d_%H%M)"
+  session="${queue_timestamp}_${SESSION_PREFIX}"
   queue_log="${LOG_ROOT}/${session}.queue.log"
 
   if tmux has-session -t "${session}" 2>/dev/null; then
@@ -59,7 +60,7 @@ if [[ "${1:-}" != "--run-internal" ]]; then
   fi
 
   tmux new-session -d -s "${session}" \
-    "cd '${ROOT}' && ROOT='${ROOT}' EXP_ROOT='${EXP_ROOT}' LOG_ROOT='${LOG_ROOT}' HEAVY_ROOT='${HEAVY_ROOT}' CONDA_BIN='${CONDA_BIN}' CONDA_ENV='${CONDA_ENV}' GPU='${GPU}' PRETRAINED='${PRETRAINED}' VKITTI_TRAIN_LIST='${VKITTI_TRAIN_LIST}' VKITTI_VAL_LIST='${VKITTI_VAL_LIST}' EVAL_KITTI='${EVAL_KITTI}' KITTI_BASE='${KITTI_BASE}' KITTI_VAL_SPLIT='${KITTI_VAL_SPLIT}' KITTI_EVAL_PROTOCOL='${KITTI_EVAL_PROTOCOL}' KITTI_EXPECTED_VAL_SAMPLES='${KITTI_EXPECTED_VAL_SAMPLES}' KITTI_NUM_WORKERS='${KITTI_NUM_WORKERS}' RUN_SMOKE='${RUN_SMOKE}' KEEP_SMOKE='${KEEP_SMOKE}' D0_SIGN='${D0_SIGN}' RUN_RA0='${RUN_RA0}' RUN_RA1='${RUN_RA1}' RUN_RA2='${RUN_RA2}' RUN_RA3='${RUN_RA3}' RUN_RA4='${RUN_RA4}' RA1_DARK_LIGHT_SCALE='${RA1_DARK_LIGHT_SCALE}' RA2_OVER_LIGHT_SCALE='${RA2_OVER_LIGHT_SCALE}' SPLIT_TAG='${SPLIT_TAG}' EPOCHS='${EPOCHS}' RUN_TIMESTAMP='${run_timestamp}' QUEUE_SESSION='${session}' CUDA_VISIBLE_DEVICES='${GPU}' bash '$0' --run-internal 2>&1 | tee -a '${queue_log}'"
+    "cd '${ROOT}' && ROOT='${ROOT}' EXP_ROOT='${EXP_ROOT}' LOG_ROOT='${LOG_ROOT}' HEAVY_ROOT='${HEAVY_ROOT}' CONDA_BIN='${CONDA_BIN}' CONDA_ENV='${CONDA_ENV}' GPU='${GPU}' PRETRAINED='${PRETRAINED}' VKITTI_TRAIN_LIST='${VKITTI_TRAIN_LIST}' VKITTI_VAL_LIST='${VKITTI_VAL_LIST}' EVAL_KITTI='${EVAL_KITTI}' KITTI_BASE='${KITTI_BASE}' KITTI_VAL_SPLIT='${KITTI_VAL_SPLIT}' KITTI_EVAL_PROTOCOL='${KITTI_EVAL_PROTOCOL}' KITTI_EXPECTED_VAL_SAMPLES='${KITTI_EXPECTED_VAL_SAMPLES}' KITTI_NUM_WORKERS='${KITTI_NUM_WORKERS}' RUN_SMOKE='${RUN_SMOKE}' KEEP_SMOKE='${KEEP_SMOKE}' D0_SIGN='${D0_SIGN}' RUN_M1_X3_D0='${RUN_M1_X3_D0}' RUN_FFM_MID_ONLY='${RUN_FFM_MID_ONLY}' RUN_X3_ONLY='${RUN_X3_ONLY}' SPLIT_TAG='${SPLIT_TAG}' EPOCHS='${EPOCHS}' QUEUE_TIMESTAMP='${queue_timestamp}' QUEUE_SESSION='${session}' CUDA_VISIBLE_DEVICES='${GPU}' bash '$0' --run-internal 2>&1 | tee -a '${queue_log}'"
 
   cat <<EOF
 Started tmux session: ${session}
@@ -89,15 +90,6 @@ require_dir() {
   fi
 }
 
-variant_weights() {
-  case "$1" in
-    normal) echo "normal=1.0,dark=0.0,over=0.0" ;;
-    dark) echo "normal=0.0,dark=1.0,over=0.0" ;;
-    over) echo "normal=0.0,dark=0.0,over=1.0" ;;
-    *) echo "[ERROR] Unknown variant $1" >&2; return 2 ;;
-  esac
-}
-
 common_args=(
   --input-domain raw4
   --model-input-tensor raw
@@ -114,8 +106,6 @@ common_args=(
   --input-width 621
   --min-depth 1.0
   --max-depth 80.0
-  --residual-feature-source ffm_mid
-  --residual-head-d0-mode concat
   --residual-alpha 0.5
   --d0-sign "${D0_SIGN}"
   --unprocessing-method raw_adapter_style
@@ -138,6 +128,11 @@ common_args=(
   --raw-adapter-black-level 0.0
   --raw-adapter-white-level 1.0
   --raw-adapter-random-seed-policy dataloader_generator
+  --raw-adapter-inverse-tone global_0p15
+  --raw-adapter-ccm identity
+  --raw-adapter-variant-policy normal
+  --raw-adapter-variant-weights normal=1.0,dark=0.0,over=0.0
+  --raw-adapter-fixed-light-scale 1.0
   --accum-steps 1
   --lr 1e-4
   --weight-decay 1e-4
@@ -176,12 +171,13 @@ log_header() {
 
 run_training() {
   local label="$1"
-  local run_name="$2"
-  local inverse_tone="$3"
-  local ccm="$4"
-  local variant="$5"
-  local fixed_light="$6"
+  local run_tag="$2"
+  local feature_source="$3"
+  local d0_mode="$4"
 
+  local run_timestamp
+  run_timestamp="$(date +%m%d_%H%M)"
+  local run_name="${run_timestamp}_${run_tag}_rawadapter_analytic_identity_normal_vits_halfraw187x621_${SPLIT_TAG}_bs8_e${EPOCHS}"
   local save="${EXP_ROOT}/${run_name}"
   local heavy="${HEAVY_ROOT}/${run_name}"
   local log="${LOG_ROOT}/${run_name}.tmux.log"
@@ -195,15 +191,20 @@ run_training() {
 
   mkdir -p "${save}"
   log_header "${label}" "${run_name}" "${log}"
+  {
+    echo -n "[CMD] CUDA_VISIBLE_DEVICES=${GPU} ${CONDA_BIN} run --live-stream -n ${CONDA_ENV} python foundation/tools/train_vkitti2_raw_residual.py"
+    printf ' %q' "${common_args[@]}"
+    printf ' --residual-feature-source %q --residual-head-d0-mode %q' "${feature_source}" "${d0_mode}"
+    printf ' --epochs %q --bs 8 --num-workers 4 --log-interval 100 --save-interval 1 --eval-interval 1 --save-best-checkpoint' "${EPOCHS}"
+    printf ' --save-path %q --heavy-save-path %q\n' "${save}" "${heavy}"
+  } 2>&1 | tee -a "${log}"
+
   set +e
   CUDA_VISIBLE_DEVICES="${GPU}" "${CONDA_BIN}" run --live-stream -n "${CONDA_ENV}" \
     python foundation/tools/train_vkitti2_raw_residual.py \
     "${common_args[@]}" \
-    --raw-adapter-inverse-tone "${inverse_tone}" \
-    --raw-adapter-ccm "${ccm}" \
-    --raw-adapter-variant-policy "${variant}" \
-    --raw-adapter-variant-weights "$(variant_weights "${variant}")" \
-    --raw-adapter-fixed-light-scale "${fixed_light}" \
+    --residual-feature-source "${feature_source}" \
+    --residual-head-d0-mode "${d0_mode}" \
     --epochs "${EPOCHS}" \
     --bs 8 \
     --num-workers 4 \
@@ -219,61 +220,26 @@ run_training() {
   return "${status}"
 }
 
-run_smokes() {
-  local smoke_root="$1"
-  mkdir -p "${smoke_root}"
-  "${CONDA_BIN}" run --live-stream -n "${CONDA_ENV}" \
-    python foundation/tools/smoke_raw_adapter_style_unprocessing.py \
-    --output "${smoke_root}/transform/parity.json"
-  "${CONDA_BIN}" run --live-stream -n "${CONDA_ENV}" \
-    python foundation/tools/smoke_vkitti2_raw_adapter_dataset.py \
-    --vkitti-train-list "${VKITTI_TRAIN_LIST}" \
-    --vkitti-val-list "${VKITTI_VAL_LIST}" \
-    --input-height 187 \
-    --input-width 621 \
-    --raw-storage-format synthetic_packed_bayer_4ch_halfres \
-    --fullres-even-policy crop_bottom_to_even \
-    --rgb-input-space halfres_2x2_area \
-    --depth-target-space halfres_2x2_valid_mean \
-    --unprocessing-method raw_adapter_style \
-    --vkitti-unprocessing-preset not_applicable \
-    --no-randomize-unprocessing \
-    --raw-adapter-backend analytic \
-    --raw-adapter-cfa-pattern RGGB \
-    --raw-adapter-packed-channel-order R_Gr_Gb_B \
-    --raw-adapter-rgb-transfer srgb_piecewise \
-    --raw-adapter-inverse-tone global_0p15 \
-    --raw-adapter-ccm identity \
-    --raw-adapter-red-gain-range 1.9 2.4 \
-    --raw-adapter-blue-gain-range 1.5 1.9 \
-    --raw-adapter-fixed-red-gain 2.15 \
-    --raw-adapter-fixed-blue-gain 1.70 \
-    --raw-adapter-variant-policy normal \
-    --raw-adapter-variant-weights normal=1.0,dark=0.0,over=0.0 \
-    --raw-adapter-fixed-light-scale 1.0 \
-    --raw-adapter-dark-light-scale-range 0.05 0.4 \
-    --raw-adapter-over-light-scale-range 1.5 2.5 \
-    --raw-adapter-shot-noise 0.001 \
-    --raw-adapter-read-noise 0.0005 \
-    --raw-adapter-noise-mean-mode zero \
-    --raw-adapter-black-level 0.0 \
-    --raw-adapter-white-level 1.0 \
-    --raw-adapter-random-seed-policy dataloader_generator \
-    --output "${smoke_root}/dataset/summary.json"
-
+run_train_smoke() {
+  local label="$1"
+  local feature_source="$2"
+  local d0_mode="$3"
+  local smoke_root="$4"
+  local smoke_dir="${smoke_root}/${label}"
+  local smoke_log="${smoke_dir}/train_smoke.log"
   local smoke_kitti_args=()
   if [[ "${EVAL_KITTI}" == "1" ]]; then
     smoke_kitti_args+=(--max-kitti-val-samples 4)
   fi
-  mkdir -p "${smoke_root}/train"
+
+  mkdir -p "${smoke_dir}"
+  echo "[SMOKE] ${label} feature=${feature_source} d0_mode=${d0_mode} root=${smoke_dir}"
+  set +e
   CUDA_VISIBLE_DEVICES="${GPU}" "${CONDA_BIN}" run --live-stream -n "${CONDA_ENV}" \
     python foundation/tools/train_vkitti2_raw_residual.py \
     "${common_args[@]}" \
-    --raw-adapter-inverse-tone global_0p15 \
-    --raw-adapter-ccm identity \
-    --raw-adapter-variant-policy normal \
-    --raw-adapter-variant-weights normal=1.0,dark=0.0,over=0.0 \
-    --raw-adapter-fixed-light-scale 1.0 \
+    --residual-feature-source "${feature_source}" \
+    --residual-head-d0-mode "${d0_mode}" \
     --epochs 1 \
     --bs 8 \
     --num-workers 0 \
@@ -283,8 +249,22 @@ run_smokes() {
     --max-train-steps 2 \
     --max-val-samples 4 \
     "${smoke_kitti_args[@]}" \
-    --save-path "${smoke_root}/train/exp" \
-    --heavy-save-path "${smoke_root}/train/heavy" 2>&1 | tee -a "${smoke_root}/train/train_smoke.log"
+    --save-path "${smoke_dir}/exp" \
+    --heavy-save-path "${smoke_dir}/heavy" 2>&1 | tee -a "${smoke_log}"
+  local status=${PIPESTATUS[0]}
+  set -e
+  if [[ "${status}" -ne 0 ]]; then
+    echo "[SMOKE][ERROR] ${label} failed; kept ${smoke_dir}" >&2
+    return "${status}"
+  fi
+}
+
+run_smokes() {
+  local smoke_root="$1"
+  mkdir -p "${smoke_root}"
+  run_train_smoke "smoke_m1_x3_d0concat" "x3" "concat" "${smoke_root}"
+  run_train_smoke "smoke_ffm_mid_only" "ffm_mid" "none" "${smoke_root}"
+  run_train_smoke "smoke_x3_only" "x3" "none" "${smoke_root}"
 }
 
 require_file "${PRETRAINED}"
@@ -295,15 +275,16 @@ if [[ "${EVAL_KITTI}" == "1" ]]; then
   require_dir "${KITTI_BASE}"
 fi
 
-RUN_TIMESTAMP="${RUN_TIMESTAMP:-$(date +%m%d_%H%M)}"
-SMOKE_ROOT="${ROOT}/plans/0524_unprocessing/codex_smoke_0525_rawadapter_queue_${RUN_TIMESTAMP}"
+QUEUE_TIMESTAMP="${QUEUE_TIMESTAMP:-$(date +%m%d_%H%M)}"
+SMOKE_ROOT="${ROOT}/plans/0524_unprocessing/codex_smoke_0526_feature_d0_ablation_queue_${QUEUE_TIMESTAMP}"
 
 echo "[QUEUE_START] $(date -Iseconds)"
 echo "[QUEUE_SESSION] ${QUEUE_SESSION:-internal}"
-echo "[RUN_TIMESTAMP] ${RUN_TIMESTAMP}"
+echo "[QUEUE_TIMESTAMP] ${QUEUE_TIMESTAMP}"
 echo "[SPLIT_TAG] ${SPLIT_TAG}"
 echo "[D0_SIGN] ${D0_SIGN}"
 echo "[EPOCHS] ${EPOCHS}"
+echo "[PER_RUN_TIMESTAMP] enabled"
 
 if [[ "${RUN_SMOKE}" == "1" ]]; then
   run_smokes "${SMOKE_ROOT}"
@@ -314,34 +295,25 @@ if [[ "${KEEP_SMOKE}" != "1" && -d "${SMOKE_ROOT}" ]]; then
   echo "[SMOKE] removed successful smoke artifacts: ${SMOKE_ROOT}"
 fi
 
-if [[ "${RUN_RA0}" == "1" ]]; then
-  run_training "formal M2-RA0 rawadapter analytic identity normal" \
-    "${RUN_TIMESTAMP}_vkitti_m2_ra0_rawadapter_analytic_identity_normal_vits_halfraw187x621_${SPLIT_TAG}_bs8_e${EPOCHS}" \
-    "global_0p15" "identity" "normal" "1.0"
+if [[ "${RUN_M1_X3_D0}" == "1" ]]; then
+  run_training "formal M1 x3 residual with D0_norm" \
+    "vkitti_m1_ra0_x3_d0concat" \
+    "x3" \
+    "concat"
 fi
 
-if [[ "${RUN_RA1}" == "1" ]]; then
-  run_training "formal M2-RA1 rawadapter fixed dark" \
-    "${RUN_TIMESTAMP}_vkitti_m2_ra1_rawadapter_analytic_identity_dark_vits_halfraw187x621_${SPLIT_TAG}_bs8_e${EPOCHS}" \
-    "global_0p15" "identity" "dark" "${RA1_DARK_LIGHT_SCALE}"
+if [[ "${RUN_FFM_MID_ONLY}" == "1" ]]; then
+  run_training "formal ffm_mid-only residual head, no D0_norm input" \
+    "vkitti_m2nod0_ra0_ffm_mid_only" \
+    "ffm_mid" \
+    "none"
 fi
 
-if [[ "${RUN_RA2}" == "1" ]]; then
-  run_training "formal M2-RA2 rawadapter fixed over" \
-    "${RUN_TIMESTAMP}_vkitti_m2_ra2_rawadapter_analytic_identity_over_vits_halfraw187x621_${SPLIT_TAG}_bs8_e${EPOCHS}" \
-    "global_0p15" "identity" "over" "${RA2_OVER_LIGHT_SCALE}"
-fi
-
-if [[ "${RUN_RA3}" == "1" ]]; then
-  run_training "formal M2-RA3 rawadapter ccm tone normal" \
-    "${RUN_TIMESTAMP}_vkitti_m2_ra3_rawadapter_analytic_genericd65_normal_vits_halfraw187x621_${SPLIT_TAG}_bs8_e${EPOCHS}" \
-    "global_0p15" "generic_d65" "normal" "1.0"
-fi
-
-if [[ "${RUN_RA4}" == "1" ]]; then
-  run_training "formal M2-RA4 rawadapter no-tone normal" \
-    "${RUN_TIMESTAMP}_vkitti_m2_ra4_rawadapter_analytic_notone_identity_normal_vits_halfraw187x621_${SPLIT_TAG}_bs8_e${EPOCHS}" \
-    "none" "identity" "normal" "1.0"
+if [[ "${RUN_X3_ONLY}" == "1" ]]; then
+  run_training "formal x3-only residual head, no D0_norm input" \
+    "vkitti_m1nod0_ra0_x3_only" \
+    "x3" \
+    "none"
 fi
 
 echo "[QUEUE_END] $(date -Iseconds) status=0"

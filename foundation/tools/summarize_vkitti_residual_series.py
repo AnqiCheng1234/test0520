@@ -18,6 +18,7 @@ SUMMARY_COLUMNS = (
     "method",
     "experiment_id",
     "residual_feature_source",
+    "residual_head_d0_mode",
     "input_domain",
     "model_input_tensor",
     "raw_storage_format",
@@ -72,13 +73,15 @@ def infer_method(run_dir: Path, config: dict[str, Any]) -> str:
     if exp_id in ("C1", "C2", "M1", "M2", "M3"):
         return str(exp_id)
     feature_source = str(config.get("residual_feature_source", "unknown"))
+    residual_head_d0_mode = str(config.get("residual_head_d0_mode", "concat"))
     name = run_dir.name.lower()
+    suffix = "_noD0" if residual_head_d0_mode == "none" else ""
     if "m1" in name or feature_source == "x3":
-        return "M1"
+        return f"M1{suffix}"
     if "m3" in name or feature_source == "x3_ffm_mid":
-        return "M3"
+        return f"M3{suffix}"
     if "m2" in name or feature_source == "ffm_mid":
-        return "M2"
+        return f"M2{suffix}"
     return "unknown"
 
 
@@ -141,6 +144,7 @@ def row_from_run(run_dir: Path) -> dict[str, Any]:
         "method": method,
         "experiment_id": config.get("experiment_id", method),
         "residual_feature_source": config.get("residual_feature_source", "n/a"),
+        "residual_head_d0_mode": config.get("residual_head_d0_mode", "concat"),
         "input_domain": config.get("input_domain", "n/a"),
         "model_input_tensor": config.get("model_input_tensor", "n/a"),
         "raw_storage_format": config.get("raw_storage_format", "n/a"),
@@ -293,7 +297,7 @@ def main() -> None:
 
     rows = [row_from_run(path) for path in run_dirs]
     validate_rows(rows)
-    order = {"M2": 0, "M1": 1, "M3": 2, "C2": 3, "C1": 4}
+    order = {"M2": 0, "M1": 1, "M3": 2, "M2_noD0": 3, "M1_noD0": 4, "M3_noD0": 5, "C2": 6, "C1": 7}
     rows.sort(key=lambda row: order.get(str(row["method"]), 99))
 
     timestamp = args.timestamp or infer_timestamp(run_dirs)

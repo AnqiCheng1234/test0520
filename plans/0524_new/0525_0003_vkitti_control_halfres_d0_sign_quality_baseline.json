@@ -1,0 +1,62 @@
+{
+  "alignment_protocol": "per_image_affine_disp_depth_anything_v2",
+  "dataset_geometry": {
+    "crop_box": [
+      0,
+      0,
+      374,
+      1242
+    ],
+    "crop_box_format": "h_start_w_start_h_end_w_end",
+    "crop_box_semantics": "source_fullres_to_even_fullres",
+    "cropped_bottom_rows": 1,
+    "depth_target_space": "halfres_2x2_valid_mean",
+    "even_fullres_hw": [
+      374,
+      1242
+    ],
+    "fullres_even_policy": "crop_bottom_to_even",
+    "input_hw": [
+      187,
+      621
+    ],
+    "original_hw": [
+      375,
+      1242
+    ],
+    "packed_hw": "not_applicable",
+    "raw_storage_format": "not_applicable",
+    "rgb_input_space": "halfres_2x2_area",
+    "source_original_hw": [
+      375,
+      1242
+    ]
+  },
+  "depth_target_space": "halfres_2x2_valid_mean",
+  "encoder": "vits",
+  "fullres_even_policy": "crop_bottom_to_even",
+  "global_pixel_corr": 0.8996808357034635,
+  "halfres_187x621_D0_abs_rel_mean_over_64": 0.17075571896599684,
+  "halfres_187x621_D0_d1_mean_over_64": 0.7546912875493486,
+  "halfres_187x621_D0_silog_mean_over_64": 0.25090968193565794,
+  "input_height": 187,
+  "input_width": 621,
+  "max_depth": 80.0,
+  "max_samples": 64,
+  "mean_sample_corr": 0.9455260085872323,
+  "median_sample_corr": 0.9498867611950654,
+  "min_depth": 1.0,
+  "pretrained_from": "/home/caq/333_cvpr/da_ours/checkpoints/depth_anything_v2_vits.pth",
+  "processed_samples": 64,
+  "quality": {
+    "halfres_187x621": {
+      "abs_rel": 0.17075571896599684,
+      "d1": 0.7546912875493486,
+      "silog": 0.25090968193565794
+    }
+  },
+  "raw_storage_format": "not_applicable",
+  "recommended_d0_sign": 1,
+  "rgb_input_space": "halfres_2x2_area",
+  "vkitti_val_list": "finetune_stf/dataset/splits/vkitti2/val_mseries_seed42.txt"
+}

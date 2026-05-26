@@ -17,6 +17,7 @@ if str(PROJECT_ROOT) not in sys.path:
 SUMMARY_COLUMNS = (
     "method",
     "feature_source",
+    "residual_head_d0_mode",
     "raw_storage_format",
     "fullres_even_policy",
     "rgb_input_space",
@@ -57,13 +58,14 @@ def load_json(path: Path) -> Any:
         return json.load(f)
 
 
-def infer_method(run_dir: Path, feature_source: str) -> str:
+def infer_method(run_dir: Path, feature_source: str, residual_head_d0_mode: str) -> str:
     name = run_dir.name.lower()
+    suffix = "_noD0" if residual_head_d0_mode == "none" else ""
     if "m1" in name or feature_source == "x3":
-        return "M1"
+        return f"M1{suffix}"
     if "m3" in name or feature_source == "x3_ffm_mid":
-        return "M3"
-    return "M2"
+        return f"M3{suffix}"
+    return f"M2{suffix}"
 
 
 def find_best_epoch(val_payload: dict[str, Any]) -> dict[str, Any]:
@@ -102,13 +104,15 @@ def row_from_run(run_dir: Path) -> dict[str, Any]:
     val_payload = load_json(run_dir / "val_metrics.json")
     best = find_best_epoch(val_payload)
     feature_source = str(config.get("residual_feature_source", "unknown"))
+    residual_head_d0_mode = str(config.get("residual_head_d0_mode", "concat"))
     overall = best["overall"]
     region = best["region"]
     diagnostics = best.get("diagnostics", {})
     row = {
         "run_dir": str(run_dir),
-        "method": infer_method(run_dir, feature_source),
+        "method": infer_method(run_dir, feature_source, residual_head_d0_mode),
         "feature_source": feature_source,
+        "residual_head_d0_mode": residual_head_d0_mode,
         "raw_storage_format": config.get("raw_storage_format", "n/a"),
         "fullres_even_policy": config.get("fullres_even_policy", "n/a"),
         "rgb_input_space": config.get("rgb_input_space", "n/a"),
@@ -174,7 +178,16 @@ def main() -> None:
     args = parse_args()
     run_dirs = [Path(path).expanduser().resolve() for path in args.runs]
     rows = [row_from_run(path) for path in run_dirs]
-    rows.sort(key=lambda row: {"M2": 0, "M1": 1, "M3": 2}.get(str(row["method"]), 99))
+    rows.sort(
+        key=lambda row: {
+            "M2": 0,
+            "M1": 1,
+            "M3": 2,
+            "M2_noD0": 3,
+            "M1_noD0": 4,
+            "M3_noD0": 5,
+        }.get(str(row["method"]), 99)
+    )
     timestamp = args.timestamp or infer_timestamp(run_dirs[0])
     output_dir = Path(args.output_dir).expanduser()
     output_dir.mkdir(parents=True, exist_ok=True)

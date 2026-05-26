@@ -11,6 +11,7 @@ from foundation.engine.transforms import packed_bayer_to_base_rgb
 
 
 RESIDUAL_FEATURE_SOURCES = ("ffm_mid", "x3", "x3_ffm_mid")
+RESIDUAL_HEAD_D0_MODES = ("concat", "none")
 
 
 def _gn(channels: int) -> nn.GroupNorm:
@@ -109,14 +110,24 @@ class ResidualGateHead(nn.Module):
         return delta, gate
 
 
-def _feature_channels(feature_source: str) -> int:
+def _raw_feature_channels(feature_source: str) -> int:
     if feature_source == "ffm_mid":
-        return 65
+        return 64
     if feature_source == "x3":
-        return 4
+        return 3
     if feature_source == "x3_ffm_mid":
-        return 68
+        return 67
     raise ValueError(f"Unsupported residual_feature_source={feature_source!r}; expected {RESIDUAL_FEATURE_SOURCES}")
+
+
+def _feature_channels(feature_source: str, residual_head_d0_mode: str) -> int:
+    if residual_head_d0_mode not in RESIDUAL_HEAD_D0_MODES:
+        raise ValueError(
+            f"Unsupported residual_head_d0_mode={residual_head_d0_mode!r}; "
+            f"expected {RESIDUAL_HEAD_D0_MODES}"
+        )
+    d0_channels = 1 if residual_head_d0_mode == "concat" else 0
+    return d0_channels + _raw_feature_channels(feature_source)
 
 
 class RawResidualDAV2(nn.Module):
@@ -134,6 +145,7 @@ class RawResidualDAV2(nn.Module):
         dav2_model: nn.Module,
         *,
         residual_feature_source: str = "ffm_mid",
+        residual_head_d0_mode: str = "concat",
         residual_alpha: float = 0.5,
         d0_sign: int = 1,
         sensor_hw: tuple[int, int] = SENSOR_INPUT_HW,
@@ -147,17 +159,27 @@ class RawResidualDAV2(nn.Module):
                 f"Unsupported residual_feature_source={residual_feature_source!r}; "
                 f"expected one of {RESIDUAL_FEATURE_SOURCES}"
             )
+        residual_head_d0_mode = str(residual_head_d0_mode)
+        if residual_head_d0_mode not in RESIDUAL_HEAD_D0_MODES:
+            raise ValueError(
+                f"Unsupported residual_head_d0_mode={residual_head_d0_mode!r}; "
+                f"expected one of {RESIDUAL_HEAD_D0_MODES}"
+            )
         if int(d0_sign) not in (-1, 1):
             raise ValueError(f"d0_sign must be 1 or -1, got {d0_sign}")
 
         self.dav2 = dav2_model
         self.ram_core = RamCore3()
         self.residual_feature_source = residual_feature_source
+        self.residual_head_d0_mode = residual_head_d0_mode
         self.residual_alpha = float(residual_alpha)
         self.d0_sign = int(d0_sign)
         self.min_valid_pixels = int(min_valid_pixels)
         self.spatial_adapter = CenterPadCropAdapter(sensor_hw=sensor_hw, backbone_hw=backbone_hw)
-        self.residual_head = ResidualGateHead(_feature_channels(residual_feature_source), alpha=residual_alpha)
+        self.residual_head = ResidualGateHead(
+            _feature_channels(residual_feature_source, residual_head_d0_mode),
+            alpha=residual_alpha,
+        )
 
         self.dav2.eval()
         for param in self.dav2.parameters():
@@ -189,14 +211,21 @@ class RawResidualDAV2(nn.Module):
         x3: torch.Tensor,
         ffm_mid: torch.Tensor,
     ) -> torch.Tensor:
-        d0_norm_ch = d0_norm.unsqueeze(1)
+        features: list[torch.Tensor] = []
+        if self.residual_head_d0_mode == "concat":
+            features.append(d0_norm.unsqueeze(1))
+        elif self.residual_head_d0_mode != "none":
+            raise AssertionError(f"Unhandled residual head D0 mode: {self.residual_head_d0_mode}")
+
         if self.residual_feature_source == "ffm_mid":
-            return torch.cat([d0_norm_ch, ffm_mid], dim=1)
-        if self.residual_feature_source == "x3":
-            return torch.cat([d0_norm_ch, x3], dim=1)
-        if self.residual_feature_source == "x3_ffm_mid":
-            return torch.cat([d0_norm_ch, x3, ffm_mid], dim=1)
-        raise AssertionError(f"Unhandled residual feature source: {self.residual_feature_source}")
+            features.append(ffm_mid)
+        elif self.residual_feature_source == "x3":
+            features.append(x3)
+        elif self.residual_feature_source == "x3_ffm_mid":
+            features.extend([x3, ffm_mid])
+        else:
+            raise AssertionError(f"Unhandled residual feature source: {self.residual_feature_source}")
+        return torch.cat(features, dim=1)
 
     def forward(self, batch: dict[str, torch.Tensor]) -> dict[str, torch.Tensor]:
         image = batch["image"]
@@ -253,6 +282,7 @@ def build_raw_residual_dav2_model(
     dav2_model: nn.Module,
     *,
     residual_feature_source: str = "ffm_mid",
+    residual_head_d0_mode: str = "concat",
     residual_alpha: float = 0.5,
     d0_sign: int = 1,
     sensor_hw: tuple[int, int] = SENSOR_INPUT_HW,
@@ -262,6 +292,7 @@ def build_raw_residual_dav2_model(
     return RawResidualDAV2(
         dav2_model,
         residual_feature_source=residual_feature_source,
+        residual_head_d0_mode=residual_head_d0_mode,
         residual_alpha=residual_alpha,
         d0_sign=d0_sign,
         sensor_hw=sensor_hw,

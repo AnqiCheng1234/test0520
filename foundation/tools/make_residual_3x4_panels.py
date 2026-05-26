@@ -150,6 +150,7 @@ def build_model(config: dict[str, Any], checkpoint: Path, device: torch.device) 
         model = build_raw_residual_dav2_model(
             base_model,
             residual_feature_source=str(config["residual_feature_source"]),
+            residual_head_d0_mode=str(config.get("residual_head_d0_mode", "concat")),
             residual_alpha=float(config["residual_alpha"]),
             d0_sign=int(config["d0_sign"]),
             sensor_hw=(int(config["input_height"]), int(config["input_width"])),
@@ -745,6 +746,7 @@ def main() -> None:
         "input_domain": config.get("input_domain"),
         "front_end": config.get("front_end"),
         "residual_feature_source": config.get("residual_feature_source"),
+        "residual_head_d0_mode": config.get("residual_head_d0_mode", "concat"),
         "selected_indices": [int(x) for x in indices],
         "selection": selection_meta,
         "panel_layout": [

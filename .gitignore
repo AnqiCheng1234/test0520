@@ -9,6 +9,17 @@ anqi_eval/results/
 codex_debug/
 codex_smoke/
 finetune_stf/exp/
+finetune_stf/exp_0520/
 finetune_stf/logs/
 scripts/verify_output/
 metric_depth/
+plans/**/codex_smoke_*/
+plans/0524_unprocessing/**/rawadapter_unproc_*/
+plans/0524_unprocessing/**/rgb_samples_*/
+plans/0524_unprocessing/**/viz_dump/
+plans/0524_unprocessing/**/*_viz/
+plans/0524_unprocessing/**/ablation_panels*/
+plans/0524_unprocessing/**/*.npz
+plans/0524_unprocessing/**/*.pth
+plans/0525_pre/*.pdf
+plans/0525_pre/*.pptx
