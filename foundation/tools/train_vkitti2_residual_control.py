@@ -262,6 +262,8 @@ def evaluate_model(
             d0_norm_np=out["D0_norm"][0].float().detach().cpu().numpy(),
             y_norm_np=y_norm[0].float().detach().cpu().numpy(),
             rgb_preview_np=rgb_preview,
+            min_depth=args.min_depth,
+            max_depth=args.max_depth,
         )
         final_metrics.append({key: float(metrics_final[key]) for key in METRIC_KEYS if key in metrics_final})
         d0_metrics.append({key: float(metrics_d0[key]) for key in METRIC_KEYS if key in metrics_d0})

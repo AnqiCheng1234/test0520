@@ -473,11 +473,29 @@ def top_fraction_mask(values: np.ndarray, valid_mask: np.ndarray, fraction: floa
     return valid_mask & np.isfinite(values) & (values >= threshold)
 
 
-def region_abs_rel(gt: np.ndarray, aligned_depth: np.ndarray, mask: np.ndarray) -> float:
-    vm = mask & np.isfinite(gt) & np.isfinite(aligned_depth) & (gt > 0) & (aligned_depth > 0)
+def region_abs_rel(
+    gt: np.ndarray,
+    aligned_depth: np.ndarray,
+    mask: np.ndarray,
+    *,
+    min_depth: float,
+    max_depth: float,
+) -> float:
+    eval_depth = np.asarray(aligned_depth, dtype=np.float64).copy()
+    finite = np.isfinite(eval_depth)
+    eval_depth[finite] = np.clip(eval_depth[finite], float(min_depth), float(max_depth))
+    vm = (
+        mask
+        & np.isfinite(gt)
+        & np.isfinite(eval_depth)
+        & (gt >= float(min_depth))
+        & (gt <= float(max_depth))
+        & (gt > 0)
+        & (eval_depth > 0)
+    )
     if int(vm.sum()) < 10:
         return float("nan")
-    return float(np.mean(np.abs(aligned_depth[vm] - gt[vm]) / gt[vm]))
+    return float(np.mean(np.abs(eval_depth[vm] - gt[vm]) / gt[vm]))
 
 
 def sample_region_metrics(
@@ -489,6 +507,8 @@ def sample_region_metrics(
     d0_norm_np: np.ndarray,
     y_norm_np: np.ndarray,
     rgb_preview_np: np.ndarray,
+    min_depth: float,
+    max_depth: float,
 ) -> tuple[dict[str, float], dict[str, float]]:
     grad_y, grad_x = np.gradient(depth_np.astype(np.float32))
     boundary_score = np.sqrt(grad_x * grad_x + grad_y * grad_y)
@@ -505,8 +525,14 @@ def sample_region_metrics(
         "dark_abs_rel": dark,
         "saturated_abs_rel": saturated,
     }
-    final = {key: region_abs_rel(depth_np, aligned_final, mask) for key, mask in masks.items()}
-    d0 = {key: region_abs_rel(depth_np, aligned_d0, mask) for key, mask in masks.items()}
+    final = {
+        key: region_abs_rel(depth_np, aligned_final, mask, min_depth=min_depth, max_depth=max_depth)
+        for key, mask in masks.items()
+    }
+    d0 = {
+        key: region_abs_rel(depth_np, aligned_d0, mask, min_depth=min_depth, max_depth=max_depth)
+        for key, mask in masks.items()
+    }
     return final, d0
 
 
@@ -571,6 +597,8 @@ def evaluate_model(
             d0_norm_np=out["D0_norm"][0].float().detach().cpu().numpy(),
             y_norm_np=y_norm[0].float().detach().cpu().numpy(),
             rgb_preview_np=rgb_preview,
+            min_depth=args.min_depth,
+            max_depth=args.max_depth,
         )
         final_metrics.append({key: float(metrics_final[key]) for key in METRIC_KEYS if key in metrics_final})
         d0_metrics.append({key: float(metrics_d0[key]) for key in METRIC_KEYS if key in metrics_d0})
