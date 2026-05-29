@@ -246,31 +246,31 @@ launch time: 2026-05-29 13:33 CST
 | `0528_0049_vkitti_n2_x3_lp0p8_q0p5_lfl0p0_rfttrue_vits_half187x621_sceneholdout_Scene20_n1000_seed42_bs8_e10` | 0.8 | 0.5 | 10 | completed | anchor from lambda_lp sweep; best e5 |
 | `TBD_0529_vkitti_n2_x3_lp0p8_q0p7_lfl0p0_rfttrue_vits_half187x621_sceneholdout_Scene20_n1000_seed42_bs8_e10` | 0.8 | 0.7 | 10 | queued | result TBD |
 
-### 4.2 q_good sweep overall / KITTI same-checkpoint metrics
+### 4.2 q_good sweep overall metrics at VKITTI overall-best checkpoint
 
-本表仍使用 VKITTI overall-best checkpoint；KITTI 列使用同一个 checkpoint，不使用 KITTI-best checkpoint。未完成或未启动的 run 暂不填中间日志数字。
+本表风格对齐第 2.1 节：仍使用 VKITTI overall-best checkpoint；KITTI 列使用同一个 checkpoint，不使用 KITTI-best checkpoint。未完成或未启动的 run 暂不填中间日志数字。这里的 delta target 统一以 frozen C2 output `D1` 为 baseline。
 
-| lambda_lp | q_good | selected ckpt | VK final | VK d1 | D1 | final-D1 | KITTI final | KITTI d1 | KITTI final-D1 | note |
-|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| 0.5 | 0.3 | e8 | 0.118629 | 0.858525 | 0.120998 | -0.002369 | 0.096933 | 0.894446 | +0.000457 | completed |
-| 0.5 | 0.5 | e7 | 0.118974 | 0.857796 | 0.120994 | -0.002020 | 0.096603 | 0.895309 | +0.000131 | anchor from lambda sweep |
-| 0.5 | 0.7 | e3 | 0.118736 | 0.857355 | 0.120994 | -0.002258 | 0.096672 | 0.894960 | +0.000199 | completed |
-| 0.8 | 0.3 | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | running |
-| 0.8 | 0.5 | e5 | 0.118635 | 0.857467 | 0.120994 | -0.002359 | 0.097497 | 0.893181 | +0.001025 | anchor from lambda sweep |
-| 0.8 | 0.7 | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | queued |
+| Method | selected ckpt | VK abs_rel | VK d1 | delta target | KITTI same ckpt abs_rel | KITTI same ckpt d1 | note |
+|---|---:|---:|---:|---:|---:|---:|---|
+| N2 x3 `lp0.5 q0.3` | e8 | **0.118629** | **0.858525** | **-0.002369 vs D1** | 0.096933 | 0.894446 | best VKITTI overall / d1 / boundary among lp0.5 q sweep so far |
+| N2 x3 `lp0.5 q0.5` | e7 | 0.118974 | 0.857796 | -0.002020 vs D1 | **0.096603** | **0.895309** | KITTI sanity best among lp0.5 q sweep |
+| N2 x3 `lp0.5 q0.7` | e3 | 0.118736 | 0.857355 | -0.002258 vs D1 | 0.096672 | 0.894960 | middle ground; VK close to q0.3, KITTI close to q0.5 |
+| N2 x3 `lp0.8 q0.3` | TBD | TBD | TBD | TBD | TBD | TBD | running |
+| N2 x3 `lp0.8 q0.5` | e5 | 0.118635 | 0.857467 | -0.002359 vs D1 | 0.097497 | 0.893181 | anchor from lambda sweep |
+| N2 x3 `lp0.8 q0.7` | TBD | TBD | TBD | TBD | TBD | TBD | queued |
 
-### 4.3 q_good sweep region / diagnostics metrics
+### 4.3 q_good sweep region metrics at the same checkpoint
 
-Region metric 口径与第 2.2 节一致。`correction scale` 表示 N2 实际施加项 `mean_abs_gate_delta`。
+本表风格对齐第 2.2 节，所有 region metrics 都来自第 4.2 节同一个 VKITTI overall-best checkpoint。Region metric 口径与第 2.2 节一致；`correction scale` 表示 N2 实际施加项 `mean_abs_gate_delta`。
 
-| lambda_lp | q_good | epoch | boundary | boundary-D1 | high-error | far50 | dark | saturated | mean_gate | correction scale | low_ratio | high_ratio |
-|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 0.5 | 0.3 | 8 | 0.250046 | -0.019152 | 0.258165 | 0.264208 | 0.104519 | 0.121147 | 0.047703 | 0.014935 | 0.772791 | 0.857397 |
-| 0.5 | 0.5 | 7 | 0.254521 | -0.014673 | 0.261179 | 0.269733 | 0.102792 | 0.126631 | 0.030890 | 0.010059 | 0.759182 | 1.062943 |
-| 0.5 | 0.7 | 3 | 0.251217 | -0.017980 | 0.258940 | 0.268822 | 0.104010 | 0.122850 | 0.042501 | 0.013347 | 0.785908 | 0.914558 |
-| 0.8 | 0.3 | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
-| 0.8 | 0.5 | 5 | 0.250456 | -0.018743 | 0.258877 | 0.268708 | 0.103195 | 0.124461 | 0.026367 | 0.009731 | 0.730285 | 1.229382 |
-| 0.8 | 0.7 | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
+| Method | epoch | boundary | high-error | far50 | dark | saturated | mean_gate | correction scale | low_ratio | high_ratio |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| N2 x3 `lp0.5 q0.3` | 8 | **0.250046** | **0.258165** | **0.264208** | 0.104519 | **0.121147** | 0.047703 | 0.014935 | 0.772791 | 0.857397 |
+| N2 x3 `lp0.5 q0.5` | 7 | 0.254521 | 0.261179 | 0.269733 | **0.102792** | 0.126631 | 0.030890 | 0.010059 | 0.759182 | 1.062943 |
+| N2 x3 `lp0.5 q0.7` | 3 | 0.251217 | 0.258940 | 0.268822 | 0.104010 | 0.122850 | 0.042501 | 0.013347 | 0.785908 | 0.914558 |
+| N2 x3 `lp0.8 q0.3` | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
+| N2 x3 `lp0.8 q0.5` | 5 | 0.250456 | 0.258877 | 0.268708 | 0.103195 | 0.124461 | 0.026367 | 0.009731 | 0.730285 | 1.229382 |
+| N2 x3 `lp0.8 q0.7` | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
 
 ### 4.4 阶段性观察
 
