@@ -1,0 +1,102 @@
+{
+  "experiments": [
+    {
+      "key": "c2",
+      "label": "0525_0203 C2 baseline"
+    },
+    {
+      "key": "n2_lp0p5",
+      "label": "0527_2354 N2 x3 lp0.5"
+    },
+    {
+      "key": "n2_lp0p8",
+      "label": "0528_0049 N2 x3 lp0.8"
+    }
+  ],
+  "layout": "three experiment 3x4 panels stacked vertically with per-experiment headers",
+  "output_dir": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0214_c2_0527_2354_0528_0049_vs_c2_stack",
+  "records": [
+    {
+      "dataset_index": 0,
+      "order": 1,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0214_c2_0527_2354_0528_0049_vs_c2_stack/01_vkitti_idx0000_unknown_Camera_0_rgb_00618_cross_exp_3x4_summary.jpg",
+      "sample_name": "Camera_0_rgb_00618",
+      "source_records": [
+        {
+          "c2_abs_rel": 0.10232466398412889,
+          "dataset_index": 0,
+          "method_abs_rel": 0.10232466398412889,
+          "method_minus_c2_abs_rel": 0.0,
+          "order": 1,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0214_vs_c2_0525_0203_c2_self/01_validx0000_Camera_0_rgb_00618_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00618"
+        },
+        {
+          "c2_abs_rel": 0.10232466398412889,
+          "dataset_index": 0,
+          "method_abs_rel": 0.09980167789472295,
+          "method_minus_c2_abs_rel": -0.002522986089405932,
+          "order": 1,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0214_vs_c2_0527_2354_n2_lp0p5/01_validx0000_Camera_0_rgb_00618_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00618"
+        },
+        {
+          "c2_abs_rel": 0.10232466398412889,
+          "dataset_index": 0,
+          "method_abs_rel": 0.10054710069044477,
+          "method_minus_c2_abs_rel": -0.0017775632936841146,
+          "order": 1,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0214_vs_c2_0528_0049_n2_lp0p8/01_validx0000_Camera_0_rgb_00618_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00618"
+        }
+      ],
+      "variant": null
+    },
+    {
+      "dataset_index": 72,
+      "order": 2,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0214_c2_0527_2354_0528_0049_vs_c2_stack/02_vkitti_idx0072_unknown_Camera_0_rgb_00623_cross_exp_3x4_summary.jpg",
+      "sample_name": "Camera_0_rgb_00623",
+      "source_records": [
+        {
+          "c2_abs_rel": 0.12413807565156983,
+          "dataset_index": 72,
+          "method_abs_rel": 0.12413807565156983,
+          "method_minus_c2_abs_rel": 0.0,
+          "order": 2,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0214_vs_c2_0525_0203_c2_self/02_validx0072_Camera_0_rgb_00623_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00623"
+        },
+        {
+          "c2_abs_rel": 0.12413807565156983,
+          "dataset_index": 72,
+          "method_abs_rel": 0.12087528110067251,
+          "method_minus_c2_abs_rel": -0.0032627945508973133,
+          "order": 2,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0214_vs_c2_0527_2354_n2_lp0p5/02_validx0072_Camera_0_rgb_00623_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00623"
+        },
+        {
+          "c2_abs_rel": 0.12413807565156983,
+          "dataset_index": 72,
+          "method_abs_rel": 0.12008461230242659,
+          "method_minus_c2_abs_rel": -0.004053463349143235,
+          "order": 2,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0214_vs_c2_0528_0049_n2_lp0p8/02_validx0072_Camera_0_rgb_00623_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00623"
+        }
+      ],
+      "variant": null
+    }
+  ],
+  "selected_indices": [
+    0,
+    72
+  ],
+  "source_manifests": [
+    "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0214_vs_c2_0525_0203_c2_self/manifest.json",
+    "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0214_vs_c2_0527_2354_n2_lp0p5/manifest.json",
+    "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0214_vs_c2_0528_0049_n2_lp0p8/manifest.json"
+  ],
+  "split": "vkitti"
+}

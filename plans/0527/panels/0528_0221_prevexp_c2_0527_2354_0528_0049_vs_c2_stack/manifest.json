@@ -1,0 +1,398 @@
+{
+  "experiments": [
+    {
+      "key": "c2",
+      "label": "0525_0203 C2 baseline"
+    },
+    {
+      "key": "n2_lp0p5",
+      "label": "0527_2354 N2 x3 lp0.5"
+    },
+    {
+      "key": "n2_lp0p8",
+      "label": "0528_0049 N2 x3 lp0.8"
+    }
+  ],
+  "layout": "three experiment 3x4 panels stacked vertically with per-experiment headers",
+  "output_dir": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_c2_0527_2354_0528_0049_vs_c2_stack",
+  "records": [
+    {
+      "dataset_index": 740,
+      "order": 1,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_c2_0527_2354_0528_0049_vs_c2_stack/01_vkitti_idx0740_unknown_Camera_0_rgb_00460_cross_exp_3x4_summary.jpg",
+      "sample_name": "Camera_0_rgb_00460",
+      "source_records": [
+        {
+          "c2_abs_rel": 0.11425253974903979,
+          "dataset_index": 740,
+          "method_abs_rel": 0.11425253974903979,
+          "method_minus_c2_abs_rel": 0.0,
+          "order": 1,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0525_0203_c2_self/01_validx0740_Camera_0_rgb_00460_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00460"
+        },
+        {
+          "c2_abs_rel": 0.11425253974903979,
+          "dataset_index": 740,
+          "method_abs_rel": 0.11272612917229612,
+          "method_minus_c2_abs_rel": -0.0015264105767436725,
+          "order": 1,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0527_2354_n2_lp0p5/01_validx0740_Camera_0_rgb_00460_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00460"
+        },
+        {
+          "c2_abs_rel": 0.11425253974903979,
+          "dataset_index": 740,
+          "method_abs_rel": 0.11186486908388522,
+          "method_minus_c2_abs_rel": -0.002387670665154565,
+          "order": 1,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0528_0049_n2_lp0p8/01_validx0740_Camera_0_rgb_00460_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00460"
+        }
+      ],
+      "variant": null
+    },
+    {
+      "dataset_index": 505,
+      "order": 2,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_c2_0527_2354_0528_0049_vs_c2_stack/02_vkitti_idx0505_unknown_Camera_0_rgb_00502_cross_exp_3x4_summary.jpg",
+      "sample_name": "Camera_0_rgb_00502",
+      "source_records": [
+        {
+          "c2_abs_rel": 0.09572210874023836,
+          "dataset_index": 505,
+          "method_abs_rel": 0.09572210874023836,
+          "method_minus_c2_abs_rel": 0.0,
+          "order": 2,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0525_0203_c2_self/02_validx0505_Camera_0_rgb_00502_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00502"
+        },
+        {
+          "c2_abs_rel": 0.09572210874023836,
+          "dataset_index": 505,
+          "method_abs_rel": 0.08315500062789359,
+          "method_minus_c2_abs_rel": -0.012567108112344766,
+          "order": 2,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0527_2354_n2_lp0p5/02_validx0505_Camera_0_rgb_00502_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00502"
+        },
+        {
+          "c2_abs_rel": 0.09572210874023836,
+          "dataset_index": 505,
+          "method_abs_rel": 0.08683466494702188,
+          "method_minus_c2_abs_rel": -0.008887443793216473,
+          "order": 2,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0528_0049_n2_lp0p8/02_validx0505_Camera_0_rgb_00502_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00502"
+        }
+      ],
+      "variant": null
+    },
+    {
+      "dataset_index": 268,
+      "order": 3,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_c2_0527_2354_0528_0049_vs_c2_stack/03_vkitti_idx0268_unknown_Camera_0_rgb_00416_cross_exp_3x4_summary.jpg",
+      "sample_name": "Camera_0_rgb_00416",
+      "source_records": [
+        {
+          "c2_abs_rel": 0.13356733865888262,
+          "dataset_index": 268,
+          "method_abs_rel": 0.13356733865888262,
+          "method_minus_c2_abs_rel": 0.0,
+          "order": 3,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0525_0203_c2_self/03_validx0268_Camera_0_rgb_00416_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00416"
+        },
+        {
+          "c2_abs_rel": 0.13356733865888262,
+          "dataset_index": 268,
+          "method_abs_rel": 0.13387638536950863,
+          "method_minus_c2_abs_rel": 0.00030904671062600975,
+          "order": 3,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0527_2354_n2_lp0p5/03_validx0268_Camera_0_rgb_00416_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00416"
+        },
+        {
+          "c2_abs_rel": 0.13356733865888262,
+          "dataset_index": 268,
+          "method_abs_rel": 0.12891335336300402,
+          "method_minus_c2_abs_rel": -0.004653985295878599,
+          "order": 3,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0528_0049_n2_lp0p8/03_validx0268_Camera_0_rgb_00416_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00416"
+        }
+      ],
+      "variant": null
+    },
+    {
+      "dataset_index": 632,
+      "order": 4,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_c2_0527_2354_0528_0049_vs_c2_stack/04_vkitti_idx0632_unknown_Camera_0_rgb_00423_cross_exp_3x4_summary.jpg",
+      "sample_name": "Camera_0_rgb_00423",
+      "source_records": [
+        {
+          "c2_abs_rel": 0.10686628162636029,
+          "dataset_index": 632,
+          "method_abs_rel": 0.10686628162636029,
+          "method_minus_c2_abs_rel": 0.0,
+          "order": 4,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0525_0203_c2_self/04_validx0632_Camera_0_rgb_00423_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00423"
+        },
+        {
+          "c2_abs_rel": 0.10686628162636029,
+          "dataset_index": 632,
+          "method_abs_rel": 0.11017949472001289,
+          "method_minus_c2_abs_rel": 0.003313213093652595,
+          "order": 4,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0527_2354_n2_lp0p5/04_validx0632_Camera_0_rgb_00423_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00423"
+        },
+        {
+          "c2_abs_rel": 0.10686628162636029,
+          "dataset_index": 632,
+          "method_abs_rel": 0.10628104780661189,
+          "method_minus_c2_abs_rel": -0.0005852338197483986,
+          "order": 4,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0528_0049_n2_lp0p8/04_validx0632_Camera_0_rgb_00423_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00423"
+        }
+      ],
+      "variant": null
+    },
+    {
+      "dataset_index": 955,
+      "order": 5,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_c2_0527_2354_0528_0049_vs_c2_stack/05_vkitti_idx0955_unknown_Camera_0_rgb_00407_cross_exp_3x4_summary.jpg",
+      "sample_name": "Camera_0_rgb_00407",
+      "source_records": [
+        {
+          "c2_abs_rel": 0.08839349362622405,
+          "dataset_index": 955,
+          "method_abs_rel": 0.08839349362622405,
+          "method_minus_c2_abs_rel": 0.0,
+          "order": 5,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0525_0203_c2_self/05_validx0955_Camera_0_rgb_00407_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00407"
+        },
+        {
+          "c2_abs_rel": 0.08839349362622405,
+          "dataset_index": 955,
+          "method_abs_rel": 0.0882702777486682,
+          "method_minus_c2_abs_rel": -0.0001232158775558434,
+          "order": 5,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0527_2354_n2_lp0p5/05_validx0955_Camera_0_rgb_00407_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00407"
+        },
+        {
+          "c2_abs_rel": 0.08839349362622405,
+          "dataset_index": 955,
+          "method_abs_rel": 0.08688134647266046,
+          "method_minus_c2_abs_rel": -0.0015121471535635839,
+          "order": 5,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0528_0049_n2_lp0p8/05_validx0955_Camera_0_rgb_00407_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00407"
+        }
+      ],
+      "variant": null
+    },
+    {
+      "dataset_index": 553,
+      "order": 6,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_c2_0527_2354_0528_0049_vs_c2_stack/06_vkitti_idx0553_unknown_Camera_0_rgb_00427_cross_exp_3x4_summary.jpg",
+      "sample_name": "Camera_0_rgb_00427",
+      "source_records": [
+        {
+          "c2_abs_rel": 0.10968938806177252,
+          "dataset_index": 553,
+          "method_abs_rel": 0.10968938806177252,
+          "method_minus_c2_abs_rel": 0.0,
+          "order": 6,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0525_0203_c2_self/06_validx0553_Camera_0_rgb_00427_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00427"
+        },
+        {
+          "c2_abs_rel": 0.10968938806177252,
+          "dataset_index": 553,
+          "method_abs_rel": 0.10806040960667665,
+          "method_minus_c2_abs_rel": -0.001628978455095867,
+          "order": 6,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0527_2354_n2_lp0p5/06_validx0553_Camera_0_rgb_00427_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00427"
+        },
+        {
+          "c2_abs_rel": 0.10968938806177252,
+          "dataset_index": 553,
+          "method_abs_rel": 0.1056499966652606,
+          "method_minus_c2_abs_rel": -0.00403939139651191,
+          "order": 6,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0528_0049_n2_lp0p8/06_validx0553_Camera_0_rgb_00427_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00427"
+        }
+      ],
+      "variant": null
+    },
+    {
+      "dataset_index": 637,
+      "order": 7,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_c2_0527_2354_0528_0049_vs_c2_stack/07_vkitti_idx0637_unknown_Camera_0_rgb_00413_cross_exp_3x4_summary.jpg",
+      "sample_name": "Camera_0_rgb_00413",
+      "source_records": [
+        {
+          "c2_abs_rel": 0.13201733105131866,
+          "dataset_index": 637,
+          "method_abs_rel": 0.13201733105131866,
+          "method_minus_c2_abs_rel": 0.0,
+          "order": 7,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0525_0203_c2_self/07_validx0637_Camera_0_rgb_00413_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00413"
+        },
+        {
+          "c2_abs_rel": 0.13201733105131866,
+          "dataset_index": 637,
+          "method_abs_rel": 0.13090371130986234,
+          "method_minus_c2_abs_rel": -0.0011136197414563231,
+          "order": 7,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0527_2354_n2_lp0p5/07_validx0637_Camera_0_rgb_00413_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00413"
+        },
+        {
+          "c2_abs_rel": 0.13201733105131866,
+          "dataset_index": 637,
+          "method_abs_rel": 0.12835917584259432,
+          "method_minus_c2_abs_rel": -0.0036581552087243396,
+          "order": 7,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0528_0049_n2_lp0p8/07_validx0637_Camera_0_rgb_00413_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00413"
+        }
+      ],
+      "variant": null
+    },
+    {
+      "dataset_index": 674,
+      "order": 8,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_c2_0527_2354_0528_0049_vs_c2_stack/08_vkitti_idx0674_unknown_Camera_0_rgb_00478_cross_exp_3x4_summary.jpg",
+      "sample_name": "Camera_0_rgb_00478",
+      "source_records": [
+        {
+          "c2_abs_rel": 0.10393713346944833,
+          "dataset_index": 674,
+          "method_abs_rel": 0.10393713346944833,
+          "method_minus_c2_abs_rel": 0.0,
+          "order": 8,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0525_0203_c2_self/08_validx0674_Camera_0_rgb_00478_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00478"
+        },
+        {
+          "c2_abs_rel": 0.10393713346944833,
+          "dataset_index": 674,
+          "method_abs_rel": 0.1028550300464737,
+          "method_minus_c2_abs_rel": -0.0010821034229746285,
+          "order": 8,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0527_2354_n2_lp0p5/08_validx0674_Camera_0_rgb_00478_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00478"
+        },
+        {
+          "c2_abs_rel": 0.10393713346944833,
+          "dataset_index": 674,
+          "method_abs_rel": 0.10202828418337535,
+          "method_minus_c2_abs_rel": -0.001908849286072975,
+          "order": 8,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0528_0049_n2_lp0p8/08_validx0674_Camera_0_rgb_00478_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00478"
+        }
+      ],
+      "variant": null
+    },
+    {
+      "dataset_index": 127,
+      "order": 9,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_c2_0527_2354_0528_0049_vs_c2_stack/09_vkitti_idx0127_unknown_Camera_0_rgb_00509_cross_exp_3x4_summary.jpg",
+      "sample_name": "Camera_0_rgb_00509",
+      "source_records": [
+        {
+          "c2_abs_rel": 0.16676661361003026,
+          "dataset_index": 127,
+          "method_abs_rel": 0.16676661361003026,
+          "method_minus_c2_abs_rel": 0.0,
+          "order": 9,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0525_0203_c2_self/09_validx0127_Camera_0_rgb_00509_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00509"
+        },
+        {
+          "c2_abs_rel": 0.16676661361003026,
+          "dataset_index": 127,
+          "method_abs_rel": 0.15932521149314963,
+          "method_minus_c2_abs_rel": -0.00744140211688063,
+          "order": 9,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0527_2354_n2_lp0p5/09_validx0127_Camera_0_rgb_00509_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00509"
+        },
+        {
+          "c2_abs_rel": 0.16676661361003026,
+          "dataset_index": 127,
+          "method_abs_rel": 0.15528960833782185,
+          "method_minus_c2_abs_rel": -0.011477005272208407,
+          "order": 9,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0528_0049_n2_lp0p8/09_validx0127_Camera_0_rgb_00509_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00509"
+        }
+      ],
+      "variant": null
+    },
+    {
+      "dataset_index": 276,
+      "order": 10,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_c2_0527_2354_0528_0049_vs_c2_stack/10_vkitti_idx0276_unknown_Camera_0_rgb_00453_cross_exp_3x4_summary.jpg",
+      "sample_name": "Camera_0_rgb_00453",
+      "source_records": [
+        {
+          "c2_abs_rel": 0.12220252273664164,
+          "dataset_index": 276,
+          "method_abs_rel": 0.12220252273664164,
+          "method_minus_c2_abs_rel": 0.0,
+          "order": 10,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0525_0203_c2_self/10_validx0276_Camera_0_rgb_00453_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00453"
+        },
+        {
+          "c2_abs_rel": 0.12220252273664164,
+          "dataset_index": 276,
+          "method_abs_rel": 0.12160377319307511,
+          "method_minus_c2_abs_rel": -0.0005987495435665346,
+          "order": 10,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0527_2354_n2_lp0p5/10_validx0276_Camera_0_rgb_00453_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00453"
+        },
+        {
+          "c2_abs_rel": 0.12220252273664164,
+          "dataset_index": 276,
+          "method_abs_rel": 0.1196849426278856,
+          "method_minus_c2_abs_rel": -0.002517580108756051,
+          "order": 10,
+          "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0528_0049_n2_lp0p8/10_validx0276_Camera_0_rgb_00453_vs_c2.jpg",
+          "sample_name": "Camera_0_rgb_00453"
+        }
+      ],
+      "variant": null
+    }
+  ],
+  "selected_indices": [
+    740,
+    505,
+    268,
+    632,
+    955,
+    553,
+    637,
+    674,
+    127,
+    276
+  ],
+  "source_manifests": [
+    "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0525_0203_c2_self/manifest.json",
+    "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0527_2354_n2_lp0p5/manifest.json",
+    "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0528_0221_prevexp_vs_c2_0528_0049_n2_lp0p8/manifest.json"
+  ],
+  "split": "vkitti"
+}

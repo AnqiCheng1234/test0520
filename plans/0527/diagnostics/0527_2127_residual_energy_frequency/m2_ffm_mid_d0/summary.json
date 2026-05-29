@@ -1,0 +1,73 @@
+{
+  "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0525_1425_vkitti_m2_ra0_rawadapter_analytic_identity_normal_vits_halfraw187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/epoch_09.pth",
+  "elapsed_seconds": 43.79867172241211,
+  "frequency": {
+    "high_ratio": 0.3151964279639002,
+    "low_ratio": 0.8453038488039011
+  },
+  "lowpass_kernel": 31,
+  "masks": {
+    "boundary": {
+      "gate_mass_ratio": 0.10556445031292207,
+      "mean_abs_gate_delta": 0.16124390236288308,
+      "mean_gate": 0.3283932303786278,
+      "nonempty_samples": 1000,
+      "pixel_ratio": 0.07217935536094103,
+      "residual_energy_ratio": 0.10443803295251734
+    },
+    "dark": {
+      "gate_mass_ratio": 0.38934316382479633,
+      "mean_abs_gate_delta": 0.17644958925660353,
+      "mean_gate": 0.3550613205822965,
+      "nonempty_samples": 981,
+      "pixel_ratio": 0.30049578308440417,
+      "residual_energy_ratio": 0.38974359362098315
+    },
+    "far50": {
+      "gate_mass_ratio": 0.05687914967918409,
+      "mean_abs_gate_delta": 0.15268452891800552,
+      "mean_gate": 0.3081329099610448,
+      "nonempty_samples": 1000,
+      "pixel_ratio": 0.04349717981175782,
+      "residual_energy_ratio": 0.05672361061746909
+    },
+    "high_error": {
+      "gate_mass_ratio": 0.34057154260915035,
+      "mean_abs_gate_delta": 0.26054959166049957,
+      "mean_gate": 0.5241311175078154,
+      "nonempty_samples": 1000,
+      "pixel_ratio": 0.1443664953025567,
+      "residual_energy_ratio": 0.3415527155203829
+    },
+    "invalid": {
+      "gate_mass_ratio": 0.8276624791641418,
+      "mean_abs_gate_delta": 0.30532126636058093,
+      "mean_gate": 0.6122991100735963,
+      "nonempty_samples": 1000,
+      "pixel_ratio": 0.27824830573423925,
+      "residual_energy_ratio": 0.8330077880112977
+    },
+    "saturated": {
+      "gate_mass_ratio": 0.0011468335925544741,
+      "mean_abs_gate_delta": 0.15945399485820208,
+      "mean_gate": 0.32574588336297366,
+      "nonempty_samples": 830,
+      "pixel_ratio": 0.0006059734559411016,
+      "residual_energy_ratio": 0.001137656928981611
+    },
+    "valid": {
+      "gate_mass_ratio": 1.0,
+      "mean_abs_gate_delta": 0.1575021249577403,
+      "mean_gate": 0.3174507005661726,
+      "nonempty_samples": 1000,
+      "pixel_ratio": 0.7217516942657608,
+      "residual_energy_ratio": 1.0
+    }
+  },
+  "max_val_samples": null,
+  "output_dir": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/diagnostics/0527_2127_residual_energy_frequency/m2_ffm_mid_d0",
+  "per_sample_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/diagnostics/0527_2127_residual_energy_frequency/m2_ffm_mid_d0/per_sample.jsonl",
+  "run_dir": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_1425_vkitti_m2_ra0_rawadapter_analytic_identity_normal_vits_halfraw187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20",
+  "run_kind": "raw",
+  "samples": 1000
+}

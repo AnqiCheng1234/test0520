@@ -133,6 +133,190 @@ def gradient_l1(pred: torch.Tensor, target: torch.Tensor, valid_mask: torch.Tens
     return masked_mean((pred_dx - target_dx).abs(), mask_x) + masked_mean((pred_dy - target_dy).abs(), mask_y)
 
 
+def lowpass_avgpool(value: torch.Tensor, *, kernel_size: int = 31) -> torch.Tensor:
+    if int(kernel_size) <= 0 or int(kernel_size) % 2 == 0:
+        raise ValueError(f"kernel_size must be a positive odd integer, got {kernel_size}")
+    squeeze = False
+    if value.ndim == 3:
+        value = value.unsqueeze(1)
+        squeeze = True
+    if value.ndim != 4:
+        raise ValueError(f"Expected value shape [B,H,W] or [B,C,H,W], got {tuple(value.shape)}")
+    out = torch.nn.functional.avg_pool2d(
+        value.float(),
+        kernel_size=int(kernel_size),
+        stride=1,
+        padding=int(kernel_size) // 2,
+    )
+    return out[:, 0] if squeeze else out
+
+
+def build_gt_boundary_mask(
+    depth: torch.Tensor,
+    valid_mask: torch.Tensor,
+    *,
+    fraction: float = 0.10,
+    min_valid_pixels: int = 128,
+) -> torch.Tensor:
+    if depth.shape != valid_mask.shape:
+        raise ValueError(f"depth/mask shape mismatch: depth={depth.shape} mask={valid_mask.shape}")
+    if not (0.0 < float(fraction) < 1.0):
+        raise ValueError(f"fraction must be in (0,1), got {fraction}")
+    depth = depth.float()
+    valid_mask = valid_mask.bool()
+    grad_x = torch.zeros_like(depth)
+    grad_y = torch.zeros_like(depth)
+    grad_x[:, :, 1:] = (depth[:, :, 1:] - depth[:, :, :-1]).abs()
+    grad_y[:, 1:, :] = (depth[:, 1:, :] - depth[:, :-1, :]).abs()
+    score = torch.sqrt(grad_x * grad_x + grad_y * grad_y)
+    out = torch.zeros_like(valid_mask)
+    with torch.no_grad():
+        for b in range(depth.shape[0]):
+            mask = valid_mask[b]
+            if int(mask.sum().item()) < int(min_valid_pixels):
+                continue
+            vals = score[b][mask]
+            threshold = torch.quantile(vals.float(), 1.0 - float(fraction))
+            out[b] = mask & (score[b] >= threshold)
+    return out
+
+
+def build_good_base_mask(
+    base_error: torch.Tensor,
+    valid_mask: torch.Tensor,
+    *,
+    q_good: float,
+    min_valid_pixels: int = 128,
+) -> torch.Tensor:
+    if base_error.shape != valid_mask.shape:
+        raise ValueError(f"base_error/mask shape mismatch: error={base_error.shape} mask={valid_mask.shape}")
+    if not (0.0 < float(q_good) < 1.0):
+        raise ValueError(f"q_good must be in (0,1), got {q_good}")
+    out = torch.zeros_like(valid_mask)
+    with torch.no_grad():
+        for b in range(base_error.shape[0]):
+            mask = valid_mask[b]
+            if int(mask.sum().item()) < int(min_valid_pixels):
+                continue
+            vals = base_error[b][mask].float()
+            threshold = torch.quantile(vals, float(q_good))
+            out[b] = mask & (base_error[b] < threshold)
+    return out
+
+
+def _finite_masked_mean_for_log(value: torch.Tensor, mask: torch.Tensor) -> float:
+    with torch.no_grad():
+        if value.shape != mask.shape or not bool(mask.any().item()):
+            return 0.0
+        out = value[mask].float().mean()
+        return float(out.item()) if torch.isfinite(out) else 0.0
+
+
+def compute_incremental_residual_loss(
+    out: dict[str, torch.Tensor],
+    depth: torch.Tensor,
+    valid_mask: torch.Tensor,
+    *,
+    q_good: float,
+    lambda_final: float,
+    lambda_boundary: float,
+    lambda_grad: float,
+    lambda_keep_good_d1: float,
+    lambda_gate_sparse: float,
+    lambda_lowfreq_loss: float,
+    lambda_invalid_keep: float,
+    lowpass_kernel: int = 31,
+    min_valid_pixels: int = 128,
+) -> tuple[torch.Tensor, dict[str, float]]:
+    pred = out["pred"].float()
+    base = out["base_norm"].float()
+    gate = out["gate"].float()
+    delta_raw = out["delta"].float()
+    delta_effective = out["delta_effective"].float()
+    gate_delta = gate * delta_effective
+    valid_mask = valid_mask.bool()
+    sample_ok = valid_mask.flatten(1).sum(dim=1) >= int(min_valid_pixels)
+    effective_valid = valid_mask & sample_ok[:, None, None]
+    invalid_keep_mask = sample_ok[:, None, None] & (~valid_mask)
+    used_samples = int(sample_ok.sum().item())
+    skipped_samples = int((~sample_ok).sum().item())
+    if used_samples == 0:
+        zero = pred.sum() * 0.0
+        return zero, {
+            "used_samples": 0,
+            "skipped_samples": skipped_samples,
+            "loss_total": 0.0,
+            "L_final": 0.0,
+            "L_boundary": 0.0,
+            "L_grad": 0.0,
+            "L_keep_good_D1": 0.0,
+            "L_gate_sparse": 0.0,
+            "L_lowfreq": 0.0,
+            "L_invalid_keep": 0.0,
+            "mean_gate": 0.0,
+            "max_gate": 0.0,
+            "mean_abs_delta": 0.0,
+            "mean_abs_delta_effective": 0.0,
+            "mean_abs_gate_delta": 0.0,
+            "mean_abs_final_minus_D1_norm": 0.0,
+            "low_ratio": 0.0,
+            "high_ratio": 0.0,
+        }
+
+    inv_gt = build_training_target(depth.float(), valid_mask, target_space="metric_depth")
+    y_norm, _ = robust_normalize_target_per_sample(inv_gt, valid_mask, min_valid_pixels=min_valid_pixels)
+    y_norm = y_norm.float()
+
+    boundary = build_gt_boundary_mask(depth.float(), effective_valid, min_valid_pixels=min_valid_pixels)
+    e1 = (base - y_norm).abs()
+    good_d1_mask = build_good_base_mask(e1, effective_valid, q_good=q_good, min_valid_pixels=min_valid_pixels)
+    low = lowpass_avgpool(gate_delta, kernel_size=lowpass_kernel)
+
+    l_final = masked_mean((pred - y_norm).abs(), effective_valid)
+    l_boundary = masked_mean((pred - y_norm).abs(), effective_valid & boundary)
+    l_grad = gradient_l1(pred, y_norm, effective_valid)
+    l_keep_good_d1 = masked_mean(gate_delta.abs(), effective_valid & good_d1_mask)
+    l_gate_sparse = masked_mean(gate, effective_valid)
+    l_lowfreq = masked_mean(low.abs(), effective_valid)
+    l_invalid_keep = masked_mean(gate_delta.abs(), invalid_keep_mask)
+    loss = (
+        float(lambda_final) * l_final
+        + float(lambda_boundary) * l_boundary
+        + float(lambda_grad) * l_grad
+        + float(lambda_keep_good_d1) * l_keep_good_d1
+        + float(lambda_gate_sparse) * l_gate_sparse
+        + float(lambda_lowfreq_loss) * l_lowfreq
+        + float(lambda_invalid_keep) * l_invalid_keep
+    )
+
+    with torch.no_grad():
+        denom = gate_delta[effective_valid].abs().mean() if bool(effective_valid.any().item()) else gate_delta.sum() * 0.0
+        low_ratio = (low[effective_valid].abs().mean() / (denom + 1e-6)) if bool(effective_valid.any().item()) else denom
+        high = gate_delta - low
+        high_ratio = (high[effective_valid].abs().mean() / (denom + 1e-6)) if bool(effective_valid.any().item()) else denom
+        info = {
+            "used_samples": used_samples,
+            "skipped_samples": skipped_samples,
+            "loss_total": float(loss.detach().item()),
+            "L_final": float(l_final.detach().item()),
+            "L_boundary": float(l_boundary.detach().item()),
+            "L_grad": float(l_grad.detach().item()),
+            "L_keep_good_D1": float(l_keep_good_d1.detach().item()),
+            "L_gate_sparse": float(l_gate_sparse.detach().item()),
+            "L_lowfreq": float(l_lowfreq.detach().item()),
+            "L_invalid_keep": float(l_invalid_keep.detach().item()),
+            "mean_gate": _finite_masked_mean_for_log(gate, effective_valid),
+            "max_gate": float(gate[effective_valid].max().detach().item()) if bool(effective_valid.any().item()) else 0.0,
+            "mean_abs_delta": _finite_masked_mean_for_log(delta_raw.abs(), effective_valid),
+            "mean_abs_delta_effective": _finite_masked_mean_for_log(delta_effective.abs(), effective_valid),
+            "mean_abs_gate_delta": _finite_masked_mean_for_log(gate_delta.abs(), effective_valid),
+            "mean_abs_final_minus_D1_norm": _finite_masked_mean_for_log((pred - base).abs(), effective_valid),
+            "low_ratio": float(low_ratio.detach().item()) if torch.isfinite(low_ratio) else 0.0,
+            "high_ratio": float(high_ratio.detach().item()) if torch.isfinite(high_ratio) else 0.0,
+        }
+    return loss, info
+
+
 def compute_residual_loss(
     out: dict[str, torch.Tensor],
     depth: torch.Tensor,

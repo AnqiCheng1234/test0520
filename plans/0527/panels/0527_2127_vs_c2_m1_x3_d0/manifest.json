@@ -1,0 +1,42 @@
+{
+  "c2_checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0525_0203_vkitti_c2_d0only_residual_vits_halfd0_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/epoch_11.pth",
+  "c2_run_dir": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c2_d0only_residual_vits_halfd0_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20",
+  "method_checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0526_0040_vkitti_m1_ra0_x3_d0concat_rawadapter_analytic_identity_normal_vits_halfraw187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/epoch_14.pth",
+  "method_kind": "raw",
+  "method_run_dir": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0526_0040_vkitti_m1_ra0_x3_d0concat_rawadapter_analytic_identity_normal_vits_halfraw187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20",
+  "panel_layout": [
+    "RGB",
+    "GT depth",
+    "C2 depth",
+    "method depth",
+    "C2 absrel error",
+    "method absrel error",
+    "improvement over C2",
+    "method gate*delta",
+    "method gate"
+  ],
+  "records": [
+    {
+      "c2_abs_rel": 0.10232466398412889,
+      "dataset_index": 0,
+      "method_abs_rel": 0.09431365128265158,
+      "method_minus_c2_abs_rel": -0.008011012701477305,
+      "order": 1,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0527_2127_vs_c2_m1_x3_d0/01_validx0000_Camera_0_rgb_00618_vs_c2.jpg",
+      "sample_name": "Camera_0_rgb_00618"
+    },
+    {
+      "c2_abs_rel": 0.12413807565156983,
+      "dataset_index": 72,
+      "method_abs_rel": 0.10572671624265349,
+      "method_minus_c2_abs_rel": -0.018411359408916333,
+      "order": 2,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/panels/0527_2127_vs_c2_m1_x3_d0/02_validx0072_Camera_0_rgb_00623_vs_c2.jpg",
+      "sample_name": "Camera_0_rgb_00623"
+    }
+  ],
+  "selected_indices": [
+    0,
+    72
+  ]
+}

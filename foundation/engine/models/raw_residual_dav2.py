@@ -227,7 +227,13 @@ class RawResidualDAV2(nn.Module):
             raise AssertionError(f"Unhandled residual feature source: {self.residual_feature_source}")
         return torch.cat(features, dim=1)
 
-    def forward(self, batch: dict[str, torch.Tensor]) -> dict[str, torch.Tensor]:
+    def forward(
+        self,
+        batch: dict[str, torch.Tensor],
+        *,
+        feature_override: dict[str, torch.Tensor] | None = None,
+        feature_ablation_mode: str = "true",
+    ) -> dict[str, torch.Tensor]:
         image = batch["image"]
         raw = batch["raw"]
         valid_mask = batch.get("valid_mask")
@@ -243,6 +249,11 @@ class RawResidualDAV2(nn.Module):
         base_rgb = packed_bayer_to_base_rgb(raw)
         x3, ram_features = self.ram_core.forward_with_features(base_rgb)
         ffm_mid = ram_features["ffm_mid"]
+        if feature_override:
+            if "x3" in feature_override:
+                x3 = feature_override["x3"].to(device=x3.device, dtype=x3.dtype)
+            if "ffm_mid" in feature_override:
+                ffm_mid = feature_override["ffm_mid"].to(device=ffm_mid.device, dtype=ffm_mid.dtype)
         head_input = self._head_input(d0_norm=d0_norm, x3=x3, ffm_mid=ffm_mid)
         delta, gate = self.residual_head(head_input)
         pred = d0_norm + gate * delta
@@ -255,7 +266,21 @@ class RawResidualDAV2(nn.Module):
             "x3": x3,
             "ffm_mid": ffm_mid,
             "ram_out": x3,
+            "feature_ablation_mode": feature_ablation_mode,
         }
+
+    def forward_with_feature_override(
+        self,
+        batch: dict[str, torch.Tensor],
+        *,
+        feature_override: dict[str, torch.Tensor] | None = None,
+        feature_ablation_mode: str = "true",
+    ) -> dict[str, torch.Tensor]:
+        return self.forward(
+            batch,
+            feature_override=feature_override,
+            feature_ablation_mode=feature_ablation_mode,
+        )
 
     def load_base_dav2_state_dict(self, state_dict: dict[str, torch.Tensor]):
         from finetune_stf.models.lora_bridge import _remap_state_dict_for_lora_modules

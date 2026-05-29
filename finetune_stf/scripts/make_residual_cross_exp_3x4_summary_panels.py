@@ -78,6 +78,9 @@ def metric_line(record: dict[str, Any]) -> str:
     final_abs = final.get("abs_rel")
     d0_abs = d0.get("abs_rel")
     final_d1 = final.get("d1")
+    method_abs = record.get("method_abs_rel")
+    c2_abs = record.get("c2_abs_rel")
+    method_minus_c2_abs = record.get("method_minus_c2_abs_rel")
     pieces = []
     if epoch is not None:
         pieces.append(f"panel epoch {int(epoch):02d}")
@@ -87,6 +90,12 @@ def metric_line(record: dict[str, Any]) -> str:
         pieces.append(f"D0 abs_rel {float(d0_abs):.4f}")
     if final_d1 is not None:
         pieces.append(f"ours d1 {float(final_d1):.4f}")
+    if method_abs is not None:
+        pieces.append(f"method abs_rel {float(method_abs):.4f}")
+    if c2_abs is not None:
+        pieces.append(f"C2 abs_rel {float(c2_abs):.4f}")
+    if method_minus_c2_abs is not None:
+        pieces.append(f"method-C2 {float(method_minus_c2_abs):+.4f}")
     return " | ".join(pieces)
 
 

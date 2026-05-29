@@ -129,17 +129,7 @@ run-row 数据源优先级：
 | `0526_0213...m2nod0_ra0_ffm_mid_only...` | 6 | 0.3064 | 0.2764 | 0.2445 | 0.1297 | 0.1966 | 0.2473 | 0.4365 |
 | `0526_0344...m1nod0_ra0_x3_only...` | 14 | 0.3156 | 0.2920 | 0.2470 | 0.1239 | 0.1891 | 0.2335 | 0.4445 |
 
-旧 1.2 表作废，仅保留追溯：这些数值没有统一纳入 D0 baseline / D0 consistency check，且 region `abs_rel` 使用未 clip 的 aligned prediction，和 1.1 overall 指标口径不一致。
-
-| Experiment | epoch | boundary abs_rel | DAv2 high-error abs_rel | far50 abs_rel | dark abs_rel | saturated abs_rel | mean_gate | mean_abs_delta |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| `0525_0203...c1_rgb_residual...` | ~~3~~ | ~~0.5169~~ | ~~0.3279~~ | ~~0.9089~~ | ~~0.1160~~ | ~~0.1747~~ | ~~0.3213~~ | ~~0.4671~~ |
-| `0525_0203...c2_d0only_residual...` | ~~11~~ | ~~0.4748~~ | ~~0.2703~~ | ~~0.5908~~ | ~~0.1143~~ | ~~0.1382~~ | ~~0.3358~~ | ~~0.4537~~ |
-| `0525_0204...m2_ffm_mid_residual...` | ~~8~~ | ~~0.5723~~ | ~~0.3366~~ | ~~0.6057~~ | ~~0.1214~~ | ~~0.1347~~ | ~~0.3122~~ | ~~0.4665~~ |
-| `0525_1425...m2_ra0_rawadapter...` | ~~9~~ | ~~0.5444~~ | ~~0.3434~~ | ~~0.9874~~ | ~~0.1260~~ | ~~0.1504~~ | ~~0.3174~~ | ~~0.4706~~ |
-| `0526_0040...m1_ra0_x3_d0concat...` | ~~14~~ | ~~0.4120~~ | ~~0.3062~~ | ~~0.6866~~ | ~~0.1380~~ | ~~0.1496~~ | ~~0.3234~~ | ~~0.4698~~ |
-| `0526_0213...m2nod0_ra0_ffm_mid_only...` | ~~6~~ | ~~0.7841~~ | ~~0.5269~~ | ~~1.0226~~ | ~~0.1714~~ | ~~0.2101~~ | ~~0.2473~~ | ~~0.4365~~ |
-| `0526_0344...m1nod0_ra0_x3_only...` | ~~14~~ | ~~0.8605~~ | ~~0.5868~~ | ~~1.2515~~ | ~~0.1739~~ | ~~0.1999~~ | ~~0.2335~~ | ~~0.4445~~ |
+旧 1.2 表作废：这些数值没有统一纳入 D0 baseline / D0 consistency check，且 region `abs_rel` 使用未 clip 的 aligned prediction，和 1.1 overall 指标口径不一致。
 
 注：`boundary abs_rel` 的 boundary 区域按每张样本 GT depth 梯度幅值 `sqrt(dx^2 + dy^2)` 在 valid pixels 中取 top 10% 得到；`DAv2 high-error abs_rel` 的 high-error 区域按每张样本 normalized inverse-depth 空间里的 `abs(D0_norm - y_norm)` 在 valid pixels 中取 top 20% 得到；`far50 abs_rel` 的 far50 区域为 GT depth `> 50m` 的 valid pixels；`dark abs_rel` 的 dark 区域为 RGB preview luma `< 0.15` 的 valid pixels；`saturated abs_rel` 的 saturated 区域为 RGB preview `max(R,G,B) > 0.95` 的 valid pixels。上述生效 region `abs_rel` 均在对应 mask 内对 per-image affine disparity 对齐后的 depth 先执行 `[1.0, 80.0]` clip，再计算 `mean(abs(pred - gt) / gt)`，最后对样本平均。`mean_gate` 为 residual gate 在 valid pixels 上的平均开启程度；`mean_abs_delta` 为 residual head 候选修正量 `delta` 在 valid pixels 上的平均绝对值，统计空间为 normalized inverse-depth / `D0_norm` 空间。
 
