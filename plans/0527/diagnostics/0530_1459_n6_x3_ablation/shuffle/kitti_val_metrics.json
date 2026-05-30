@@ -1,0 +1,170 @@
+{
+  "epochs": [
+    {
+      "dataset": "kitti_val_nseries",
+      "dataset_samples": 652,
+      "elapsed_seconds": 28.574031114578247,
+      "epoch": 3,
+      "eval_protocol": "halfres_raw_canonical_even_pad_crop_affine_disp",
+      "feature_ablation_applied": true,
+      "feature_ablation_key": "x3",
+      "feature_ablation_mode": "shuffle",
+      "feature_ablation_seed": 42,
+      "kitti_base": "/mnt/drive/kitti",
+      "kitti_val_split": "/home/caq/6666_raw/dav2_raw/metric_depth/dataset/splits/kitti/val.txt",
+      "max_val_samples": null,
+      "overall": {
+        "D0": {
+          "abs_rel": 0.11837387988765452,
+          "d1": 0.8665133186001374,
+          "d2": 0.9661967381604754,
+          "d3": 0.9907185329840872,
+          "log10": 0.05122113619295111,
+          "rmse": 5.139945056036145,
+          "rmse_log": 0.1722932136749632,
+          "silog": 0.17187628484142506,
+          "silog_x100": 17.187628484142508,
+          "sq_rel": 0.8898752637264011
+        },
+        "D1": {
+          "abs_rel": 0.09644540205881978,
+          "d1": 0.8960844634714713,
+          "d2": 0.9725260115968759,
+          "d3": 0.9926123775713253,
+          "log10": 0.042425323344431436,
+          "rmse": 4.657172289332199,
+          "rmse_log": 0.1514094270678233,
+          "silog": 0.15091773343549666,
+          "silog_x100": 15.091773343549663,
+          "sq_rel": 0.635774318619131
+        },
+        "delta_D1_minus_D0": {
+          "abs_rel": -0.02192847782883474,
+          "d1": 0.029571144871333943,
+          "d2": 0.006329273436400551,
+          "d3": 0.0018938445872380694,
+          "log10": -0.008795812848519671,
+          "rmse": -0.4827727667039454,
+          "rmse_log": -0.02088378660713991,
+          "silog": -0.020958551405928394,
+          "silog_x100": -2.0958551405928443,
+          "sq_rel": -0.2541009451072701
+        },
+        "delta_final_minus_D1": {
+          "abs_rel": 0.0003738234953626074,
+          "d1": -0.001133498126332344,
+          "d2": -0.0007092899693728061,
+          "d3": -0.0003404614248297966,
+          "log10": 0.00028068744557979697,
+          "rmse": 0.07871309190520925,
+          "rmse_log": 0.0016878935309259935,
+          "silog": 0.001675459951342717,
+          "silog_x100": 0.16754599513427415,
+          "sq_rel": 0.007099673122152317
+        },
+        "final": {
+          "abs_rel": 0.09681922555418239,
+          "d1": 0.894950965345139,
+          "d2": 0.9718167216275031,
+          "d3": 0.9922719161464955,
+          "log10": 0.04270601079001123,
+          "rmse": 4.735885381237408,
+          "rmse_log": 0.15309732059874928,
+          "silog": 0.15259319338683938,
+          "silog_x100": 15.259319338683937,
+          "sq_rel": 0.6428739917412833
+        }
+      },
+      "per_sample_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/diagnostics/0530_1459_n6_x3_ablation/shuffle/kitti_val_shuffle/per_sample.jsonl",
+      "samples": 652,
+      "seconds_per_visited_sample": 0.043825201095978907,
+      "status_counts": {
+        "ok": 652
+      },
+      "visited_samples": 652
+    }
+  ],
+  "latest": {
+    "dataset": "kitti_val_nseries",
+    "dataset_samples": 652,
+    "elapsed_seconds": 28.574031114578247,
+    "epoch": 3,
+    "eval_protocol": "halfres_raw_canonical_even_pad_crop_affine_disp",
+    "feature_ablation_applied": true,
+    "feature_ablation_key": "x3",
+    "feature_ablation_mode": "shuffle",
+    "feature_ablation_seed": 42,
+    "kitti_base": "/mnt/drive/kitti",
+    "kitti_val_split": "/home/caq/6666_raw/dav2_raw/metric_depth/dataset/splits/kitti/val.txt",
+    "max_val_samples": null,
+    "overall": {
+      "D0": {
+        "abs_rel": 0.11837387988765452,
+        "d1": 0.8665133186001374,
+        "d2": 0.9661967381604754,
+        "d3": 0.9907185329840872,
+        "log10": 0.05122113619295111,
+        "rmse": 5.139945056036145,
+        "rmse_log": 0.1722932136749632,
+        "silog": 0.17187628484142506,
+        "silog_x100": 17.187628484142508,
+        "sq_rel": 0.8898752637264011
+      },
+      "D1": {
+        "abs_rel": 0.09644540205881978,
+        "d1": 0.8960844634714713,
+        "d2": 0.9725260115968759,
+        "d3": 0.9926123775713253,
+        "log10": 0.042425323344431436,
+        "rmse": 4.657172289332199,
+        "rmse_log": 0.1514094270678233,
+        "silog": 0.15091773343549666,
+        "silog_x100": 15.091773343549663,
+        "sq_rel": 0.635774318619131
+      },
+      "delta_D1_minus_D0": {
+        "abs_rel": -0.02192847782883474,
+        "d1": 0.029571144871333943,
+        "d2": 0.006329273436400551,
+        "d3": 0.0018938445872380694,
+        "log10": -0.008795812848519671,
+        "rmse": -0.4827727667039454,
+        "rmse_log": -0.02088378660713991,
+        "silog": -0.020958551405928394,
+        "silog_x100": -2.0958551405928443,
+        "sq_rel": -0.2541009451072701
+      },
+      "delta_final_minus_D1": {
+        "abs_rel": 0.0003738234953626074,
+        "d1": -0.001133498126332344,
+        "d2": -0.0007092899693728061,
+        "d3": -0.0003404614248297966,
+        "log10": 0.00028068744557979697,
+        "rmse": 0.07871309190520925,
+        "rmse_log": 0.0016878935309259935,
+        "silog": 0.001675459951342717,
+        "silog_x100": 0.16754599513427415,
+        "sq_rel": 0.007099673122152317
+      },
+      "final": {
+        "abs_rel": 0.09681922555418239,
+        "d1": 0.894950965345139,
+        "d2": 0.9718167216275031,
+        "d3": 0.9922719161464955,
+        "log10": 0.04270601079001123,
+        "rmse": 4.735885381237408,
+        "rmse_log": 0.15309732059874928,
+        "silog": 0.15259319338683938,
+        "silog_x100": 15.259319338683937,
+        "sq_rel": 0.6428739917412833
+      }
+    },
+    "per_sample_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/diagnostics/0530_1459_n6_x3_ablation/shuffle/kitti_val_shuffle/per_sample.jsonl",
+    "samples": 652,
+    "seconds_per_visited_sample": 0.043825201095978907,
+    "status_counts": {
+      "ok": 652
+    },
+    "visited_samples": 652
+  }
+}

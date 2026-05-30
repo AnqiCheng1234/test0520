@@ -76,6 +76,25 @@ def read_feature_ablation(feature_dir: Path | None) -> dict[str, Any]:
                 mode = row.get("feature_ablation_mode")
                 if mode:
                     out[f"{csv_path.parent.name}:{mode}"] = row
+    for summary_path in feature_dir.rglob("n6_summary.json"):
+        try:
+            payload = load_json(summary_path)
+        except (OSError, json.JSONDecodeError):
+            continue
+        mode = payload.get("feature_ablation_mode")
+        if not mode:
+            continue
+        out[f"{summary_path.parent.name}:{mode}"] = {
+            "feature_ablation_mode": mode,
+            "feature_ablation_key": payload.get("feature_ablation_key"),
+            "shuffle_seed": payload.get("feature_ablation_seed"),
+            "abs_rel": get_path(payload, ["vkitti", "overall", "final", "abs_rel"]),
+            "D1_abs_rel": get_path(payload, ["vkitti", "overall", "D1", "abs_rel"]),
+            "boundary_abs_rel": get_path(payload, ["vkitti", "region", "final", "boundary_abs_rel"]),
+            "boundary_delta_final_minus_D1": get_path(payload, ["vkitti", "region", "delta_final_minus_D1", "boundary_abs_rel"]),
+            "kitti_abs_rel": get_path(payload, ["kitti", "overall", "final", "abs_rel"]),
+            "source_checkpoint": payload.get("source_checkpoint"),
+        }
     return out
 
 

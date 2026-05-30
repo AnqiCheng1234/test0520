@@ -48,6 +48,7 @@ from foundation.engine.models.dav2_incremental_residual import (
     INCREMENTAL_FEATURE_SOURCES,
     INCREMENTAL_METHOD_IDS,
     RAW_FEATURE_ENCODER_TRAINABLE,
+    FEATURE_ABLATION_MODES,
     validate_incremental_contract,
 )
 from foundation.engine.transforms import (
@@ -114,6 +115,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--encoder", required=True, choices=sorted(MODEL_CONFIGS))
     parser.add_argument("--pretrained-from", required=True)
     parser.add_argument("--resume-from", default=None)
+    parser.add_argument("--eval-only", action="store_true")
     parser.add_argument("--c2-checkpoint", required=True)
     parser.add_argument("--c2-run-dir", required=True)
     parser.add_argument("--vkitti-train-list", required=True)
@@ -139,6 +141,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--lambda-lp", type=float, required=True)
     parser.add_argument("--lowpass-kernel", type=int, required=True)
     parser.add_argument("--q-good", type=float, required=True)
+    parser.add_argument("--n6-feature-ablation-mode", default="true", choices=FEATURE_ABLATION_MODES)
+    parser.add_argument("--n6-feature-ablation-seed", type=int, default=42)
+    parser.add_argument("--n6-feature-ablation-key", default="x3", choices=["x3"])
+    parser.add_argument("--n6-output-dir", default=None)
     parser.add_argument("--lambda-final", type=float, required=True)
     parser.add_argument("--lambda-boundary", type=float, required=True)
     parser.add_argument("--lambda-grad", type=float, required=True)
@@ -250,6 +256,15 @@ def load_json(path: Path) -> dict[str, Any]:
         return json.load(f)
 
 
+def get_path(payload: dict[str, Any], path: list[str], default: Any = None) -> Any:
+    cur: Any = payload
+    for key in path:
+        if not isinstance(cur, dict) or key not in cur:
+            return default
+        cur = cur[key]
+    return cur
+
+
 def _as_path_str(value: Any) -> str:
     return str(Path(str(value)).expanduser().resolve()) if value not in (None, "") else ""
 
@@ -342,6 +357,31 @@ def validate_args(args: argparse.Namespace) -> None:
         raise ValueError("bs, accum-steps, and epochs must be positive.")
     if args.save_interval <= 0 or args.eval_interval <= 0:
         raise ValueError("save-interval and eval-interval must be positive.")
+    if args.eval_only and not args.resume_from:
+        raise ValueError("--eval-only requires --resume-from.")
+    if args.resume_from is not None and not Path(args.resume_from).expanduser().is_file():
+        raise FileNotFoundError(f"Missing resume checkpoint: {args.resume_from}")
+
+    n6_mode = str(args.n6_feature_ablation_mode)
+    if args.n6_feature_ablation_key != "x3":
+        raise ValueError("--n6-feature-ablation-key currently only supports x3.")
+    if n6_mode != "true":
+        expected = {
+            "method_id": "N2",
+            "incremental_feature_source": "x3",
+            "delta_condition": "feature_only",
+            "gate_condition": "feature_d1",
+            "raw_feature_encoder_trainable": "true",
+        }
+        for attr, value in expected.items():
+            if getattr(args, attr) != value:
+                raise ValueError(f"N6 feature ablation requires {attr}={value!r}, got {getattr(args, attr)!r}")
+        if not args.resume_from:
+            raise ValueError("N6 feature ablation requires --resume-from pointing to an N2 checkpoint.")
+        if not args.eval_only:
+            raise ValueError("N6 feature ablation is eval-only; pass --eval-only.")
+        if n6_mode == "shuffle" and args.bs <= 1:
+            raise ValueError("N6 shuffle feature ablation requires --bs > 1.")
 
     is_raw = args.incremental_feature_source in ("x3", "ffm_mid")
     if is_raw:
@@ -416,6 +456,32 @@ def validate_args(args: argparse.Namespace) -> None:
             raise FileNotFoundError(f"Missing KITTI base directory: {args.kitti_base}")
 
     args.c2_metadata = validate_c2_metadata(args)
+
+
+def n6_feature_ablation_active(args: argparse.Namespace) -> bool:
+    return str(getattr(args, "n6_feature_ablation_mode", "true")) not in ("true", "none")
+
+
+def n6_eval_batch_size(args: argparse.Namespace) -> int:
+    if bool(getattr(args, "eval_only", False)):
+        return int(args.bs)
+    return 1
+
+
+def forward_incremental_model(model: torch.nn.Module, model_batch: dict[str, torch.Tensor], args: argparse.Namespace) -> dict[str, Any]:
+    mode = str(getattr(args, "n6_feature_ablation_mode", "true"))
+    if mode in ("true", "none"):
+        return model(model_batch)
+    return model(
+        model_batch,
+        feature_ablation_mode=mode,
+        feature_ablation_seed=int(args.n6_feature_ablation_seed),
+        feature_ablation_key=str(args.n6_feature_ablation_key),
+    )
+
+
+def collate_kitti_eval_batch(batch: list[dict[str, Any]]) -> dict[str, Any] | list[dict[str, Any]]:
+    return batch[0] if len(batch) == 1 else batch
 
 
 def set_random_seed(seed: int) -> None:
@@ -549,10 +615,11 @@ def build_loaders(args: argparse.Namespace) -> tuple[Any, Any, DataLoader, DataL
         drop_last=False,
         persistent_workers=args.num_workers > 0,
     )
+    val_batch_size = n6_eval_batch_size(args)
     val_workers = max(min(args.num_workers, 2), 0)
     val_loader = DataLoader(
         val_dataset,
-        batch_size=1,
+        batch_size=val_batch_size,
         shuffle=False,
         num_workers=val_workers,
         pin_memory=True,
@@ -588,14 +655,15 @@ def build_kitti_val_loader(args: argparse.Namespace, device: torch.device) -> tu
     if args.kitti_expected_val_samples is not None and len(dataset) != int(args.kitti_expected_val_samples):
         raise RuntimeError(f"Expected KITTI val length {int(args.kitti_expected_val_samples)}, got {len(dataset)}")
     workers = int(args.kitti_num_workers) if args.kitti_num_workers is not None else max(min(args.num_workers, 2), 0)
+    batch_size = n6_eval_batch_size(args)
     loader = DataLoader(
         dataset,
-        batch_size=1,
+        batch_size=batch_size,
         shuffle=False,
+        collate_fn=collate_single_sample if batch_size == 1 else collate_kitti_eval_batch,
         num_workers=workers,
         pin_memory=device.type == "cuda",
         drop_last=False,
-        collate_fn=collate_single_sample,
         persistent_workers=workers > 0,
     )
     return dataset, loader
@@ -673,7 +741,13 @@ def evaluate_model(
     diagnostics: list[dict[str, float]] = []
     processed = 0
     start = time.time()
-    logger.info("[EVAL] start epoch=%d max_val_samples=%s", epoch, args.max_val_samples)
+    logger.info(
+        "[EVAL] start epoch=%d max_val_samples=%s batch_size=%d feature_ablation_mode=%s",
+        epoch,
+        args.max_val_samples,
+        n6_eval_batch_size(args),
+        getattr(args, "n6_feature_ablation_mode", "true"),
+    )
 
     for batch in dataloader:
         if args.max_val_samples is not None and processed >= args.max_val_samples:
@@ -685,68 +759,73 @@ def evaluate_model(
         depth = batch["depth"].to(device, non_blocking=True).float()
         valid_mask = batch["valid_mask"].to(device, non_blocking=True).bool()
         valid_mask = valid_mask & (depth >= args.min_depth) & (depth <= args.max_depth)
-        if int(valid_mask[0].sum().item()) < 128:
-            continue
         model_batch = {"image": image, "valid_mask": valid_mask}
         if raw is not None:
             model_batch["raw"] = raw
         with torch.no_grad(), torch.autocast(device_type="cuda", dtype=amp_dtype, enabled=args.amp and device.type == "cuda"):
-            out = model(model_batch)
+            out = forward_incremental_model(model, model_batch, args)
 
         inv_gt = build_training_target(depth.float(), valid_mask, target_space="metric_depth")
         y_norm, _ = robust_normalize_target_per_sample(inv_gt, valid_mask, min_valid_pixels=128)
+        batch_size = int(image.shape[0])
+        for sample_idx in range(batch_size):
+            if args.max_val_samples is not None and processed >= args.max_val_samples:
+                break
+            valid_i = valid_mask[sample_idx]
+            if int(valid_i.sum().item()) < 128:
+                continue
 
-        depth_np = depth[0].detach().cpu().numpy().astype(np.float32)
-        valid_np = valid_mask[0].detach().cpu().numpy().astype(bool)
-        final_disp = out["pred"][0].float().detach().cpu().numpy().astype(np.float32)
-        d1_disp = out["D1_norm"][0].float().detach().cpu().numpy().astype(np.float32)
-        d0_disp = (float(args.d0_sign) * out["D0"][0].float()).detach().cpu().numpy().astype(np.float32)
-        aligned_final, _ = affine_align_disp(depth_np, final_disp, valid_np)
-        aligned_d1, _ = affine_align_disp(depth_np, d1_disp, valid_np)
-        aligned_d0, _ = affine_align_disp(depth_np, d0_disp, valid_np)
-        metrics_final = compute_metrics(depth_np, aligned_final, valid_np, min_depth=args.min_depth, max_depth=args.max_depth)
-        metrics_d1 = compute_metrics(depth_np, aligned_d1, valid_np, min_depth=args.min_depth, max_depth=args.max_depth)
-        metrics_d0 = compute_metrics(depth_np, aligned_d0, valid_np, min_depth=args.min_depth, max_depth=args.max_depth)
-        if metrics_final is None or metrics_d1 is None or metrics_d0 is None:
-            continue
-        rgb_preview = batch["rgb_preview"][0].permute(1, 2, 0).numpy().astype(np.float32)
-        regions = sample_region_metrics_three(
-            depth_np=depth_np,
-            valid_np=valid_np,
-            aligned_final=aligned_final,
-            aligned_d1=aligned_d1,
-            aligned_d0=aligned_d0,
-            base_norm_np=out["D1_norm"][0].float().detach().cpu().numpy(),
-            y_norm_np=y_norm[0].float().detach().cpu().numpy(),
-            rgb_preview_np=rgb_preview,
-            min_depth=args.min_depth,
-            max_depth=args.max_depth,
-        )
-        final_metrics.append({key: float(metrics_final[key]) for key in METRIC_KEYS if key in metrics_final})
-        d1_metrics.append({key: float(metrics_d1[key]) for key in METRIC_KEYS if key in metrics_d1})
-        d0_metrics.append({key: float(metrics_d0[key]) for key in METRIC_KEYS if key in metrics_d0})
-        final_regions.append(regions["final"])
-        d1_regions.append(regions["D1"])
-        d0_regions.append(regions["D0"])
+            depth_np = depth[sample_idx].detach().cpu().numpy().astype(np.float32)
+            valid_np = valid_i.detach().cpu().numpy().astype(bool)
+            final_disp = out["pred"][sample_idx].float().detach().cpu().numpy().astype(np.float32)
+            d1_disp = out["D1_norm"][sample_idx].float().detach().cpu().numpy().astype(np.float32)
+            d0_disp = (float(args.d0_sign) * out["D0"][sample_idx].float()).detach().cpu().numpy().astype(np.float32)
+            aligned_final, _ = affine_align_disp(depth_np, final_disp, valid_np)
+            aligned_d1, _ = affine_align_disp(depth_np, d1_disp, valid_np)
+            aligned_d0, _ = affine_align_disp(depth_np, d0_disp, valid_np)
+            metrics_final = compute_metrics(depth_np, aligned_final, valid_np, min_depth=args.min_depth, max_depth=args.max_depth)
+            metrics_d1 = compute_metrics(depth_np, aligned_d1, valid_np, min_depth=args.min_depth, max_depth=args.max_depth)
+            metrics_d0 = compute_metrics(depth_np, aligned_d0, valid_np, min_depth=args.min_depth, max_depth=args.max_depth)
+            if metrics_final is None or metrics_d1 is None or metrics_d0 is None:
+                continue
+            rgb_preview = batch["rgb_preview"][sample_idx].permute(1, 2, 0).numpy().astype(np.float32)
+            regions = sample_region_metrics_three(
+                depth_np=depth_np,
+                valid_np=valid_np,
+                aligned_final=aligned_final,
+                aligned_d1=aligned_d1,
+                aligned_d0=aligned_d0,
+                base_norm_np=out["D1_norm"][sample_idx].float().detach().cpu().numpy(),
+                y_norm_np=y_norm[sample_idx].float().detach().cpu().numpy(),
+                rgb_preview_np=rgb_preview,
+                min_depth=args.min_depth,
+                max_depth=args.max_depth,
+            )
+            final_metrics.append({key: float(metrics_final[key]) for key in METRIC_KEYS if key in metrics_final})
+            d1_metrics.append({key: float(metrics_d1[key]) for key in METRIC_KEYS if key in metrics_d1})
+            d0_metrics.append({key: float(metrics_d0[key]) for key in METRIC_KEYS if key in metrics_d0})
+            final_regions.append(regions["final"])
+            d1_regions.append(regions["D1"])
+            d0_regions.append(regions["D0"])
 
-        gate = out["gate"].float()
-        delta = out["delta"].float()
-        delta_effective = out["delta_effective"].float()
-        gate_delta = gate * delta_effective
-        low = lowpass_avgpool(gate_delta, kernel_size=args.lowpass_kernel)
-        denom = gate_delta[valid_mask].abs().mean()
-        diagnostics.append(
-            {
-                "mean_gate": float(gate[valid_mask].mean().detach().item()),
-                "max_gate": float(gate[valid_mask].max().detach().item()),
-                "mean_abs_delta": float(delta[valid_mask].abs().mean().detach().item()),
-                "mean_abs_delta_effective": float(delta_effective[valid_mask].abs().mean().detach().item()),
-                "mean_abs_gate_delta": float(gate_delta[valid_mask].abs().mean().detach().item()),
-                "low_ratio": float((low[valid_mask].abs().mean() / (denom + 1e-6)).detach().item()),
-                "high_ratio": float(((gate_delta - low)[valid_mask].abs().mean() / (denom + 1e-6)).detach().item()),
-            }
-        )
-        processed += 1
+            gate = out["gate"][sample_idx].float()
+            delta = out["delta"][sample_idx].float()
+            delta_effective = out["delta_effective"][sample_idx].float()
+            gate_delta = gate * delta_effective
+            low = lowpass_avgpool(gate_delta.unsqueeze(0), kernel_size=args.lowpass_kernel)[0]
+            denom = gate_delta[valid_i].abs().mean()
+            diagnostics.append(
+                {
+                    "mean_gate": float(gate[valid_i].mean().detach().item()),
+                    "max_gate": float(gate[valid_i].max().detach().item()),
+                    "mean_abs_delta": float(delta[valid_i].abs().mean().detach().item()),
+                    "mean_abs_delta_effective": float(delta_effective[valid_i].abs().mean().detach().item()),
+                    "mean_abs_gate_delta": float(gate_delta[valid_i].abs().mean().detach().item()),
+                    "low_ratio": float((low[valid_i].abs().mean() / (denom + 1e-6)).detach().item()),
+                    "high_ratio": float(((gate_delta - low)[valid_i].abs().mean() / (denom + 1e-6)).detach().item()),
+                }
+            )
+            processed += 1
 
     if processed == 0:
         raise RuntimeError("Validation produced zero valid samples.")
@@ -779,6 +858,10 @@ def evaluate_model(
         "diagnostics": diag,
         "target_region_score": target_region_score({"region": {"delta_final_minus_D1": subtract_dicts(region_final, region_d1, REGION_KEYS)}}),
         "elapsed_seconds": float(time.time() - start),
+        "feature_ablation_mode": str(getattr(args, "n6_feature_ablation_mode", "true")),
+        "feature_ablation_key": str(getattr(args, "n6_feature_ablation_key", "x3")),
+        "feature_ablation_seed": int(getattr(args, "n6_feature_ablation_seed", 42)),
+        "feature_ablation_applied": bool(n6_feature_ablation_active(args)),
     }
     logger.info(
         "[EVAL] done epoch=%d samples=%d final_abs_rel=%.5f D1_abs_rel=%.5f D0_abs_rel=%.5f final_minus_D1=%.5f elapsed=%s",
@@ -792,22 +875,13 @@ def evaluate_model(
     )
     return summary
 
-
 def filter_metrics(metrics: dict[str, Any] | None) -> dict[str, float | None]:
     if metrics is None:
         return {key: None for key in METRIC_KEYS}
     return {key: float_or_none(metrics.get(key, float("nan"))) for key in METRIC_KEYS}
 
 
-def collect_kitti_nseries_sample(
-    *,
-    sample: dict[str, Any],
-    model: torch.nn.Module,
-    config: dict[str, Any],
-    device: torch.device,
-    amp_enabled: bool,
-    amp_dtype: torch.dtype,
-) -> dict[str, Any]:
+def kitti_row_template(sample: dict[str, Any]) -> dict[str, Any]:
     row = {
         "dataset_index": int(sample["dataset_index"]),
         "sample_name": str(sample["sample_name"]),
@@ -822,60 +896,94 @@ def collect_kitti_nseries_sample(
     }
     if sample.get("status") != "ok":
         row["error"] = sample.get("error")
-        return row
-    image = sample["image"].unsqueeze(0).to(device, non_blocking=True).float()
-    raw = sample.get("raw")
-    if raw is not None:
-        raw = raw.unsqueeze(0).to(device, non_blocking=True).float()
-    depth_t = sample["depth"].unsqueeze(0).to(device, non_blocking=True).float()
-    valid_t = sample["valid_mask"].unsqueeze(0).to(device, non_blocking=True).bool()
-    valid_t = valid_t & (depth_t >= float(config["min_depth"])) & (depth_t <= float(config["max_depth"]))
-    valid_pixels = int(valid_t[0].sum().item())
-    row["valid_pixels"] = valid_pixels
-    if valid_pixels < 128:
-        row["status"] = "skipped_invalid_pixels"
-        row["error"] = f"valid_pixels={valid_pixels} < 128"
-        return row
-    try:
-        model_batch = {"image": image, "valid_mask": valid_t}
-        if raw is not None:
-            model_batch["raw"] = raw
-        with torch.no_grad(), torch.autocast(device_type="cuda", dtype=amp_dtype, enabled=amp_enabled and device.type == "cuda"):
-            out = model(model_batch)
-        depth_np = depth_t[0].detach().cpu().numpy().astype(np.float32)
-        valid_np = valid_t[0].detach().cpu().numpy().astype(bool)
-        final_disp = out["pred"][0].float().detach().cpu().numpy().astype(np.float32)
-        d1_disp = out["D1_norm"][0].float().detach().cpu().numpy().astype(np.float32)
-        d0_disp = (float(config["d0_sign"]) * out["D0"][0].float()).detach().cpu().numpy().astype(np.float32)
-        aligned_final, _ = affine_align_disp(depth_np, final_disp, valid_np)
-        aligned_d1, _ = affine_align_disp(depth_np, d1_disp, valid_np)
-        aligned_d0, _ = affine_align_disp(depth_np, d0_disp, valid_np)
-        metrics_final = compute_metrics(depth_np, aligned_final, valid_np, min_depth=float(config["min_depth"]), max_depth=float(config["max_depth"]))
-        metrics_d1 = compute_metrics(depth_np, aligned_d1, valid_np, min_depth=float(config["min_depth"]), max_depth=float(config["max_depth"]))
-        metrics_d0 = compute_metrics(depth_np, aligned_d0, valid_np, min_depth=float(config["min_depth"]), max_depth=float(config["max_depth"]))
-        if metrics_final is None or metrics_d1 is None or metrics_d0 is None:
-            row["status"] = "skipped_metric_failure"
-            row["error"] = "compute_metrics returned None"
-            return row
-        gate = out["gate"].float()
-        delta = out["delta"].float()
-        gate_delta = gate * out["delta_effective"].float()
-        row["status"] = "ok"
-        row["final"] = filter_metrics(metrics_final)
-        row["D1"] = filter_metrics(metrics_d1)
-        row["D0"] = filter_metrics(metrics_d0)
-        row["diagnostics"] = {
-            "mean_gate": float(gate[valid_t].mean().detach().item()),
-            "max_gate": float(gate[valid_t].max().detach().item()),
-            "mean_abs_delta": float(delta[valid_t].abs().mean().detach().item()),
-            "mean_abs_gate_delta": float(gate_delta[valid_t].abs().mean().detach().item()),
-        }
-        return row
-    except Exception as exc:  # noqa: BLE001
-        row["status"] = "skipped_metric_failure"
-        row["error"] = str(exc)
-        return row
+    return row
 
+
+def collect_kitti_nseries_batch(
+    *,
+    samples: list[dict[str, Any]],
+    model: torch.nn.Module,
+    args: argparse.Namespace,
+    config: dict[str, Any],
+    device: torch.device,
+    amp_enabled: bool,
+    amp_dtype: torch.dtype,
+) -> list[dict[str, Any]]:
+    rows = [kitti_row_template(sample) for sample in samples]
+    ok_items = [(idx, sample, rows[idx]) for idx, sample in enumerate(samples) if sample.get("status") == "ok"]
+    if not ok_items:
+        return rows
+
+    image = torch.stack([sample["image"] for _, sample, _ in ok_items], dim=0).to(device, non_blocking=True).float()
+    raw_values = [sample.get("raw") for _, sample, _ in ok_items]
+    has_raw = [value is not None for value in raw_values]
+    if any(has_raw) and not all(has_raw):
+        raise RuntimeError("KITTI batch has mixed raw/non-raw samples.")
+    raw = None
+    if all(has_raw):
+        raw = torch.stack([value for value in raw_values if value is not None], dim=0).to(device, non_blocking=True).float()
+    depth_t = torch.stack([sample["depth"] for _, sample, _ in ok_items], dim=0).to(device, non_blocking=True).float()
+    valid_t = torch.stack([sample["valid_mask"] for _, sample, _ in ok_items], dim=0).to(device, non_blocking=True).bool()
+    valid_t = valid_t & (depth_t >= float(config["min_depth"])) & (depth_t <= float(config["max_depth"]))
+
+    model_batch = {"image": image, "valid_mask": valid_t}
+    if raw is not None:
+        model_batch["raw"] = raw
+    try:
+        with torch.no_grad(), torch.autocast(device_type="cuda", dtype=amp_dtype, enabled=amp_enabled and device.type == "cuda"):
+            out = forward_incremental_model(model, model_batch, args)
+    except Exception as exc:  # noqa: BLE001
+        if n6_feature_ablation_active(args):
+            raise
+        for _, _, row in ok_items:
+            row["status"] = "skipped_metric_failure"
+            row["error"] = str(exc)
+        return rows
+
+    for local_idx, (_, _sample, row) in enumerate(ok_items):
+        valid_i = valid_t[local_idx]
+        valid_pixels = int(valid_i.sum().item())
+        row["valid_pixels"] = valid_pixels
+        row["feature_ablation_mode"] = str(getattr(args, "n6_feature_ablation_mode", "true"))
+        row["feature_ablation_key"] = str(getattr(args, "n6_feature_ablation_key", "x3"))
+        row["feature_ablation_seed"] = int(getattr(args, "n6_feature_ablation_seed", 42))
+        if valid_pixels < 128:
+            row["status"] = "skipped_invalid_pixels"
+            row["error"] = f"valid_pixels={valid_pixels} < 128"
+            continue
+        try:
+            depth_np = depth_t[local_idx].detach().cpu().numpy().astype(np.float32)
+            valid_np = valid_i.detach().cpu().numpy().astype(bool)
+            final_disp = out["pred"][local_idx].float().detach().cpu().numpy().astype(np.float32)
+            d1_disp = out["D1_norm"][local_idx].float().detach().cpu().numpy().astype(np.float32)
+            d0_disp = (float(config["d0_sign"]) * out["D0"][local_idx].float()).detach().cpu().numpy().astype(np.float32)
+            aligned_final, _ = affine_align_disp(depth_np, final_disp, valid_np)
+            aligned_d1, _ = affine_align_disp(depth_np, d1_disp, valid_np)
+            aligned_d0, _ = affine_align_disp(depth_np, d0_disp, valid_np)
+            metrics_final = compute_metrics(depth_np, aligned_final, valid_np, min_depth=float(config["min_depth"]), max_depth=float(config["max_depth"]))
+            metrics_d1 = compute_metrics(depth_np, aligned_d1, valid_np, min_depth=float(config["min_depth"]), max_depth=float(config["max_depth"]))
+            metrics_d0 = compute_metrics(depth_np, aligned_d0, valid_np, min_depth=float(config["min_depth"]), max_depth=float(config["max_depth"]))
+            if metrics_final is None or metrics_d1 is None or metrics_d0 is None:
+                row["status"] = "skipped_metric_failure"
+                row["error"] = "compute_metrics returned None"
+                continue
+            gate = out["gate"][local_idx].float()
+            delta = out["delta"][local_idx].float()
+            gate_delta = gate * out["delta_effective"][local_idx].float()
+            row["status"] = "ok"
+            row["final"] = filter_metrics(metrics_final)
+            row["D1"] = filter_metrics(metrics_d1)
+            row["D0"] = filter_metrics(metrics_d0)
+            row["diagnostics"] = {
+                "mean_gate": float(gate[valid_i].mean().detach().item()),
+                "max_gate": float(gate[valid_i].max().detach().item()),
+                "mean_abs_delta": float(delta[valid_i].abs().mean().detach().item()),
+                "mean_abs_gate_delta": float(gate_delta[valid_i].abs().mean().detach().item()),
+            }
+        except Exception as exc:  # noqa: BLE001
+            row["status"] = "skipped_metric_failure"
+            row["error"] = str(exc)
+    return rows
 
 def average_metrics(rows: list[dict[str, Any]]) -> dict[str, float | None]:
     return {key: mean_finite([row.get(key) for row in rows]) for key in METRIC_KEYS}
@@ -902,25 +1010,33 @@ def evaluate_kitti_model(
     ok_rows: list[dict[str, Any]] = []
     start = time.time()
     per_sample_path = output_dir / "per_sample.jsonl"
+    visited = 0
     with per_sample_path.open("w", encoding="utf-8") as handle:
-        for visited, sample in enumerate(dataloader):
+        for batch in dataloader:
             if visited >= max_visit:
                 break
-            row = collect_kitti_nseries_sample(
-                sample=sample,
+            samples = batch if isinstance(batch, list) else [batch]
+            remaining = max_visit - visited
+            if len(samples) > remaining:
+                samples = samples[:remaining]
+            batch_rows = collect_kitti_nseries_batch(
+                samples=samples,
                 model=model,
+                args=args,
                 config=config,
                 device=device,
                 amp_enabled=amp_enabled,
                 amp_dtype=amp_dtype,
             )
-            row["epoch"] = int(epoch)
-            rows.append(row)
-            if row["status"] == "ok":
-                ok_rows.append(row)
-            handle.write(json.dumps(row, sort_keys=True) + "\n")
-            if (visited + 1) % 50 == 0 or visited + 1 == max_visit:
-                logger.info("[EVAL][KITTI] processed=%d/%d ok=%d elapsed=%s", visited + 1, max_visit, len(ok_rows), format_seconds(time.time() - start))
+            for row in batch_rows:
+                row["epoch"] = int(epoch)
+                rows.append(row)
+                if row["status"] == "ok":
+                    ok_rows.append(row)
+                handle.write(json.dumps(row, sort_keys=True) + "\n")
+            visited += len(samples)
+            if visited % 50 == 0 or visited == max_visit:
+                logger.info("[EVAL][KITTI] processed=%d/%d ok=%d elapsed=%s", visited, max_visit, len(ok_rows), format_seconds(time.time() - start))
     if not ok_rows:
         raise RuntimeError("KITTI eval produced zero ok samples.")
     overall_final = average_metrics([row["final"] for row in ok_rows])
@@ -949,6 +1065,10 @@ def evaluate_kitti_model(
         "elapsed_seconds": float(elapsed_seconds),
         "seconds_per_visited_sample": float(elapsed_seconds / max(len(rows), 1)),
         "per_sample_path": str(per_sample_path),
+        "feature_ablation_mode": str(getattr(args, "n6_feature_ablation_mode", "true")),
+        "feature_ablation_key": str(getattr(args, "n6_feature_ablation_key", "x3")),
+        "feature_ablation_seed": int(getattr(args, "n6_feature_ablation_seed", 42)),
+        "feature_ablation_applied": bool(n6_feature_ablation_active(args)),
     }
     save_json(output_dir / "metrics.json", summary)
     logger.info(
@@ -962,6 +1082,68 @@ def evaluate_kitti_model(
     )
     return summary
 
+
+
+def build_n6_summary(
+    *,
+    args: argparse.Namespace,
+    vkitti_summary: dict[str, Any],
+    kitti_summary: dict[str, Any] | None,
+) -> dict[str, Any]:
+    return {
+        "experiment": "N6",
+        "source_checkpoint": str(Path(args.resume_from).expanduser().resolve()),
+        "feature_ablation_mode": str(args.n6_feature_ablation_mode),
+        "feature_ablation_key": str(args.n6_feature_ablation_key),
+        "feature_ablation_seed": int(args.n6_feature_ablation_seed),
+        "method_id": str(args.method_id),
+        "incremental_feature_source": str(args.incremental_feature_source),
+        "c2_checkpoint": str(Path(args.c2_checkpoint).expanduser().resolve()),
+        "c2_run_dir": str(Path(args.c2_run_dir).expanduser().resolve()),
+        "processed_samples": {
+            "vkitti": int(vkitti_summary.get("samples", 0)),
+            "kitti": None if kitti_summary is None else int(kitti_summary.get("samples", 0)),
+        },
+        "vkitti": vkitti_summary,
+        "kitti": {} if kitti_summary is None else kitti_summary,
+    }
+
+
+def write_n6_summary_md(path: Path, summary: dict[str, Any]) -> None:
+    vkitti = summary.get("vkitti", {})
+    kitti = summary.get("kitti", {})
+    lines = [
+        "# N6 x3 Feature Ablation Summary",
+        "",
+        f"- source_checkpoint: {summary.get('source_checkpoint')}",
+        f"- mode: {summary.get('feature_ablation_mode')}",
+        f"- key: {summary.get('feature_ablation_key')}",
+        f"- seed: {summary.get('feature_ablation_seed')}",
+        f"- method_id: {summary.get('method_id')}",
+        f"- c2_checkpoint: {summary.get('c2_checkpoint')}",
+        "",
+        "| dataset | samples | final abs_rel | D1 abs_rel | D0 abs_rel | final-D1 abs_rel | boundary final | boundary final-D1 |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|",
+        (
+            f"| VKITTI | {vkitti.get('samples')} | "
+            f"{get_path(vkitti, ['overall', 'final', 'abs_rel'])} | "
+            f"{get_path(vkitti, ['overall', 'D1', 'abs_rel'])} | "
+            f"{get_path(vkitti, ['overall', 'D0', 'abs_rel'])} | "
+            f"{get_path(vkitti, ['overall', 'delta_final_minus_D1', 'abs_rel'])} | "
+            f"{get_path(vkitti, ['region', 'final', 'boundary_abs_rel'])} | "
+            f"{get_path(vkitti, ['region', 'delta_final_minus_D1', 'boundary_abs_rel'])} |"
+        ),
+    ]
+    if kitti:
+        lines.append(
+            f"| KITTI | {kitti.get('samples')} | "
+            f"{get_path(kitti, ['overall', 'final', 'abs_rel'])} | "
+            f"{get_path(kitti, ['overall', 'D1', 'abs_rel'])} | "
+            f"{get_path(kitti, ['overall', 'D0', 'abs_rel'])} | "
+            f"{get_path(kitti, ['overall', 'delta_final_minus_D1', 'abs_rel'])} |  |  |"
+        )
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 def update_best_record(
     current: dict[str, Any] | None,
@@ -997,10 +1179,17 @@ def main() -> None:
     if device.type != "cuda":
         raise RuntimeError("This training entry expects CUDA.")
 
+    requested_save_path = str(args.save_path)
+    if args.eval_only:
+        n6_output_dir = Path(args.n6_output_dir).expanduser().resolve() if args.n6_output_dir else Path(args.save_path).expanduser().resolve() / f"n6_{args.n6_feature_ablation_mode}"
+        args.requested_save_path = requested_save_path
+        args.save_path = str(n6_output_dir)
+        args.n6_output_dir = str(n6_output_dir)
     save_path = Path(args.save_path).expanduser().resolve()
     heavy_save_path = Path(args.heavy_save_path).expanduser().resolve()
     save_path.mkdir(parents=True, exist_ok=True)
-    heavy_save_path.mkdir(parents=True, exist_ok=True)
+    if not args.eval_only:
+        heavy_save_path.mkdir(parents=True, exist_ok=True)
 
     logger = init_log("vkitti2_incremental_residual", logging.INFO) or logging.getLogger("vkitti2_incremental_residual")
     logger.propagate = False
@@ -1016,6 +1205,7 @@ def main() -> None:
     model = build_model(args)
     start_epoch = 0
     global_step = 0
+    resume = None
     if args.resume_from:
         resume = torch.load(args.resume_from, map_location="cpu")
         model.load_state_dict(strip_module_prefix(resolve_model_state(resume)), strict=True)
@@ -1051,14 +1241,52 @@ def main() -> None:
     }
     save_json(save_path / "config.json", config_payload)
 
+    amp_dtype = torch.float16 if args.amp_dtype == "fp16" else torch.bfloat16
+    if args.eval_only:
+        resume_epoch = int(start_epoch - 1)
+        val_summary = evaluate_model(model, val_loader, args, device, epoch=resume_epoch, amp_dtype=amp_dtype, logger=logger)
+        save_json(save_path / f"eval_epoch_resume_{args.n6_feature_ablation_mode}.json", val_summary)
+        save_json(save_path / "val_metrics.json", {"epochs": [val_summary], "latest": val_summary})
+        kitti_val_summary = None
+        if args.eval_kitti:
+            if kitti_val_dataset is None or kitti_val_loader is None:
+                raise RuntimeError("KITTI eval requested but loader was not built.")
+            kitti_val_summary = evaluate_kitti_model(
+                model,
+                kitti_val_dataset,
+                kitti_val_loader,
+                args,
+                device,
+                epoch=resume_epoch,
+                amp_dtype=amp_dtype,
+                logger=logger,
+                output_dir=save_path / f"kitti_val_{args.n6_feature_ablation_mode}",
+            )
+            save_json(save_path / f"kitti_eval_{args.n6_feature_ablation_mode}.json", kitti_val_summary)
+            save_json(save_path / "kitti_val_metrics.json", {"epochs": [kitti_val_summary], "latest": kitti_val_summary})
+        n6_summary = build_n6_summary(args=args, vkitti_summary=val_summary, kitti_summary=kitti_val_summary)
+        save_json(save_path / "n6_summary.json", n6_summary)
+        write_n6_summary_md(save_path / "n6_summary.md", n6_summary)
+        save_json(
+            save_path / "run_summary.json",
+            {
+                "config": config_payload,
+                "train": [],
+                "val": [val_summary],
+                "vkitti_val": [val_summary],
+                "kitti_val": [] if kitti_val_summary is None else [kitti_val_summary],
+                "n6_summary": n6_summary,
+                "heavy_save_path": str(heavy_save_path),
+            },
+        )
+        logger.info("[EVAL_ONLY] wrote N6 outputs to %s", save_path)
+        return
+
     trainable_params = [param for param in model.parameters() if param.requires_grad]
     optimizer = AdamW(trainable_params, lr=args.lr, betas=(0.9, 0.999), weight_decay=args.weight_decay)
-    if args.resume_from:
-        resume = torch.load(args.resume_from, map_location="cpu")
-        if "optimizer" in resume:
-            optimizer.load_state_dict(resume["optimizer"])
+    if resume is not None and "optimizer" in resume:
+        optimizer.load_state_dict(resume["optimizer"])
 
-    amp_dtype = torch.float16 if args.amp_dtype == "fp16" else torch.bfloat16
     scaler = torch.cuda.amp.GradScaler(enabled=args.amp and args.amp_dtype == "fp16")
     logger.info(
         "[MODEL] total_params=%d trainable_params=%d frozen_params=%d method=%s feature=%s lambda_lp=%.3f q_good=%.3f",

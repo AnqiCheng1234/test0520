@@ -14,6 +14,7 @@ INCREMENTAL_FEATURE_SOURCES = ("x3", "ffm_mid", "rgb", "d1")
 DELTA_CONDITIONS = ("feature_only", "feature_d1_stopgrad", "d1_only")
 GATE_CONDITIONS = ("feature_d1", "d1_only")
 RAW_FEATURE_ENCODER_TRAINABLE = ("true", "false", "not_applicable")
+FEATURE_ABLATION_MODES = ("true", "none", "zero", "mean", "shuffle")
 
 
 def _gn(channels: int) -> nn.GroupNorm:
@@ -277,7 +278,43 @@ class C2FrozenIncrementalResidualDAV2(nn.Module):
         low = F.avg_pool2d(delta_raw.unsqueeze(1), kernel_size=k, stride=1, padding=k // 2)[:, 0]
         return delta_raw - float(self.lambda_lp) * low
 
-    def forward(self, batch: dict[str, torch.Tensor]) -> dict[str, torch.Tensor]:
+    def _apply_feature_ablation(
+        self,
+        feature: torch.Tensor,
+        *,
+        mode: str,
+        seed: int,
+    ) -> tuple[torch.Tensor, dict[str, object]]:
+        mode = str(mode)
+        if mode not in FEATURE_ABLATION_MODES:
+            raise ValueError(f"Unsupported feature_ablation_mode={mode!r}; expected true/none/zero/mean/shuffle")
+        if mode in ("true", "none"):
+            return feature, {"mode": mode, "applied": False}
+        if mode == "zero":
+            return torch.zeros_like(feature), {"mode": mode, "applied": True}
+        if mode == "mean":
+            dims = tuple(range(2, feature.ndim))
+            return feature.mean(dim=dims, keepdim=True).expand_as(feature), {"mode": mode, "applied": True}
+        if mode == "shuffle":
+            b = int(feature.shape[0])
+            if b <= 1:
+                raise RuntimeError("N6 shuffle feature ablation requires batch size > 1, got 1. Please run eval with bs >= 2.")
+            gen = torch.Generator(device=feature.device)
+            gen.manual_seed(int(seed))
+            perm = torch.randperm(b, generator=gen, device=feature.device)
+            if bool(torch.equal(perm, torch.arange(b, device=feature.device))):
+                perm = torch.roll(torch.arange(b, device=feature.device), shifts=1)
+            return feature[perm], {"mode": mode, "applied": True, "perm": perm.detach().cpu().tolist()}
+        raise AssertionError(f"Unhandled feature_ablation_mode={mode!r}")
+
+    def forward(
+        self,
+        batch: dict[str, torch.Tensor],
+        *,
+        feature_ablation_mode: str = "true",
+        feature_ablation_seed: int = 42,
+        feature_ablation_key: str | None = None,
+    ) -> dict[str, torch.Tensor]:
         image = batch["image"]
         raw = batch.get("raw")
         valid_mask = batch.get("valid_mask")
@@ -293,6 +330,21 @@ class C2FrozenIncrementalResidualDAV2(nn.Module):
             d1_norm = c2_out["pred"].detach()
 
         feature, x3, ffm_mid = self._extract_feature(image=image, raw=raw, d1_norm=d1_norm)
+        feature_ablation_mode = str(feature_ablation_mode)
+        feature_ablation_key = self.incremental_feature_source if feature_ablation_key is None else str(feature_ablation_key)
+        if feature_ablation_mode not in FEATURE_ABLATION_MODES:
+            raise ValueError(
+                f"Unsupported feature_ablation_mode={feature_ablation_mode!r}; expected true/none/zero/mean/shuffle"
+            )
+        if feature_ablation_mode not in ("true", "none"):
+            if feature_ablation_key != "x3":
+                raise ValueError(f"N6 feature ablation key currently only supports 'x3', got {feature_ablation_key!r}")
+            if self.method_id != "N2" or self.incremental_feature_source != "x3":
+                raise ValueError(
+                    "N6 feature ablation requires method_id='N2' and incremental_feature_source='x3'; "
+                    f"got method_id={self.method_id!r}, incremental_feature_source={self.incremental_feature_source!r}"
+                )
+        feature, ablation_info = self._apply_feature_ablation(feature, mode=feature_ablation_mode, seed=feature_ablation_seed)
         feature_enc = self.feature_encoder(feature)
         d1_enc = self.d1_encoder(d1_norm.unsqueeze(1))
 
@@ -340,6 +392,10 @@ class C2FrozenIncrementalResidualDAV2(nn.Module):
             "x3": x3,
             "ffm_mid": ffm_mid,
             "feature": feature,
+            "feature_ablation_mode": feature_ablation_mode,
+            "feature_ablation_key": feature_ablation_key,
+            "feature_ablation_applied": bool(ablation_info.get("applied", False)),
+            "feature_ablation_perm": ablation_info.get("perm"),
         }
 
 
