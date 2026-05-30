@@ -9,12 +9,13 @@ from finetune_stf.models.spatial_adapter import BACKBONE_INPUT_HW, SENSOR_INPUT_
 from foundation.engine.transforms import packed_bayer_to_base_rgb
 
 
-INCREMENTAL_METHOD_IDS = ("N2", "N3", "N4", "N5", "N7")
+INCREMENTAL_METHOD_IDS = ("N2", "N3", "N4", "N5", "N7", "N7RGB")
 INCREMENTAL_FEATURE_SOURCES = ("x3", "ffm_mid", "rgb", "d1")
 DELTA_CONDITIONS = ("feature_only", "feature_d1_stopgrad", "d1_only")
 GATE_CONDITIONS = ("feature_d1", "d1_only")
 RAW_FEATURE_ENCODER_TRAINABLE = ("true", "false", "not_applicable")
 FEATURE_ABLATION_MODES = ("true", "none", "zero", "mean", "shuffle")
+FEATURE_ABLATION_SCOPES = ("both", "delta", "gate")
 
 
 def _gn(channels: int) -> nn.GroupNorm:
@@ -131,6 +132,12 @@ def expected_method_contract(method_id: str) -> dict[str, str]:
             "gate_condition": "feature_d1",
             "raw_feature_encoder_trainable": "true",
         },
+        "N7RGB": {
+            "incremental_feature_source": "rgb",
+            "delta_condition": "feature_d1_stopgrad",
+            "gate_condition": "feature_d1",
+            "raw_feature_encoder_trainable": "not_applicable",
+        },
     }
     if method_id not in table:
         raise ValueError(f"Unsupported method_id={method_id!r}; expected {INCREMENTAL_METHOD_IDS}")
@@ -239,7 +246,7 @@ class C2FrozenIncrementalResidualDAV2(nn.Module):
         elif self.method_id == "N5":
             delta_in_ch = 32
             gate_in_ch = 32
-        elif self.method_id == "N7":
+        elif self.method_id in ("N7", "N7RGB"):
             delta_in_ch = 64
             gate_in_ch = 64
         else:
@@ -284,6 +291,7 @@ class C2FrozenIncrementalResidualDAV2(nn.Module):
         *,
         mode: str,
         seed: int,
+        donor_feature: torch.Tensor | None = None,
     ) -> tuple[torch.Tensor, dict[str, object]]:
         mode = str(mode)
         if mode not in FEATURE_ABLATION_MODES:
@@ -294,11 +302,24 @@ class C2FrozenIncrementalResidualDAV2(nn.Module):
             return torch.zeros_like(feature), {"mode": mode, "applied": True}
         if mode == "mean":
             dims = tuple(range(2, feature.ndim))
-            return feature.mean(dim=dims, keepdim=True).expand_as(feature), {"mode": mode, "applied": True}
+            return feature.mean(dim=dims, keepdim=True).expand_as(feature), {
+                "mode": mode,
+                "applied": True,
+                "mean_kind": "batch_spatial_mean",
+            }
         if mode == "shuffle":
+            if donor_feature is not None:
+                if tuple(donor_feature.shape) != tuple(feature.shape):
+                    raise ValueError(
+                        "feature_ablation donor feature shape mismatch: "
+                        f"donor={tuple(donor_feature.shape)} current={tuple(feature.shape)}"
+                    )
+                return donor_feature, {"mode": mode, "applied": True, "donor_source": "dataset"}
             b = int(feature.shape[0])
             if b <= 1:
-                raise RuntimeError("N6 shuffle feature ablation requires batch size > 1, got 1. Please run eval with bs >= 2.")
+                raise RuntimeError(
+                    "shuffle feature ablation requires either batch size > 1 or a donor feature/raw tensor; got batch size 1."
+                )
             gen = torch.Generator(device=feature.device)
             gen.manual_seed(int(seed))
             perm = torch.randperm(b, generator=gen, device=feature.device)
@@ -312,6 +333,7 @@ class C2FrozenIncrementalResidualDAV2(nn.Module):
         batch: dict[str, torch.Tensor],
         *,
         feature_ablation_mode: str = "true",
+        feature_ablation_scope: str = "both",
         feature_ablation_seed: int = 42,
         feature_ablation_key: str | None = None,
     ) -> dict[str, torch.Tensor]:
@@ -329,36 +351,57 @@ class C2FrozenIncrementalResidualDAV2(nn.Module):
             d0_norm = c2_out["D0_norm"].detach()
             d1_norm = c2_out["pred"].detach()
 
-        feature, x3, ffm_mid = self._extract_feature(image=image, raw=raw, d1_norm=d1_norm)
+        feature_true, x3, ffm_mid = self._extract_feature(image=image, raw=raw, d1_norm=d1_norm)
         feature_ablation_mode = str(feature_ablation_mode)
+        feature_ablation_scope = str(feature_ablation_scope)
         feature_ablation_key = self.incremental_feature_source if feature_ablation_key is None else str(feature_ablation_key)
         if feature_ablation_mode not in FEATURE_ABLATION_MODES:
             raise ValueError(
                 f"Unsupported feature_ablation_mode={feature_ablation_mode!r}; expected true/none/zero/mean/shuffle"
             )
+        if feature_ablation_scope not in FEATURE_ABLATION_SCOPES:
+            raise ValueError(
+                f"Unsupported feature_ablation_scope={feature_ablation_scope!r}; expected both/delta/gate"
+            )
         if feature_ablation_mode not in ("true", "none"):
             if feature_ablation_key != "x3":
-                raise ValueError(f"N6 feature ablation key currently only supports 'x3', got {feature_ablation_key!r}")
-            if self.method_id != "N2" or self.incremental_feature_source != "x3":
+                raise ValueError(f"feature ablation key currently only supports 'x3', got {feature_ablation_key!r}")
+            if self.method_id not in ("N2", "N7") or self.incremental_feature_source != "x3":
                 raise ValueError(
-                    "N6 feature ablation requires method_id='N2' and incremental_feature_source='x3'; "
+                    "x3 feature ablation requires method_id in ('N2', 'N7') and incremental_feature_source='x3'; "
                     f"got method_id={self.method_id!r}, incremental_feature_source={self.incremental_feature_source!r}"
                 )
-        feature, ablation_info = self._apply_feature_ablation(feature, mode=feature_ablation_mode, seed=feature_ablation_seed)
-        feature_enc = self.feature_encoder(feature)
+        donor_feature = None
+        if feature_ablation_mode == "shuffle" and batch.get("feature_ablation_raw") is not None:
+            donor_raw = batch["feature_ablation_raw"]
+            donor_image = batch.get("feature_ablation_image", image)
+            donor_feature, _, _ = self._extract_feature(image=donor_image, raw=donor_raw, d1_norm=d1_norm)
+        feature_ablate, ablation_info = self._apply_feature_ablation(
+            feature_true,
+            mode=feature_ablation_mode,
+            seed=feature_ablation_seed,
+            donor_feature=donor_feature,
+        )
+        feature_enc_true = self.feature_encoder(feature_true)
+        if feature_ablation_mode in ("true", "none"):
+            feature_enc_ablate = feature_enc_true
+        else:
+            feature_enc_ablate = self.feature_encoder(feature_ablate)
+        feature_enc_for_delta = feature_enc_ablate if feature_ablation_scope in ("both", "delta") else feature_enc_true
+        feature_enc_for_gate = feature_enc_ablate if feature_ablation_scope in ("both", "gate") else feature_enc_true
         d1_enc = self.d1_encoder(d1_norm.unsqueeze(1))
 
         if self.delta_condition == "feature_only":
-            delta_input = feature_enc
+            delta_input = feature_enc_for_delta
         elif self.delta_condition == "feature_d1_stopgrad":
-            delta_input = torch.cat([feature_enc, d1_enc.detach()], dim=1)
+            delta_input = torch.cat([feature_enc_for_delta, d1_enc.detach()], dim=1)
         elif self.delta_condition == "d1_only":
             delta_input = d1_enc
         else:
             raise AssertionError(f"Unhandled delta_condition={self.delta_condition!r}")
 
         if self.gate_condition == "feature_d1":
-            gate_input = torch.cat([feature_enc, d1_enc], dim=1)
+            gate_input = torch.cat([feature_enc_for_gate, d1_enc], dim=1)
         elif self.gate_condition == "d1_only":
             gate_input = d1_enc
         else:
@@ -391,11 +434,15 @@ class C2FrozenIncrementalResidualDAV2(nn.Module):
             "gate_delta": gate_delta,
             "x3": x3,
             "ffm_mid": ffm_mid,
-            "feature": feature,
+            "feature": feature_ablate,
+            "feature_true": feature_true,
             "feature_ablation_mode": feature_ablation_mode,
+            "feature_ablation_scope": feature_ablation_scope,
             "feature_ablation_key": feature_ablation_key,
             "feature_ablation_applied": bool(ablation_info.get("applied", False)),
             "feature_ablation_perm": ablation_info.get("perm"),
+            "feature_ablation_donor_source": ablation_info.get("donor_source"),
+            "feature_ablation_mean_kind": ablation_info.get("mean_kind"),
         }
 
 

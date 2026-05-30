@@ -1,0 +1,85 @@
+{
+  "dataset": "kitti_val_nseries",
+  "dataset_samples": 652,
+  "elapsed_seconds": 33.48150157928467,
+  "epoch": 9,
+  "eval_protocol": "halfres_raw_canonical_even_pad_crop_affine_disp",
+  "feature_ablation_applied": false,
+  "feature_ablation_donor_offset": 1,
+  "feature_ablation_key": "x3",
+  "feature_ablation_mode": "true",
+  "feature_ablation_scope": "both",
+  "feature_ablation_seed": 42,
+  "kitti_base": "/mnt/drive/kitti",
+  "kitti_val_split": "/home/caq/6666_raw/dav2_raw/metric_depth/dataset/splits/kitti/val.txt",
+  "max_val_samples": null,
+  "overall": {
+    "D0": {
+      "abs_rel": 0.11837322563408595,
+      "d1": 0.8665242741998791,
+      "d2": 0.9661919217398028,
+      "d3": 0.9907183771888997,
+      "log10": 0.051220935063794194,
+      "rmse": 5.1398232476641095,
+      "rmse_log": 0.17229176258779166,
+      "silog": 0.17187490113398957,
+      "silog_x100": 17.187490113398955,
+      "sq_rel": 0.889805546790013
+    },
+    "D1": {
+      "abs_rel": 0.09644374810658646,
+      "d1": 0.8960897704139863,
+      "d2": 0.9725229755964909,
+      "d3": 0.9926099043237583,
+      "log10": 0.04242460899397349,
+      "rmse": 4.656947826664507,
+      "rmse_log": 0.15140433540395623,
+      "silog": 0.15091277266863845,
+      "silog_x100": 15.091277266863845,
+      "sq_rel": 0.6357046842877416
+    },
+    "delta_D1_minus_D0": {
+      "abs_rel": -0.02192947752749949,
+      "d1": 0.0295654962141072,
+      "d2": 0.006331053856688085,
+      "d3": 0.0018915271348586282,
+      "log10": -0.008796326069820705,
+      "rmse": -0.48287542099960223,
+      "rmse_log": -0.020887427183835433,
+      "silog": -0.020962128465351115,
+      "silog_x100": -2.09621284653511,
+      "sq_rel": -0.2541008625022714
+    },
+    "delta_final_minus_D1": {
+      "abs_rel": -0.0002534705222468209,
+      "d1": -0.0008630496551977895,
+      "d2": -3.674346994397837e-05,
+      "d3": 3.422688890231118e-05,
+      "log10": 8.395698623953757e-05,
+      "rmse": 0.002162378105639462,
+      "rmse_log": 4.06620722993023e-05,
+      "silog": 1.879201935767183e-05,
+      "silog_x100": 0.0018792019357665168,
+      "sq_rel": -0.016981907124910434
+    },
+    "final": {
+      "abs_rel": 0.09619027758433964,
+      "d1": 0.8952267207587885,
+      "d2": 0.972486232126547,
+      "d3": 0.9926441312126606,
+      "log10": 0.04250856598021303,
+      "rmse": 4.659110204770147,
+      "rmse_log": 0.15144499747625553,
+      "silog": 0.15093156468799612,
+      "silog_x100": 15.093156468799611,
+      "sq_rel": 0.6187227771628312
+    }
+  },
+  "per_sample_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/diagnostics/0530_n7_eval_x3_ablation_0530_1723/mode_true_scope_both/kitti_val_true_both/per_sample.jsonl",
+  "samples": 652,
+  "seconds_per_visited_sample": 0.051351996287246425,
+  "status_counts": {
+    "ok": 652
+  },
+  "visited_samples": 652
+}

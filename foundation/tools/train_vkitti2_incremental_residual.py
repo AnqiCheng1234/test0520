@@ -49,6 +49,7 @@ from foundation.engine.models.dav2_incremental_residual import (
     INCREMENTAL_METHOD_IDS,
     RAW_FEATURE_ENCODER_TRAINABLE,
     FEATURE_ABLATION_MODES,
+    FEATURE_ABLATION_SCOPES,
     validate_incremental_contract,
 )
 from foundation.engine.transforms import (
@@ -141,10 +142,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--lambda-lp", type=float, required=True)
     parser.add_argument("--lowpass-kernel", type=int, required=True)
     parser.add_argument("--q-good", type=float, required=True)
-    parser.add_argument("--n6-feature-ablation-mode", default="true", choices=FEATURE_ABLATION_MODES)
-    parser.add_argument("--n6-feature-ablation-seed", type=int, default=42)
-    parser.add_argument("--n6-feature-ablation-key", default="x3", choices=["x3"])
+    parser.add_argument("--train-feature-ablation-mode", default="true", choices=["true", "none", "zero", "mean"])
+    parser.add_argument("--eval-feature-ablation-mode", "--n6-feature-ablation-mode", default="true", choices=FEATURE_ABLATION_MODES)
+    parser.add_argument("--feature-ablation-scope", default="both", choices=FEATURE_ABLATION_SCOPES)
+    parser.add_argument("--feature-ablation-key", "--n6-feature-ablation-key", default="x3", choices=["x3"])
+    parser.add_argument("--feature-ablation-seed", "--n6-feature-ablation-seed", type=int, default=42)
+    parser.add_argument("--feature-ablation-donor-offset", type=int, default=1)
     parser.add_argument("--n6-output-dir", default=None)
+    parser.add_argument("--experiment-label", default=None)
     parser.add_argument("--lambda-final", type=float, required=True)
     parser.add_argument("--lambda-boundary", type=float, required=True)
     parser.add_argument("--lambda-grad", type=float, required=True)
@@ -362,26 +367,38 @@ def validate_args(args: argparse.Namespace) -> None:
     if args.resume_from is not None and not Path(args.resume_from).expanduser().is_file():
         raise FileNotFoundError(f"Missing resume checkpoint: {args.resume_from}")
 
-    n6_mode = str(args.n6_feature_ablation_mode)
-    if args.n6_feature_ablation_key != "x3":
-        raise ValueError("--n6-feature-ablation-key currently only supports x3.")
-    if n6_mode != "true":
-        expected = {
-            "method_id": "N2",
-            "incremental_feature_source": "x3",
-            "delta_condition": "feature_only",
-            "gate_condition": "feature_d1",
-            "raw_feature_encoder_trainable": "true",
-        }
+    args.n6_feature_ablation_mode = str(args.eval_feature_ablation_mode)
+    args.n6_feature_ablation_key = str(args.feature_ablation_key)
+    args.n6_feature_ablation_seed = int(args.feature_ablation_seed)
+    if args.feature_ablation_key != "x3":
+        raise ValueError("--feature-ablation-key currently only supports x3.")
+    active_ablation_modes = {
+        str(args.train_feature_ablation_mode),
+        str(args.eval_feature_ablation_mode),
+    } - {"true", "none"}
+    if active_ablation_modes:
+        if args.incremental_feature_source != "x3" or args.method_id not in ("N2", "N7"):
+            raise ValueError(
+                "x3 feature ablation requires method_id in ('N2', 'N7') and incremental_feature_source='x3'; "
+                f"got method_id={args.method_id!r}, incremental_feature_source={args.incremental_feature_source!r}"
+            )
+        if args.method_id == "N2":
+            expected = {
+                "delta_condition": "feature_only",
+                "gate_condition": "feature_d1",
+                "raw_feature_encoder_trainable": "true",
+            }
+        else:
+            expected = {
+                "delta_condition": "feature_d1_stopgrad",
+                "gate_condition": "feature_d1",
+                "raw_feature_encoder_trainable": "true",
+            }
         for attr, value in expected.items():
             if getattr(args, attr) != value:
-                raise ValueError(f"N6 feature ablation requires {attr}={value!r}, got {getattr(args, attr)!r}")
-        if not args.resume_from:
-            raise ValueError("N6 feature ablation requires --resume-from pointing to an N2 checkpoint.")
-        if not args.eval_only:
-            raise ValueError("N6 feature ablation is eval-only; pass --eval-only.")
-        if n6_mode == "shuffle" and args.bs <= 1:
-            raise ValueError("N6 shuffle feature ablation requires --bs > 1.")
+                raise ValueError(f"{args.method_id} x3 feature ablation requires {attr}={value!r}, got {getattr(args, attr)!r}")
+    if str(args.eval_feature_ablation_mode) == "shuffle" and int(args.feature_ablation_donor_offset) == 0:
+        raise ValueError("--feature-ablation-donor-offset must be nonzero for shuffle eval.")
 
     is_raw = args.incremental_feature_source in ("x3", "ffm_mid")
     if is_raw:
@@ -458,8 +475,20 @@ def validate_args(args: argparse.Namespace) -> None:
     args.c2_metadata = validate_c2_metadata(args)
 
 
+def feature_ablation_mode(args: argparse.Namespace, *, phase: str) -> str:
+    if phase == "train":
+        return str(getattr(args, "train_feature_ablation_mode", "true"))
+    if phase == "eval":
+        return str(getattr(args, "eval_feature_ablation_mode", getattr(args, "n6_feature_ablation_mode", "true")))
+    raise ValueError(f"Unsupported feature ablation phase: {phase!r}")
+
+
+def feature_ablation_active(args: argparse.Namespace, *, phase: str = "eval") -> bool:
+    return feature_ablation_mode(args, phase=phase) not in ("true", "none")
+
+
 def n6_feature_ablation_active(args: argparse.Namespace) -> bool:
-    return str(getattr(args, "n6_feature_ablation_mode", "true")) not in ("true", "none")
+    return feature_ablation_active(args, phase="eval")
 
 
 def n6_eval_batch_size(args: argparse.Namespace) -> int:
@@ -468,20 +497,63 @@ def n6_eval_batch_size(args: argparse.Namespace) -> int:
     return 1
 
 
-def forward_incremental_model(model: torch.nn.Module, model_batch: dict[str, torch.Tensor], args: argparse.Namespace) -> dict[str, Any]:
-    mode = str(getattr(args, "n6_feature_ablation_mode", "true"))
-    if mode in ("true", "none"):
-        return model(model_batch)
+def forward_incremental_model(
+    model: torch.nn.Module,
+    model_batch: dict[str, torch.Tensor],
+    args: argparse.Namespace,
+    *,
+    phase: str = "eval",
+) -> dict[str, Any]:
+    mode = feature_ablation_mode(args, phase=phase)
+    scope = "both" if phase == "train" else str(getattr(args, "feature_ablation_scope", "both"))
     return model(
         model_batch,
         feature_ablation_mode=mode,
-        feature_ablation_seed=int(args.n6_feature_ablation_seed),
-        feature_ablation_key=str(args.n6_feature_ablation_key),
+        feature_ablation_scope=scope,
+        feature_ablation_seed=int(args.feature_ablation_seed),
+        feature_ablation_key=str(args.feature_ablation_key),
     )
 
 
 def collate_kitti_eval_batch(batch: list[dict[str, Any]]) -> dict[str, Any] | list[dict[str, Any]]:
     return batch[0] if len(batch) == 1 else batch
+
+
+def _find_raw_donor_sample(dataset: Any, start_index: int, *, max_attempts: int | None = None) -> dict[str, Any]:
+    dataset_len = len(dataset)
+    attempts = dataset_len if max_attempts is None else min(int(max_attempts), dataset_len)
+    for offset in range(attempts):
+        donor_index = (int(start_index) + offset) % dataset_len
+        sample = dataset[donor_index]
+        if sample.get("status", "ok") == "ok" and sample.get("raw") is not None:
+            return sample
+    raise RuntimeError(f"Could not find a valid donor raw sample starting at dataset index {start_index}.")
+
+
+def add_dataset_raw_donor_if_needed(
+    *,
+    model_batch: dict[str, torch.Tensor],
+    dataset: Any,
+    sample_indices: list[int],
+    args: argparse.Namespace,
+    device: torch.device,
+) -> None:
+    if str(getattr(args, "eval_feature_ablation_mode", "true")) != "shuffle":
+        return
+    if model_batch.get("raw") is None:
+        return
+    if len(dataset) <= 1:
+        raise RuntimeError("shuffle feature ablation requires at least two dataset samples for donor raw.")
+    donor_offset = int(getattr(args, "feature_ablation_donor_offset", 1))
+    donors = []
+    donor_indices = []
+    for sample_index in sample_indices:
+        donor_start = (int(sample_index) + donor_offset) % len(dataset)
+        donor = _find_raw_donor_sample(dataset, donor_start)
+        donors.append(donor["raw"].float())
+        donor_indices.append(int(donor.get("dataset_index", donor_start)))
+    model_batch["feature_ablation_raw"] = torch.stack(donors, dim=0).to(device, non_blocking=True).float()
+    model_batch["feature_ablation_donor_indices"] = donor_indices
 
 
 def set_random_seed(seed: int) -> None:
@@ -524,6 +596,13 @@ def build_model(args: argparse.Namespace) -> torch.nn.Module:
         sensor_hw=(args.input_height, args.input_width),
         backbone_hw=None,
     )
+
+
+def load_incremental_checkpoint(model: torch.nn.Module, path: str | Path, *, strict: bool = True) -> dict[str, Any]:
+    ckpt_path = Path(path).expanduser().resolve()
+    checkpoint = torch.load(str(ckpt_path), map_location="cpu")
+    model.load_state_dict(strip_module_prefix(resolve_model_state(checkpoint)), strict=strict)
+    return checkpoint
 
 
 def build_loaders(args: argparse.Namespace) -> tuple[Any, Any, DataLoader, DataLoader]:
@@ -616,7 +695,7 @@ def build_loaders(args: argparse.Namespace) -> tuple[Any, Any, DataLoader, DataL
         persistent_workers=args.num_workers > 0,
     )
     val_batch_size = n6_eval_batch_size(args)
-    val_workers = max(min(args.num_workers, 2), 0)
+    val_workers = 0 if bool(getattr(args, "eval_only", False)) else max(min(args.num_workers, 2), 0)
     val_loader = DataLoader(
         val_dataset,
         batch_size=val_batch_size,
@@ -655,6 +734,8 @@ def build_kitti_val_loader(args: argparse.Namespace, device: torch.device) -> tu
     if args.kitti_expected_val_samples is not None and len(dataset) != int(args.kitti_expected_val_samples):
         raise RuntimeError(f"Expected KITTI val length {int(args.kitti_expected_val_samples)}, got {len(dataset)}")
     workers = int(args.kitti_num_workers) if args.kitti_num_workers is not None else max(min(args.num_workers, 2), 0)
+    if bool(getattr(args, "eval_only", False)):
+        workers = 0
     batch_size = n6_eval_batch_size(args)
     loader = DataLoader(
         dataset,
@@ -740,13 +821,14 @@ def evaluate_model(
     d0_regions: list[dict[str, float]] = []
     diagnostics: list[dict[str, float]] = []
     processed = 0
+    visited = 0
     start = time.time()
     logger.info(
         "[EVAL] start epoch=%d max_val_samples=%s batch_size=%d feature_ablation_mode=%s",
         epoch,
         args.max_val_samples,
         n6_eval_batch_size(args),
-        getattr(args, "n6_feature_ablation_mode", "true"),
+        feature_ablation_mode(args, phase="eval"),
     )
 
     for batch in dataloader:
@@ -762,12 +844,19 @@ def evaluate_model(
         model_batch = {"image": image, "valid_mask": valid_mask}
         if raw is not None:
             model_batch["raw"] = raw
+        batch_size = int(image.shape[0])
+        add_dataset_raw_donor_if_needed(
+            model_batch=model_batch,
+            dataset=dataloader.dataset,
+            sample_indices=[visited + idx for idx in range(batch_size)],
+            args=args,
+            device=device,
+        )
         with torch.no_grad(), torch.autocast(device_type="cuda", dtype=amp_dtype, enabled=args.amp and device.type == "cuda"):
-            out = forward_incremental_model(model, model_batch, args)
+            out = forward_incremental_model(model, model_batch, args, phase="eval")
 
         inv_gt = build_training_target(depth.float(), valid_mask, target_space="metric_depth")
         y_norm, _ = robust_normalize_target_per_sample(inv_gt, valid_mask, min_valid_pixels=128)
-        batch_size = int(image.shape[0])
         for sample_idx in range(batch_size):
             if args.max_val_samples is not None and processed >= args.max_val_samples:
                 break
@@ -826,6 +915,7 @@ def evaluate_model(
                 }
             )
             processed += 1
+        visited += batch_size
 
     if processed == 0:
         raise RuntimeError("Validation produced zero valid samples.")
@@ -858,10 +948,13 @@ def evaluate_model(
         "diagnostics": diag,
         "target_region_score": target_region_score({"region": {"delta_final_minus_D1": subtract_dicts(region_final, region_d1, REGION_KEYS)}}),
         "elapsed_seconds": float(time.time() - start),
-        "feature_ablation_mode": str(getattr(args, "n6_feature_ablation_mode", "true")),
-        "feature_ablation_key": str(getattr(args, "n6_feature_ablation_key", "x3")),
-        "feature_ablation_seed": int(getattr(args, "n6_feature_ablation_seed", 42)),
-        "feature_ablation_applied": bool(n6_feature_ablation_active(args)),
+        "feature_ablation_mode": feature_ablation_mode(args, phase="eval"),
+        "feature_ablation_scope": str(getattr(args, "feature_ablation_scope", "both")),
+        "feature_ablation_key": str(getattr(args, "feature_ablation_key", "x3")),
+        "feature_ablation_seed": int(getattr(args, "feature_ablation_seed", 42)),
+        "feature_ablation_donor_offset": int(getattr(args, "feature_ablation_donor_offset", 1)),
+        "feature_ablation_mean_kind": "batch_spatial_mean" if feature_ablation_mode(args, phase="eval") == "mean" else None,
+        "feature_ablation_applied": bool(feature_ablation_active(args, phase="eval")),
     }
     logger.info(
         "[EVAL] done epoch=%d samples=%d final_abs_rel=%.5f D1_abs_rel=%.5f D0_abs_rel=%.5f final_minus_D1=%.5f elapsed=%s",
@@ -902,6 +995,7 @@ def kitti_row_template(sample: dict[str, Any]) -> dict[str, Any]:
 def collect_kitti_nseries_batch(
     *,
     samples: list[dict[str, Any]],
+    dataset: Any,
     model: torch.nn.Module,
     args: argparse.Namespace,
     config: dict[str, Any],
@@ -929,9 +1023,16 @@ def collect_kitti_nseries_batch(
     model_batch = {"image": image, "valid_mask": valid_t}
     if raw is not None:
         model_batch["raw"] = raw
+    add_dataset_raw_donor_if_needed(
+        model_batch=model_batch,
+        dataset=dataset,
+        sample_indices=[int(sample["dataset_index"]) for _, sample, _ in ok_items],
+        args=args,
+        device=device,
+    )
     try:
         with torch.no_grad(), torch.autocast(device_type="cuda", dtype=amp_dtype, enabled=amp_enabled and device.type == "cuda"):
-            out = forward_incremental_model(model, model_batch, args)
+            out = forward_incremental_model(model, model_batch, args, phase="eval")
     except Exception as exc:  # noqa: BLE001
         if n6_feature_ablation_active(args):
             raise
@@ -944,9 +1045,10 @@ def collect_kitti_nseries_batch(
         valid_i = valid_t[local_idx]
         valid_pixels = int(valid_i.sum().item())
         row["valid_pixels"] = valid_pixels
-        row["feature_ablation_mode"] = str(getattr(args, "n6_feature_ablation_mode", "true"))
-        row["feature_ablation_key"] = str(getattr(args, "n6_feature_ablation_key", "x3"))
-        row["feature_ablation_seed"] = int(getattr(args, "n6_feature_ablation_seed", 42))
+        row["feature_ablation_mode"] = feature_ablation_mode(args, phase="eval")
+        row["feature_ablation_scope"] = str(getattr(args, "feature_ablation_scope", "both"))
+        row["feature_ablation_key"] = str(getattr(args, "feature_ablation_key", "x3"))
+        row["feature_ablation_seed"] = int(getattr(args, "feature_ablation_seed", 42))
         if valid_pixels < 128:
             row["status"] = "skipped_invalid_pixels"
             row["error"] = f"valid_pixels={valid_pixels} < 128"
@@ -1021,6 +1123,7 @@ def evaluate_kitti_model(
                 samples = samples[:remaining]
             batch_rows = collect_kitti_nseries_batch(
                 samples=samples,
+                dataset=dataset,
                 model=model,
                 args=args,
                 config=config,
@@ -1065,10 +1168,12 @@ def evaluate_kitti_model(
         "elapsed_seconds": float(elapsed_seconds),
         "seconds_per_visited_sample": float(elapsed_seconds / max(len(rows), 1)),
         "per_sample_path": str(per_sample_path),
-        "feature_ablation_mode": str(getattr(args, "n6_feature_ablation_mode", "true")),
-        "feature_ablation_key": str(getattr(args, "n6_feature_ablation_key", "x3")),
-        "feature_ablation_seed": int(getattr(args, "n6_feature_ablation_seed", 42)),
-        "feature_ablation_applied": bool(n6_feature_ablation_active(args)),
+        "feature_ablation_mode": feature_ablation_mode(args, phase="eval"),
+        "feature_ablation_scope": str(getattr(args, "feature_ablation_scope", "both")),
+        "feature_ablation_key": str(getattr(args, "feature_ablation_key", "x3")),
+        "feature_ablation_seed": int(getattr(args, "feature_ablation_seed", 42)),
+        "feature_ablation_donor_offset": int(getattr(args, "feature_ablation_donor_offset", 1)),
+        "feature_ablation_applied": bool(feature_ablation_active(args, phase="eval")),
     }
     save_json(output_dir / "metrics.json", summary)
     logger.info(
@@ -1091,11 +1196,14 @@ def build_n6_summary(
     kitti_summary: dict[str, Any] | None,
 ) -> dict[str, Any]:
     return {
-        "experiment": "N6",
+        "experiment": str(args.experiment_label or args.method_id),
         "source_checkpoint": str(Path(args.resume_from).expanduser().resolve()),
-        "feature_ablation_mode": str(args.n6_feature_ablation_mode),
-        "feature_ablation_key": str(args.n6_feature_ablation_key),
-        "feature_ablation_seed": int(args.n6_feature_ablation_seed),
+        "feature_ablation_mode": feature_ablation_mode(args, phase="eval"),
+        "feature_ablation_scope": str(args.feature_ablation_scope),
+        "feature_ablation_key": str(args.feature_ablation_key),
+        "feature_ablation_seed": int(args.feature_ablation_seed),
+        "feature_ablation_donor_offset": int(args.feature_ablation_donor_offset),
+        "feature_ablation_mean_kind": "batch_spatial_mean" if feature_ablation_mode(args, phase="eval") == "mean" else None,
         "method_id": str(args.method_id),
         "incremental_feature_source": str(args.incremental_feature_source),
         "c2_checkpoint": str(Path(args.c2_checkpoint).expanduser().resolve()),
@@ -1113,10 +1221,11 @@ def write_n6_summary_md(path: Path, summary: dict[str, Any]) -> None:
     vkitti = summary.get("vkitti", {})
     kitti = summary.get("kitti", {})
     lines = [
-        "# N6 x3 Feature Ablation Summary",
+        "# Feature Ablation Summary",
         "",
         f"- source_checkpoint: {summary.get('source_checkpoint')}",
         f"- mode: {summary.get('feature_ablation_mode')}",
+        f"- scope: {summary.get('feature_ablation_scope')}",
         f"- key: {summary.get('feature_ablation_key')}",
         f"- seed: {summary.get('feature_ablation_seed')}",
         f"- method_id: {summary.get('method_id')}",
@@ -1181,7 +1290,9 @@ def main() -> None:
 
     requested_save_path = str(args.save_path)
     if args.eval_only:
-        n6_output_dir = Path(args.n6_output_dir).expanduser().resolve() if args.n6_output_dir else Path(args.save_path).expanduser().resolve() / f"n6_{args.n6_feature_ablation_mode}"
+        eval_mode = feature_ablation_mode(args, phase="eval")
+        eval_scope = str(args.feature_ablation_scope)
+        n6_output_dir = Path(args.n6_output_dir).expanduser().resolve() if args.n6_output_dir else Path(args.save_path).expanduser().resolve() / f"eval_only_{eval_mode}_{eval_scope}"
         args.requested_save_path = requested_save_path
         args.save_path = str(n6_output_dir)
         args.n6_output_dir = str(n6_output_dir)
@@ -1197,7 +1308,11 @@ def main() -> None:
     logger.info("%s\n", pprint.pformat({**vars(args), "device": str(device)}))
 
     cudnn.enabled = True
-    cudnn.benchmark = True
+    cudnn.benchmark = not bool(args.eval_only)
+    cudnn.deterministic = bool(args.eval_only)
+    if args.eval_only and torch.cuda.is_available():
+        torch.backends.cuda.matmul.allow_tf32 = False
+        torch.backends.cudnn.allow_tf32 = False
     set_random_seed(args.seed)
 
     train_dataset, val_dataset, train_loader, val_loader = build_loaders(args)
@@ -1207,8 +1322,7 @@ def main() -> None:
     global_step = 0
     resume = None
     if args.resume_from:
-        resume = torch.load(args.resume_from, map_location="cpu")
-        model.load_state_dict(strip_module_prefix(resolve_model_state(resume)), strict=True)
+        resume = load_incremental_checkpoint(model, args.resume_from, strict=True)
         start_epoch = int(resume.get("epoch", -1)) + 1
         global_step = int(resume.get("global_step", 0))
         logger.info("[INIT] resumed model from %s", args.resume_from)
@@ -1245,7 +1359,9 @@ def main() -> None:
     if args.eval_only:
         resume_epoch = int(start_epoch - 1)
         val_summary = evaluate_model(model, val_loader, args, device, epoch=resume_epoch, amp_dtype=amp_dtype, logger=logger)
-        save_json(save_path / f"eval_epoch_resume_{args.n6_feature_ablation_mode}.json", val_summary)
+        eval_mode = feature_ablation_mode(args, phase="eval")
+        eval_scope = str(args.feature_ablation_scope)
+        save_json(save_path / f"eval_only_vkitti_{eval_mode}_{eval_scope}.json", val_summary)
         save_json(save_path / "val_metrics.json", {"epochs": [val_summary], "latest": val_summary})
         kitti_val_summary = None
         if args.eval_kitti:
@@ -1260,11 +1376,13 @@ def main() -> None:
                 epoch=resume_epoch,
                 amp_dtype=amp_dtype,
                 logger=logger,
-                output_dir=save_path / f"kitti_val_{args.n6_feature_ablation_mode}",
+                output_dir=save_path / f"kitti_val_{eval_mode}_{eval_scope}",
             )
-            save_json(save_path / f"kitti_eval_{args.n6_feature_ablation_mode}.json", kitti_val_summary)
+            save_json(save_path / f"eval_only_kitti_{eval_mode}_{eval_scope}.json", kitti_val_summary)
             save_json(save_path / "kitti_val_metrics.json", {"epochs": [kitti_val_summary], "latest": kitti_val_summary})
         n6_summary = build_n6_summary(args=args, vkitti_summary=val_summary, kitti_summary=kitti_val_summary)
+        save_json(save_path / "feature_ablation_summary.json", n6_summary)
+        write_n6_summary_md(save_path / "feature_ablation_summary.md", n6_summary)
         save_json(save_path / "n6_summary.json", n6_summary)
         write_n6_summary_md(save_path / "n6_summary.md", n6_summary)
         save_json(
@@ -1275,11 +1393,12 @@ def main() -> None:
                 "val": [val_summary],
                 "vkitti_val": [val_summary],
                 "kitti_val": [] if kitti_val_summary is None else [kitti_val_summary],
+                "feature_ablation_summary": n6_summary,
                 "n6_summary": n6_summary,
                 "heavy_save_path": str(heavy_save_path),
             },
         )
-        logger.info("[EVAL_ONLY] wrote N6 outputs to %s", save_path)
+        logger.info("[EVAL_ONLY] wrote feature ablation outputs to %s", save_path)
         return
 
     trainable_params = [param for param in model.parameters() if param.requires_grad]
@@ -1346,7 +1465,7 @@ def main() -> None:
             if raw is not None:
                 model_batch["raw"] = raw
             with torch.autocast(device_type="cuda", dtype=amp_dtype, enabled=args.amp and device.type == "cuda"):
-                out = model(model_batch)
+                out = forward_incremental_model(model, model_batch, args, phase="train")
                 loss, loss_info = compute_incremental_residual_loss(
                     out,
                     depth,

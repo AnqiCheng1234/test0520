@@ -1,0 +1,174 @@
+{
+  "epochs": [
+    {
+      "dataset": "kitti_val_nseries",
+      "dataset_samples": 652,
+      "elapsed_seconds": 50.221150159835815,
+      "epoch": 9,
+      "eval_protocol": "halfres_raw_canonical_even_pad_crop_affine_disp",
+      "feature_ablation_applied": true,
+      "feature_ablation_donor_offset": 1,
+      "feature_ablation_key": "x3",
+      "feature_ablation_mode": "shuffle",
+      "feature_ablation_scope": "both",
+      "feature_ablation_seed": 42,
+      "kitti_base": "/mnt/drive/kitti",
+      "kitti_val_split": "/home/caq/6666_raw/dav2_raw/metric_depth/dataset/splits/kitti/val.txt",
+      "max_val_samples": null,
+      "overall": {
+        "D0": {
+          "abs_rel": 0.11837322563408595,
+          "d1": 0.8665242741998791,
+          "d2": 0.9661919217398028,
+          "d3": 0.9907183771888997,
+          "log10": 0.051220935063794194,
+          "rmse": 5.1398232476641095,
+          "rmse_log": 0.17229176258779166,
+          "silog": 0.17187490113398957,
+          "silog_x100": 17.187490113398955,
+          "sq_rel": 0.889805546790013
+        },
+        "D1": {
+          "abs_rel": 0.09644374810658646,
+          "d1": 0.8960897704139863,
+          "d2": 0.9725229755964909,
+          "d3": 0.9926099043237583,
+          "log10": 0.04242460899397349,
+          "rmse": 4.656947826664507,
+          "rmse_log": 0.15140433540395623,
+          "silog": 0.15091277266863845,
+          "silog_x100": 15.091277266863845,
+          "sq_rel": 0.6357046842877416
+        },
+        "delta_D1_minus_D0": {
+          "abs_rel": -0.02192947752749949,
+          "d1": 0.0295654962141072,
+          "d2": 0.006331053856688085,
+          "d3": 0.0018915271348586282,
+          "log10": -0.008796326069820705,
+          "rmse": -0.48287542099960223,
+          "rmse_log": -0.020887427183835433,
+          "silog": -0.020962128465351115,
+          "silog_x100": -2.09621284653511,
+          "sq_rel": -0.2541008625022714
+        },
+        "delta_final_minus_D1": {
+          "abs_rel": -7.00258189099967e-05,
+          "d1": -0.0012828346457913753,
+          "d2": -0.00011700087217159094,
+          "d3": 6.198749200847509e-05,
+          "log10": 0.000138548273011109,
+          "rmse": 0.023100394925076984,
+          "rmse_log": 0.0002908638646806627,
+          "silog": 0.0002750724555857509,
+          "silog_x100": 0.027507245558576088,
+          "sq_rel": -0.011014094882529357
+        },
+        "final": {
+          "abs_rel": 0.09637372228767646,
+          "d1": 0.8948069357681949,
+          "d2": 0.9724059747243193,
+          "d3": 0.9926718918157668,
+          "log10": 0.0425631572669846,
+          "rmse": 4.680048221589584,
+          "rmse_log": 0.1516951992686369,
+          "silog": 0.1511878451242242,
+          "silog_x100": 15.11878451242242,
+          "sq_rel": 0.6246905894052123
+        }
+      },
+      "per_sample_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/diagnostics/0530_n7_eval_x3_ablation_0530_1723/mode_shuffle_scope_both/kitti_val_shuffle_both/per_sample.jsonl",
+      "samples": 652,
+      "seconds_per_visited_sample": 0.07702630392612855,
+      "status_counts": {
+        "ok": 652
+      },
+      "visited_samples": 652
+    }
+  ],
+  "latest": {
+    "dataset": "kitti_val_nseries",
+    "dataset_samples": 652,
+    "elapsed_seconds": 50.221150159835815,
+    "epoch": 9,
+    "eval_protocol": "halfres_raw_canonical_even_pad_crop_affine_disp",
+    "feature_ablation_applied": true,
+    "feature_ablation_donor_offset": 1,
+    "feature_ablation_key": "x3",
+    "feature_ablation_mode": "shuffle",
+    "feature_ablation_scope": "both",
+    "feature_ablation_seed": 42,
+    "kitti_base": "/mnt/drive/kitti",
+    "kitti_val_split": "/home/caq/6666_raw/dav2_raw/metric_depth/dataset/splits/kitti/val.txt",
+    "max_val_samples": null,
+    "overall": {
+      "D0": {
+        "abs_rel": 0.11837322563408595,
+        "d1": 0.8665242741998791,
+        "d2": 0.9661919217398028,
+        "d3": 0.9907183771888997,
+        "log10": 0.051220935063794194,
+        "rmse": 5.1398232476641095,
+        "rmse_log": 0.17229176258779166,
+        "silog": 0.17187490113398957,
+        "silog_x100": 17.187490113398955,
+        "sq_rel": 0.889805546790013
+      },
+      "D1": {
+        "abs_rel": 0.09644374810658646,
+        "d1": 0.8960897704139863,
+        "d2": 0.9725229755964909,
+        "d3": 0.9926099043237583,
+        "log10": 0.04242460899397349,
+        "rmse": 4.656947826664507,
+        "rmse_log": 0.15140433540395623,
+        "silog": 0.15091277266863845,
+        "silog_x100": 15.091277266863845,
+        "sq_rel": 0.6357046842877416
+      },
+      "delta_D1_minus_D0": {
+        "abs_rel": -0.02192947752749949,
+        "d1": 0.0295654962141072,
+        "d2": 0.006331053856688085,
+        "d3": 0.0018915271348586282,
+        "log10": -0.008796326069820705,
+        "rmse": -0.48287542099960223,
+        "rmse_log": -0.020887427183835433,
+        "silog": -0.020962128465351115,
+        "silog_x100": -2.09621284653511,
+        "sq_rel": -0.2541008625022714
+      },
+      "delta_final_minus_D1": {
+        "abs_rel": -7.00258189099967e-05,
+        "d1": -0.0012828346457913753,
+        "d2": -0.00011700087217159094,
+        "d3": 6.198749200847509e-05,
+        "log10": 0.000138548273011109,
+        "rmse": 0.023100394925076984,
+        "rmse_log": 0.0002908638646806627,
+        "silog": 0.0002750724555857509,
+        "silog_x100": 0.027507245558576088,
+        "sq_rel": -0.011014094882529357
+      },
+      "final": {
+        "abs_rel": 0.09637372228767646,
+        "d1": 0.8948069357681949,
+        "d2": 0.9724059747243193,
+        "d3": 0.9926718918157668,
+        "log10": 0.0425631572669846,
+        "rmse": 4.680048221589584,
+        "rmse_log": 0.1516951992686369,
+        "silog": 0.1511878451242242,
+        "silog_x100": 15.11878451242242,
+        "sq_rel": 0.6246905894052123
+      }
+    },
+    "per_sample_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/diagnostics/0530_n7_eval_x3_ablation_0530_1723/mode_shuffle_scope_both/kitti_val_shuffle_both/per_sample.jsonl",
+    "samples": 652,
+    "seconds_per_visited_sample": 0.07702630392612855,
+    "status_counts": {
+      "ok": 652
+    },
+    "visited_samples": 652
+  }
+}

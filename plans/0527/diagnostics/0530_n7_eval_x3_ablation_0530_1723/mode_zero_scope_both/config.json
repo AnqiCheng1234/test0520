@@ -1,0 +1,748 @@
+{
+  "accum_steps": 1,
+  "amp": true,
+  "amp_dtype": "bf16",
+  "bs": 8,
+  "c2_checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0525_0203_vkitti_c2_d0only_residual_vits_halfd0_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20/best_abs_rel.pth",
+  "c2_metadata": {
+    "checkpoint_args": {
+      "accum_steps": 1,
+      "amp": true,
+      "amp_dtype": "bf16",
+      "bs": 8,
+      "d0_sign": 1,
+      "dataset_geometry_mode": "vkitti2_even_fullres_halfres_2x2",
+      "depth_target_space": "halfres_2x2_valid_mean",
+      "device": "cuda",
+      "encoder": "vits",
+      "epochs": 20,
+      "eval_interval": 1,
+      "eval_kitti": true,
+      "experiment_id": "C2",
+      "front_end": "dav2_rgb_frozen",
+      "fullres_even_policy": "crop_bottom_to_even",
+      "heavy_save_path": "/mnt/drive/3333_raw/0000_exp_ckpt/0525_0203_vkitti_c2_d0only_residual_vits_halfd0_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20",
+      "hflip_prob": 0.5,
+      "input_domain": "rgb",
+      "input_height": 187,
+      "input_width": 621,
+      "kitti_base": "/mnt/drive/kitti",
+      "kitti_eval_protocol": "halfres_rgb_canonical_even_pad_crop_affine_disp",
+      "kitti_expected_val_samples": 652,
+      "kitti_num_workers": 2,
+      "kitti_val_split": "/home/caq/6666_raw/dav2_raw/metric_depth/dataset/splits/kitti/val.txt",
+      "log_interval": 100,
+      "lr": 0.0001,
+      "max_depth": 80.0,
+      "max_kitti_val_samples": null,
+      "max_train_steps": null,
+      "max_val_samples": null,
+      "min_depth": 1.0,
+      "model_input_tensor": "image",
+      "num_workers": 4,
+      "pretrained_from": "/home/caq/333_cvpr/da_ours/checkpoints/depth_anything_v2_vits.pth",
+      "raw_storage_format": "not_applicable",
+      "residual_alpha": 0.5,
+      "residual_feature_source": "d0",
+      "resume_from": null,
+      "rgb_input_space": "halfres_2x2_area",
+      "save_best_checkpoint": true,
+      "save_interval": 1,
+      "save_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c2_d0only_residual_vits_halfd0_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20",
+      "seed": 42,
+      "vkitti_train_list": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/dataset/splits/vkitti2/train_sceneholdout_Scene20.txt",
+      "vkitti_val_list": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/dataset/splits/vkitti2/val_sceneholdout_Scene20_n1000_seed42.txt",
+      "weight_decay": 0.0001
+    },
+    "run_config": {
+      "accum_steps": 1,
+      "amp": true,
+      "amp_dtype": "bf16",
+      "bs": 8,
+      "d0_sign": 1,
+      "dataset_geometry": {
+        "kitti_val": {
+          "canonicalization": "center pad/crop to fixed even fullres canvas; RGB edge pad; depth zero pad; valid false pad",
+          "fullres_even_policy": "crop_bottom_to_even",
+          "input_domain": "rgb",
+          "name": "canonical_even_pad_crop",
+          "raw_storage_format": "not_applicable",
+          "source_shape_counts": {
+            "370x1224": 23,
+            "370x1226": 71,
+            "374x1238": 23,
+            "375x1242": 487,
+            "376x1241": 48
+          },
+          "target_even_fullres_hw": [
+            374,
+            1242
+          ],
+          "target_model_hw": [
+            187,
+            621
+          ]
+        },
+        "train": {
+          "crop_box": [
+            0,
+            0,
+            374,
+            1242
+          ],
+          "crop_box_format": "h_start_w_start_h_end_w_end",
+          "crop_box_semantics": "source_fullres_to_even_fullres",
+          "cropped_bottom_rows": 1,
+          "depth_target_space": "halfres_2x2_valid_mean",
+          "even_fullres_hw": [
+            374,
+            1242
+          ],
+          "fullres_even_policy": "crop_bottom_to_even",
+          "input_hw": [
+            187,
+            621
+          ],
+          "original_hw": [
+            375,
+            1242
+          ],
+          "packed_hw": "not_applicable",
+          "raw_storage_format": "not_applicable",
+          "rgb_input_space": "halfres_2x2_area",
+          "source_original_hw": [
+            375,
+            1242
+          ]
+        },
+        "val": {
+          "crop_box": [
+            0,
+            0,
+            374,
+            1242
+          ],
+          "crop_box_format": "h_start_w_start_h_end_w_end",
+          "crop_box_semantics": "source_fullres_to_even_fullres",
+          "cropped_bottom_rows": 1,
+          "depth_target_space": "halfres_2x2_valid_mean",
+          "even_fullres_hw": [
+            374,
+            1242
+          ],
+          "fullres_even_policy": "crop_bottom_to_even",
+          "input_hw": [
+            187,
+            621
+          ],
+          "original_hw": [
+            375,
+            1242
+          ],
+          "packed_hw": "not_applicable",
+          "raw_storage_format": "not_applicable",
+          "rgb_input_space": "halfres_2x2_area",
+          "source_original_hw": [
+            375,
+            1242
+          ]
+        },
+        "vkitti_val": {
+          "crop_box": [
+            0,
+            0,
+            374,
+            1242
+          ],
+          "crop_box_format": "h_start_w_start_h_end_w_end",
+          "crop_box_semantics": "source_fullres_to_even_fullres",
+          "cropped_bottom_rows": 1,
+          "depth_target_space": "halfres_2x2_valid_mean",
+          "even_fullres_hw": [
+            374,
+            1242
+          ],
+          "fullres_even_policy": "crop_bottom_to_even",
+          "input_hw": [
+            187,
+            621
+          ],
+          "original_hw": [
+            375,
+            1242
+          ],
+          "packed_hw": "not_applicable",
+          "raw_storage_format": "not_applicable",
+          "rgb_input_space": "halfres_2x2_area",
+          "source_original_hw": [
+            375,
+            1242
+          ]
+        }
+      },
+      "dataset_geometry_mode": "vkitti2_even_fullres_halfres_2x2",
+      "depth_target_space": "halfres_2x2_valid_mean",
+      "device": "cuda",
+      "encoder": "vits",
+      "epochs": 20,
+      "eval_interval": 1,
+      "eval_kitti": true,
+      "eval_protocol": {
+        "kitti_val": "halfres_rgb_canonical_even_pad_crop_affine_disp",
+        "vkitti_val": "per_image_affine_disp_depth_anything_v2"
+      },
+      "experiment_id": "C2",
+      "front_end": "dav2_rgb_frozen",
+      "fullres_even_policy": "crop_bottom_to_even",
+      "heavy_save_path": "/mnt/drive/3333_raw/0000_exp_ckpt/0525_0203_vkitti_c2_d0only_residual_vits_halfd0_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20",
+      "hflip_prob": 0.5,
+      "input_domain": "rgb",
+      "input_height": 187,
+      "input_width": 621,
+      "kitti_base": "/mnt/drive/kitti",
+      "kitti_eval_protocol": "halfres_rgb_canonical_even_pad_crop_affine_disp",
+      "kitti_expected_val_samples": 652,
+      "kitti_num_workers": 2,
+      "kitti_val_split": "/home/caq/6666_raw/dav2_raw/metric_depth/dataset/splits/kitti/val.txt",
+      "log_interval": 100,
+      "lr": 0.0001,
+      "max_depth": 80.0,
+      "max_kitti_val_samples": null,
+      "max_train_steps": null,
+      "max_val_samples": null,
+      "min_depth": 1.0,
+      "model_input_tensor": "image",
+      "model_param_counts": {
+        "frozen_params": 24785089,
+        "total_params": 27666947,
+        "trainable_params": 2881858
+      },
+      "num_workers": 4,
+      "pretrained_from": "/home/caq/333_cvpr/da_ours/checkpoints/depth_anything_v2_vits.pth",
+      "raw_storage_format": "not_applicable",
+      "residual_alpha": 0.5,
+      "residual_feature_source": "d0",
+      "resume_from": null,
+      "rgb_input_space": "halfres_2x2_area",
+      "save_best_checkpoint": true,
+      "save_interval": 1,
+      "save_path": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c2_d0only_residual_vits_halfd0_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20",
+      "seed": 42,
+      "vkitti_train_list": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/dataset/splits/vkitti2/train_sceneholdout_Scene20.txt",
+      "vkitti_val_list": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/dataset/splits/vkitti2/val_sceneholdout_Scene20_n1000_seed42.txt",
+      "weight_decay": 0.0001
+    },
+    "source": "checkpoint_args"
+  },
+  "c2_run_dir": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0525_0203_vkitti_c2_d0only_residual_vits_halfd0_187x621_sceneholdout_Scene20_n1000_seed42_bs8_e20",
+  "d0_sign": 1,
+  "dataset_geometry": {
+    "kitti_val": {
+      "canonicalization": "center pad/crop to fixed even fullres canvas; RGB edge pad; depth zero pad; valid false pad",
+      "fullres_even_policy": "crop_bottom_to_even",
+      "name": "canonical_even_pad_crop",
+      "source_shape_counts": {
+        "370x1224": 23,
+        "370x1226": 71,
+        "374x1238": 23,
+        "375x1242": 487,
+        "376x1241": 48
+      },
+      "target_even_fullres_hw": [
+        374,
+        1242
+      ],
+      "target_model_hw": [
+        187,
+        621
+      ]
+    },
+    "train": {
+      "crop_box": [
+        0,
+        0,
+        374,
+        1242
+      ],
+      "crop_box_format": "h_start_w_start_h_end_w_end",
+      "crop_box_semantics": "source_fullres_to_even_fullres",
+      "cropped_bottom_rows": 1,
+      "depth_target_space": "halfres_2x2_valid_mean",
+      "even_fullres_hw": [
+        374,
+        1242
+      ],
+      "fullres_even_policy": "crop_bottom_to_even",
+      "input_hw": [
+        187,
+        621
+      ],
+      "original_hw": [
+        375,
+        1242
+      ],
+      "packed_hw": [
+        187,
+        621
+      ],
+      "raw_storage_format": "synthetic_packed_bayer_4ch_halfres",
+      "rgb_input_space": "halfres_2x2_area",
+      "source_original_hw": [
+        375,
+        1242
+      ]
+    },
+    "val": {
+      "crop_box": [
+        0,
+        0,
+        374,
+        1242
+      ],
+      "crop_box_format": "h_start_w_start_h_end_w_end",
+      "crop_box_semantics": "source_fullres_to_even_fullres",
+      "cropped_bottom_rows": 1,
+      "depth_target_space": "halfres_2x2_valid_mean",
+      "even_fullres_hw": [
+        374,
+        1242
+      ],
+      "fullres_even_policy": "crop_bottom_to_even",
+      "input_hw": [
+        187,
+        621
+      ],
+      "original_hw": [
+        375,
+        1242
+      ],
+      "packed_hw": [
+        187,
+        621
+      ],
+      "raw_storage_format": "synthetic_packed_bayer_4ch_halfres",
+      "rgb_input_space": "halfres_2x2_area",
+      "source_original_hw": [
+        375,
+        1242
+      ]
+    },
+    "vkitti_val": {
+      "crop_box": [
+        0,
+        0,
+        374,
+        1242
+      ],
+      "crop_box_format": "h_start_w_start_h_end_w_end",
+      "crop_box_semantics": "source_fullres_to_even_fullres",
+      "cropped_bottom_rows": 1,
+      "depth_target_space": "halfres_2x2_valid_mean",
+      "even_fullres_hw": [
+        374,
+        1242
+      ],
+      "fullres_even_policy": "crop_bottom_to_even",
+      "input_hw": [
+        187,
+        621
+      ],
+      "original_hw": [
+        375,
+        1242
+      ],
+      "packed_hw": [
+        187,
+        621
+      ],
+      "raw_storage_format": "synthetic_packed_bayer_4ch_halfres",
+      "rgb_input_space": "halfres_2x2_area",
+      "source_original_hw": [
+        375,
+        1242
+      ]
+    }
+  },
+  "dataset_geometry_mode": "vkitti2_even_fullres_halfres_2x2",
+  "delta_condition": "feature_d1_stopgrad",
+  "depth_target_space": "halfres_2x2_valid_mean",
+  "device": "cuda",
+  "encoder": "vits",
+  "epochs": 10,
+  "eval_feature_ablation_mode": "zero",
+  "eval_interval": 1,
+  "eval_kitti": true,
+  "eval_only": true,
+  "eval_protocol": {
+    "kitti_val": "halfres_raw_canonical_even_pad_crop_affine_disp",
+    "vkitti_val": "per_image_affine_disp_depth_anything_v2"
+  },
+  "experiment_label": "N7-eval-x3-ablation",
+  "feature_ablation_donor_offset": 1,
+  "feature_ablation_key": "x3",
+  "feature_ablation_scope": "both",
+  "feature_ablation_seed": 42,
+  "front_end": "c2_frozen_raw_ram_incremental",
+  "fullres_even_policy": "crop_bottom_to_even",
+  "gate_condition": "feature_d1",
+  "heavy_save_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/diagnostics/0530_n7_eval_x3_ablation_0530_1723/heavy_unused",
+  "hflip_prob": 0.5,
+  "incremental_feature_source": "x3",
+  "input_domain": "raw4",
+  "input_height": 187,
+  "input_width": 621,
+  "kitti_base": "/mnt/drive/kitti",
+  "kitti_eval_protocol": "halfres_raw_canonical_even_pad_crop_affine_disp",
+  "kitti_expected_val_samples": 652,
+  "kitti_num_workers": 2,
+  "kitti_val_split": "/home/caq/6666_raw/dav2_raw/metric_depth/dataset/splits/kitti/val.txt",
+  "lambda_boundary": 2.0,
+  "lambda_final": 1.0,
+  "lambda_gate_sparse": 0.05,
+  "lambda_grad": 0.5,
+  "lambda_invalid_keep": 0.1,
+  "lambda_keep_good_d1": 0.2,
+  "lambda_lowfreq_loss": 0.0,
+  "lambda_lp": 0.5,
+  "log_interval": 100,
+  "lowpass_kernel": 31,
+  "lr": 0.0001,
+  "max_depth": 80.0,
+  "max_kitti_val_samples": null,
+  "max_train_steps": null,
+  "max_val_samples": null,
+  "method_id": "N7",
+  "min_depth": 1.0,
+  "model_input_tensor": "raw",
+  "model_param_counts": {
+    "frozen_params": 27666947,
+    "total_params": 28105772,
+    "trainable_params": 438825
+  },
+  "n6_feature_ablation_key": "x3",
+  "n6_feature_ablation_mode": "zero",
+  "n6_feature_ablation_seed": 42,
+  "n6_output_dir": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/diagnostics/0530_n7_eval_x3_ablation_0530_1723/mode_zero_scope_both",
+  "noise_model": "none",
+  "noise_realization_applied": false,
+  "num_workers": 4,
+  "pretrained_from": "/home/caq/333_cvpr/da_ours/checkpoints/depth_anything_v2_vits.pth",
+  "q_good": 0.3,
+  "randomize_unprocessing": false,
+  "raw_adapter_backend": "analytic",
+  "raw_adapter_black_level": 0.0,
+  "raw_adapter_blue_gain_range": [
+    1.5,
+    1.9
+  ],
+  "raw_adapter_ccm": "identity",
+  "raw_adapter_cfa_pattern": "RGGB",
+  "raw_adapter_config_hash": "5fd8f0d2345f9683",
+  "raw_adapter_dark_light_scale_range": [
+    0.05,
+    0.4
+  ],
+  "raw_adapter_external_cache_space": "not_applicable",
+  "raw_adapter_external_key": "not_applicable",
+  "raw_adapter_external_raw_rgb_root": "not_applicable",
+  "raw_adapter_fixed_blue_gain": 1.7,
+  "raw_adapter_fixed_light_scale": 1.0,
+  "raw_adapter_fixed_red_gain": 2.15,
+  "raw_adapter_inverse_tone": "global_0p15",
+  "raw_adapter_noise_mean_mode": "zero",
+  "raw_adapter_over_light_scale_range": [
+    1.5,
+    2.5
+  ],
+  "raw_adapter_packed_channel_order": "R_Gr_Gb_B",
+  "raw_adapter_random_seed_policy": "dataloader_generator",
+  "raw_adapter_read_noise": 0.0005,
+  "raw_adapter_red_gain_range": [
+    1.9,
+    2.4
+  ],
+  "raw_adapter_rgb_transfer": "srgb_piecewise",
+  "raw_adapter_shot_noise": 0.001,
+  "raw_adapter_variant_policy": "normal",
+  "raw_adapter_variant_weights": {
+    "dark": 0.0,
+    "normal": 1.0,
+    "over": 0.0
+  },
+  "raw_adapter_white_level": 1.0,
+  "raw_feature_encoder_trainable": "true",
+  "raw_storage_format": "synthetic_packed_bayer_4ch_halfres",
+  "requested_save_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/diagnostics/0530_n7_eval_x3_ablation_0530_1723/driver",
+  "residual_alpha": 0.5,
+  "resolved_unprocessing_config": {
+    "noise_model": "none",
+    "noise_realization_applied": false,
+    "randomize_unprocessing": false,
+    "raw_adapter_backend": "analytic",
+    "raw_adapter_black_level": 0.0,
+    "raw_adapter_blue_gain_range": [
+      1.5,
+      1.9
+    ],
+    "raw_adapter_ccm": "identity",
+    "raw_adapter_cfa_pattern": "RGGB",
+    "raw_adapter_config_hash": "5fd8f0d2345f9683",
+    "raw_adapter_dark_light_scale_range": [
+      0.05,
+      0.4
+    ],
+    "raw_adapter_external_cache_space": "not_applicable",
+    "raw_adapter_external_key": "not_applicable",
+    "raw_adapter_external_raw_rgb_root": "not_applicable",
+    "raw_adapter_fixed_blue_gain": 1.7,
+    "raw_adapter_fixed_light_scale": 1.0,
+    "raw_adapter_fixed_red_gain": 2.15,
+    "raw_adapter_inverse_tone": "global_0p15",
+    "raw_adapter_noise_mean_mode": "zero",
+    "raw_adapter_over_light_scale_range": [
+      1.5,
+      2.5
+    ],
+    "raw_adapter_packed_channel_order": "R_Gr_Gb_B",
+    "raw_adapter_random_seed_policy": "dataloader_generator",
+    "raw_adapter_read_noise": 0.0005,
+    "raw_adapter_red_gain_range": [
+      1.9,
+      2.4
+    ],
+    "raw_adapter_rgb_transfer": "srgb_piecewise",
+    "raw_adapter_shot_noise": 0.001,
+    "raw_adapter_variant_policy": "normal",
+    "raw_adapter_variant_weights": {
+      "dark": 0.0,
+      "normal": 1.0,
+      "over": 0.0
+    },
+    "raw_adapter_white_level": 1.0,
+    "unprocessing_method": "raw_adapter_style",
+    "vkitti_unprocessing_mix_weights": null,
+    "vkitti_unprocessing_preset": "not_applicable"
+  },
+  "resume_from": "/mnt/drive/3333_raw/0000_exp_ckpt/0530_0216_vkitti_n7_x3_lp0p5_q0p3_lfl0p0_rfttrue_vits_half187x621_sceneholdout_Scene20_n1000_seed42_bs8_e10/epoch_09.pth",
+  "rgb_input_space": "halfres_2x2_area",
+  "save_best_checkpoint": true,
+  "save_interval": 1,
+  "save_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0527/diagnostics/0530_n7_eval_x3_ablation_0530_1723/mode_zero_scope_both",
+  "seed": 42,
+  "train_feature_ablation_mode": "true",
+  "unprocessing_method": "raw_adapter_style",
+  "unprocessing_policy": {
+    "kitti_val": {
+      "black_level": 0.0,
+      "ccm": "identity",
+      "cfa_pattern": "RGGB",
+      "fixed_blue_gain": 1.7,
+      "fixed_light_scale": 1.0,
+      "fixed_red_gain": 2.15,
+      "inverse_tone": "global_0p15",
+      "noise_mean_mode": "zero",
+      "noise_model": "none",
+      "noise_realization_applied": false,
+      "packed_channel_order": [
+        "R",
+        "Gr",
+        "Gb",
+        "B"
+      ],
+      "preset_hash": "5fd8f0d2345f9683",
+      "randomize": false,
+      "randomize_unprocessing": false,
+      "raw_adapter_backend": "analytic",
+      "raw_adapter_blue_gain_range": [
+        1.5,
+        1.9
+      ],
+      "raw_adapter_ccm": "identity",
+      "raw_adapter_cfa_pattern": "RGGB",
+      "raw_adapter_config_hash": "5fd8f0d2345f9683",
+      "raw_adapter_dark_light_scale_range": [
+        0.05,
+        0.4
+      ],
+      "raw_adapter_external_cache_space": "not_applicable",
+      "raw_adapter_external_key": "not_applicable",
+      "raw_adapter_external_raw_rgb_root": "not_applicable",
+      "raw_adapter_inverse_tone": "global_0p15",
+      "raw_adapter_original_order": [
+        "R",
+        "G1",
+        "G2",
+        "B"
+      ],
+      "raw_adapter_over_light_scale_range": [
+        1.5,
+        2.5
+      ],
+      "raw_adapter_packed_channel_order": "R_Gr_Gb_B",
+      "raw_adapter_random_seed_policy": "dataloader_generator",
+      "raw_adapter_red_gain_range": [
+        1.9,
+        2.4
+      ],
+      "raw_adapter_rgb_transfer": "srgb_piecewise",
+      "raw_adapter_variant_policy": "normal",
+      "raw_adapter_variant_weights": {
+        "dark": 0.0,
+        "normal": 1.0,
+        "over": 0.0
+      },
+      "read_noise": 0.0005,
+      "rgb_transfer": "srgb_piecewise",
+      "selected_sub_preset_hash": "5fd8f0d2345f9683",
+      "shot_noise": 0.001,
+      "unprocessing_method": "raw_adapter_style",
+      "variant_policy": "normal",
+      "vkitti_unprocessing_mix_weights": null,
+      "vkitti_unprocessing_preset": "not_applicable",
+      "white_level": 1.0
+    },
+    "train": {
+      "black_level": 0.0,
+      "ccm": "identity",
+      "cfa_pattern": "RGGB",
+      "fixed_blue_gain": 1.7,
+      "fixed_light_scale": 1.0,
+      "fixed_red_gain": 2.15,
+      "inverse_tone": "global_0p15",
+      "noise_mean_mode": "zero",
+      "noise_model": "none",
+      "noise_realization_applied": false,
+      "packed_channel_order": [
+        "R",
+        "Gr",
+        "Gb",
+        "B"
+      ],
+      "preset_hash": "5fd8f0d2345f9683",
+      "randomize": false,
+      "randomize_unprocessing": false,
+      "raw_adapter_backend": "analytic",
+      "raw_adapter_blue_gain_range": [
+        1.5,
+        1.9
+      ],
+      "raw_adapter_ccm": "identity",
+      "raw_adapter_cfa_pattern": "RGGB",
+      "raw_adapter_config_hash": "5fd8f0d2345f9683",
+      "raw_adapter_dark_light_scale_range": [
+        0.05,
+        0.4
+      ],
+      "raw_adapter_external_cache_space": "not_applicable",
+      "raw_adapter_external_key": "not_applicable",
+      "raw_adapter_external_raw_rgb_root": "not_applicable",
+      "raw_adapter_inverse_tone": "global_0p15",
+      "raw_adapter_original_order": [
+        "R",
+        "G1",
+        "G2",
+        "B"
+      ],
+      "raw_adapter_over_light_scale_range": [
+        1.5,
+        2.5
+      ],
+      "raw_adapter_packed_channel_order": "R_Gr_Gb_B",
+      "raw_adapter_random_seed_policy": "dataloader_generator",
+      "raw_adapter_red_gain_range": [
+        1.9,
+        2.4
+      ],
+      "raw_adapter_rgb_transfer": "srgb_piecewise",
+      "raw_adapter_variant_policy": "normal",
+      "raw_adapter_variant_weights": {
+        "dark": 0.0,
+        "normal": 1.0,
+        "over": 0.0
+      },
+      "read_noise": 0.0005,
+      "rgb_transfer": "srgb_piecewise",
+      "selected_sub_preset_hash": "5fd8f0d2345f9683",
+      "shot_noise": 0.001,
+      "unprocessing_method": "raw_adapter_style",
+      "variant_policy": "normal",
+      "vkitti_unprocessing_mix_weights": null,
+      "vkitti_unprocessing_preset": "not_applicable",
+      "white_level": 1.0
+    },
+    "vkitti_val": {
+      "black_level": 0.0,
+      "ccm": "identity",
+      "cfa_pattern": "RGGB",
+      "fixed_blue_gain": 1.7,
+      "fixed_light_scale": 1.0,
+      "fixed_red_gain": 2.15,
+      "inverse_tone": "global_0p15",
+      "noise_mean_mode": "zero",
+      "noise_model": "none",
+      "noise_realization_applied": false,
+      "packed_channel_order": [
+        "R",
+        "Gr",
+        "Gb",
+        "B"
+      ],
+      "preset_hash": "5fd8f0d2345f9683",
+      "randomize": false,
+      "randomize_unprocessing": false,
+      "raw_adapter_backend": "analytic",
+      "raw_adapter_blue_gain_range": [
+        1.5,
+        1.9
+      ],
+      "raw_adapter_ccm": "identity",
+      "raw_adapter_cfa_pattern": "RGGB",
+      "raw_adapter_config_hash": "5fd8f0d2345f9683",
+      "raw_adapter_dark_light_scale_range": [
+        0.05,
+        0.4
+      ],
+      "raw_adapter_external_cache_space": "not_applicable",
+      "raw_adapter_external_key": "not_applicable",
+      "raw_adapter_external_raw_rgb_root": "not_applicable",
+      "raw_adapter_inverse_tone": "global_0p15",
+      "raw_adapter_original_order": [
+        "R",
+        "G1",
+        "G2",
+        "B"
+      ],
+      "raw_adapter_over_light_scale_range": [
+        1.5,
+        2.5
+      ],
+      "raw_adapter_packed_channel_order": "R_Gr_Gb_B",
+      "raw_adapter_random_seed_policy": "dataloader_generator",
+      "raw_adapter_red_gain_range": [
+        1.9,
+        2.4
+      ],
+      "raw_adapter_rgb_transfer": "srgb_piecewise",
+      "raw_adapter_variant_policy": "normal",
+      "raw_adapter_variant_weights": {
+        "dark": 0.0,
+        "normal": 1.0,
+        "over": 0.0
+      },
+      "read_noise": 0.0005,
+      "rgb_transfer": "srgb_piecewise",
+      "selected_sub_preset_hash": "5fd8f0d2345f9683",
+      "shot_noise": 0.001,
+      "unprocessing_method": "raw_adapter_style",
+      "variant_policy": "normal",
+      "vkitti_unprocessing_mix_weights": null,
+      "vkitti_unprocessing_preset": "not_applicable",
+      "white_level": 1.0
+    }
+  },
+  "vkitti_train_list": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/dataset/splits/vkitti2/train_sceneholdout_Scene20.txt",
+  "vkitti_unprocessing_mix_weights": null,
+  "vkitti_unprocessing_preset": "not_applicable",
+  "vkitti_val_list": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/dataset/splits/vkitti2/val_sceneholdout_Scene20_n1000_seed42.txt",
+  "weight_decay": 0.0001
+}
