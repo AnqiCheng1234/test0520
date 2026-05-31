@@ -2,7 +2,7 @@
 
 日期：2026-05-30
 
-本文用于持续记录 `plans/0527/raw_dav2_residual_reanalysis_plan_0527.md` 对应的实验结果与阶段性结论。当前版本已记录 N2 `lambda_lp` sweep、N2 `q_good` sweep，N3 RGB incremental correction control，N4 ffm_mid / N5 D1-only / N7 stop-gradient controls，以及 N6 eval-time shuffled x3 ablation；所有结果都和前一轮核心 baseline 对齐比较。
+本文用于持续记录 `plans/0527/raw_dav2_residual_reanalysis_plan_0527.md` 对应的实验结果与阶段性结论。当前版本已记录 N2 `lambda_lp` sweep、N2 `q_good` sweep，N3 RGB incremental correction control，N4 ffm_mid / N5 D1-only / N7 stop-gradient controls，N6 eval-time shuffled x3 ablation，以及 N7 eval-time x3 ablation / zero-x3 retrain / RGB matched controls；所有结果都和前一轮核心 baseline 对齐比较。
 
 写作规约：主指标表只放 formal eval 或同口径 eval json/log 中的数字；只用于 smoke、诊断或可视化的 sample loss 不混入主指标表。除非特别说明，本文所有主表都使用 **VKITTI overall abs_rel best checkpoint**，避免 overall best 和 boundary/target-region best checkpoint 混用。
 
@@ -59,6 +59,17 @@
   - label：N7 x3 stop-gradient D1 delta control，`lambda_lp=0.5, q_good=0.3`。
   - path：halfres RGB -> synthetic RAW4 -> RamCore3 `x3` -> frozen C2 `D1` -> x3 incremental branch with stop-gradient D1 into delta head。
   - VKITTI overall-best checkpoint：epoch 9。
+- `plans/0527/diagnostics/0530_n7_eval_x3_ablation_0530_1723`
+  - label：P0 N7 eval-time `x3` ablation，load N7 best e9；modes `true/shuffle/zero/mean`，scope `both`。
+- `0530_1730_vkitti_n7_zero_x3_train_lp0p5_q0p3_lfl0p0_vits_half187x621_sceneholdout_Scene20_n1000_seed42_bs8_e10`
+  - label：P1 N7 zero-x3 train control，`train/eval feature_ablation_mode=zero`，scope `both`。
+  - VKITTI overall-best checkpoint：epoch 0。
+- `0530_1824_vkitti_n7rgb_lp0p5_q0p3_lfl0p0_rftna_vits_half187x621_sceneholdout_Scene20_n1000_seed42_bs8_e10`
+  - label：P2 N7-RGB matched stop-gradient D1 delta control，`lambda_lp=0.5, q_good=0.3`。
+  - path：halfres RGB -> frozen C2 `D1` -> RGB incremental branch with stop-gradient D1 into delta head。
+  - VKITTI overall-best checkpoint：epoch 8。
+- `plans/0527/diagnostics/0530_n7_controls_summary_0530_1723`
+  - label：N7 controls 汇总，包含 P0/P1/P2 对比表和检查结论。
 
 N2 固定设置：
 
@@ -105,7 +116,7 @@ lambda_lp=0.5
 lambda_lowfreq_loss=0.0
 ```
 
-N4 / N5 / N7 control 固定设置：
+N4 / N5 / N7 / N7RGB control 固定设置：
 
 ```text
 N4:
@@ -141,6 +152,17 @@ N7:
   gate_condition=feature_d1
   raw_feature_encoder_trainable=true
 
+N7RGB:
+  method_id=N7RGB
+  front_end=c2_frozen_rgb_incremental
+  input_domain=rgb
+  model_input_tensor=image
+  raw_storage_format=not_applicable
+  incremental_feature_source=rgb
+  delta_condition=feature_d1_stopgrad
+  gate_condition=feature_d1
+  raw_feature_encoder_trainable=not_applicable
+
 shared:
   lambda_lp=0.5
   q_good=0.3
@@ -151,9 +173,10 @@ shared:
 
 1. N-series 主结果：各 run 的 `best_val_metrics.json`，其中 VKITTI / KITTI / region / diagnostics 均来自同一个 VKITTI overall-best checkpoint。
 2. N6 eval-time ablation：`plans/0527/diagnostics/0530_1459_n6_x3_ablation/{true,shuffle}/n6_summary.json` 和 `n6_compare.json`。
-3. C2 / M2-RA0 / M1-RA0 VKITTI overall：各 run 的 `best_val_metrics.json`。
-4. C2 / M2-RA0 / M1-RA0 KITTI sanity：各 run 的 `kitti_val_metrics.json` 中与 VKITTI overall-best epoch 相同的条目。
-5. C2 / M2-RA0 / M1-RA0 clipped region metrics：`plans/result/0527_vkitti_region_clip_recalc_section_1_2_all.json`。
+3. N7 controls：`plans/0527/diagnostics/0530_n7_controls_summary_0530_1723/n7_controls_summary.json` / `.md`；P1/P2 训练 run 的主表仍取各自 `run_summary.json` 中的 `best_abs_rel`。
+4. C2 / M2-RA0 / M1-RA0 VKITTI overall：各 run 的 `best_val_metrics.json`。
+5. C2 / M2-RA0 / M1-RA0 KITTI sanity：各 run 的 `kitti_val_metrics.json` 中与 VKITTI overall-best epoch 相同的条目。
+6. C2 / M2-RA0 / M1-RA0 clipped region metrics：`plans/result/0527_vkitti_region_clip_recalc_section_1_2_all.json`。
 
 ## 1. 实验参数设置
 
@@ -208,9 +231,12 @@ shared:
 | `0530_0213...n4_ffm_mid_lp0p5_q0p3...` | N4 C2-frozen ffm_mid incremental control | `input_domain=raw4`；`model_input_tensor=raw`；`front_end=c2_frozen_raw_ram_incremental`；`raw_storage_format=synthetic_packed_bayer_4ch_halfres`；`incremental_feature_source=ffm_mid`；`delta_condition=feature_only`；`gate_condition=feature_d1` | frozen DAv2-S + frozen C2；RAW/RAM ffm_mid incremental branch trainable | N-series loss, `lambda_lp=0.5`，`q_good=0.3`，`lambda_lowfreq_loss=0.0` | 10 | `8/1/8` | `1e-4 / 1e-4` | 437,961 | total params `28,104,908`；frozen `27,666,947`；completed; VKITTI best e4 |
 | `0530_0350...n5_d1_lp0p5_q0p3...` | N5 C2-frozen D1-only extra head | `input_domain=rgb`；`model_input_tensor=image`；`front_end=c2_frozen_d1_incremental`；`raw_storage_format=not_applicable`；`incremental_feature_source=d1`；`delta_condition=d1_only`；`gate_condition=d1_only` | frozen DAv2-S + frozen C2；D1-only incremental branch trainable | N-series loss, `lambda_lp=0.5`，`q_good=0.3`，`lambda_lowfreq_loss=0.0` | 10 | `8/1/8` | `1e-4 / 1e-4` | 260,482 | total params `27,927,429`；frozen `27,666,947`；completed; VKITTI best e1 |
 | `0530_0216...n7_x3_lp0p5_q0p3...` | N7 C2-frozen x3 stop-gradient delta control | `input_domain=raw4`；`model_input_tensor=raw`；`front_end=c2_frozen_raw_ram_incremental`；`raw_storage_format=synthetic_packed_bayer_4ch_halfres`；`incremental_feature_source=x3`；`delta_condition=feature_d1_stopgrad`；`gate_condition=feature_d1` | frozen DAv2-S + frozen C2；RAW detail incremental branch trainable | N-series loss, `lambda_lp=0.5`，`q_good=0.3`，`lambda_lowfreq_loss=0.0` | 10 | `8/1/8` | `1e-4 / 1e-4` | 438,825 | total params `28,105,772`；frozen `27,666,947`；completed; VKITTI best e9 |
+| `plans/0527/diagnostics/0530_n7_eval_x3_ablation_0530_1723` | P0 N7 eval-time x3 ablation | load N7 best e9；`feature_ablation_key=x3`；modes `true/shuffle/zero/mean`；scope `both` | no training；eval-only；frozen N7 checkpoint | `feature_ablation_seed=42` | n/a | eval `bs=8` | n/a | n/a | D0/D1 invariance passed at `1e-7` |
+| `0530_1730...n7_zero_x3_train...` | P1 N7 zero-x3 train control | same as N7, but `train_feature_ablation_mode=zero`；`eval_feature_ablation_mode=zero`；`feature_ablation_scope=both` | frozen DAv2-S + frozen C2；N7 branch trainable, with x3 zeroed before feature encoder | N-series loss, `lambda_lp=0.5`，`q_good=0.3`，`lambda_lowfreq_loss=0.0` | 10 | `8/1/8` | `1e-4 / 1e-4` | 438,825 | total params `28,105,772`；frozen `27,666,947`；completed; VKITTI best e0 |
+| `0530_1824...n7rgb_lp0p5_q0p3...` | P2 N7-RGB matched stop-gradient delta control | `input_domain=rgb`；`model_input_tensor=image`；`front_end=c2_frozen_rgb_incremental`；`raw_storage_format=not_applicable`；`incremental_feature_source=rgb`；`delta_condition=feature_d1_stopgrad`；`gate_condition=feature_d1` | frozen DAv2-S + frozen C2；RGB incremental branch trainable | N-series loss, `lambda_lp=0.5`，`q_good=0.3`，`lambda_lowfreq_loss=0.0` | 10 | `8/1/8` | `1e-4 / 1e-4` | 297,922 | total params `27,964,869`；frozen `27,666,947`；completed; VKITTI best e8 |
 | `0530_1459_n6_x3_ablation` | N6 eval-time x3 ablation | load N2 `lp0.8/q0.3` best e3；`n6_feature_ablation_key=x3`；modes `true/shuffle` | no training；eval-only；frozen N2 checkpoint | `feature_ablation_seed=42` | n/a | eval `bs=8` | n/a | n/a | output root `plans/0527/diagnostics/0530_1459_n6_x3_ablation` |
 
-Clean RA0 / N2/N4/N7 synthetic RAW settings are shared unless a row says otherwise:
+Clean RA0 / N2/N4/N7/P1 synthetic RAW settings are shared unless a row says otherwise:
 
 ```text
 unprocessing_method=raw_adapter_style
@@ -250,7 +276,7 @@ L_keep_good_D1: per-image q_good mask where D1 is already good; q_good follows e
 L_lowfreq: loss-side low-frequency penalty; current sweep explicitly disabled
 L_invalid_keep: invalid pixels suppress gate * delta_effective drift
 lowpass_kernel=31
-raw_feature_encoder_trainable=true for N2/N4/N7; not_applicable for N3/N5 controls
+raw_feature_encoder_trainable=true for N2/N4/N7/P1; not_applicable for N3/N5/N7RGB controls
 ```
 
 ## 2. VKITTI Scene20 holdout val
@@ -271,8 +297,10 @@ raw_feature_encoder_trainable=true for N2/N4/N7; not_applicable for N3/N5 contro
 | N2 x3 `lp0.8` | e5 | 0.1186 | 0.8575 | -0.0024 vs D1 | 0.0975 | 0.8932 | best N2 lambda sweep VKITTI overall; KITTI regression largest |
 | N3 RGB `lp0.5 q0.3` | e2 | 0.1194 | 0.8567 | -0.0016 vs D1 | 0.0971 | 0.8944 | RGB incremental control; below matched N2 `lp0.5 q0.3` |
 | N4 ffm_mid `lp0.5 q0.3` | e4 | 0.1188 | 0.8575 | -0.0022 vs D1 | 0.0966 | 0.8951 | ffm_mid incremental control |
-| N5 D1-only `lp0.5 q0.3` | e1 | 0.1191 | 0.8559 | -0.0019 vs D1 | **0.0951** | **0.8979** | D1-only extra head; best KITTI same-checkpoint sanity |
+| N5 D1-only `lp0.5 q0.3` | e1 | 0.1191 | 0.8559 | -0.0019 vs D1 | 0.0951 | **0.8979** | D1-only extra head; best KITTI d1 among current controls |
 | N7 x3 stopgrad `lp0.5 q0.3` | e9 | **0.1173** | **0.8604** | **-0.0037 vs D1** | 0.0962 | 0.8952 | best VKITTI overall among current N-series controls |
+| N7-zero-x3-train `lp0.5 q0.3` | e0 | 0.1190 | 0.8554 | -0.0020 vs D1 | **0.0950** | 0.8974 | x3 zeroed during train/eval; best KITTI abs_rel but weaker VKITTI |
+| N7-RGB matched `lp0.5 q0.3` | e8 | 0.1184 | 0.8585 | -0.0026 vs D1 | 0.0962 | 0.8958 | matched RGB cue; close to N7 but weaker on VKITTI |
 
 ### 2.2 Region metrics at the same checkpoint
 
@@ -302,6 +330,8 @@ Region `abs_rel` 均使用 per-image affine disparity 对齐后的 depth，并�
 | N4 ffm_mid `lp0.5 q0.3` | 4 | 0.2536 | 0.2603 | 0.2681 | 0.1031 | 0.1253 | 0.0317 | 0.0105 | 0.7436 | 1.0799 |
 | N5 D1-only `lp0.5 q0.3` | 1 | 0.2568 | 0.2602 | 0.2749 | **0.1025** | 0.1269 | 0.0486 | 0.0152 | 0.7631 | 0.8648 |
 | N7 x3 stopgrad `lp0.5 q0.3` | 9 | **0.2432** | 0.2533 | 0.2605 | 0.1030 | **0.1185** | 0.0602 | 0.0165 | 0.6470 | 1.0037 |
+| N7-zero-x3-train `lp0.5 q0.3` | 0 | 0.2531 | 0.2589 | 0.2772 | **0.1024** | 0.1282 | 0.0422 | 0.0132 | 0.7501 | 0.9806 |
+| N7-RGB matched `lp0.5 q0.3` | 8 | 0.2498 | 0.2584 | 0.2641 | 0.1027 | 0.1246 | 0.0492 | 0.0126 | 0.6591 | 0.9460 |
 
 ## 3. N2 lambda_lp sweep 细表
 
@@ -469,15 +499,60 @@ Diagnostics：
 - KITTI same-checkpoint 的 shuffle 影响很小：`+0.000113`。因此 N6 支持“VKITTI 上 N2 使用 x3，尤其 boundary/saturated/far50 使用 x3”，但不支持“x3 带来显著跨域 KITTI 收益”的强 claim。
 - 本次 N6 formal run 只跑了 plan 最低要求的 `true` 和 `shuffle`；`zero` / `mean` mode 已有接口但尚未纳入主表。若需要和 M-series feature ablation 完全统一，可追加同一 checkpoint 的 `zero` / `mean` eval。
 
+### 4.8 N7 x3 controls
+
+N7 controls 围绕原 N7 best checkpoint 和两个 matched retrain 展开：
+
+```text
+N7 true source run: 0530_0216_vkitti_n7_x3_lp0p5_q0p3_lfl0p0_rfttrue_vits_half187x621_sceneholdout_Scene20_n1000_seed42_bs8_e10
+N7 true checkpoint: /mnt/drive/3333_raw/0000_exp_ckpt/0530_0216_vkitti_n7_x3_lp0p5_q0p3_lfl0p0_rfttrue_vits_half187x621_sceneholdout_Scene20_n1000_seed42_bs8_e10/epoch_09.pth
+P0 output root: plans/0527/diagnostics/0530_n7_eval_x3_ablation_0530_1723
+P1 zero-x3 train run: 0530_1730_vkitti_n7_zero_x3_train_lp0p5_q0p3_lfl0p0_vits_half187x621_sceneholdout_Scene20_n1000_seed42_bs8_e10
+P2 N7-RGB run: 0530_1824_vkitti_n7rgb_lp0p5_q0p3_lfl0p0_rftna_vits_half187x621_sceneholdout_Scene20_n1000_seed42_bs8_e10
+summary root: plans/0527/diagnostics/0530_n7_controls_summary_0530_1723
+```
+
+P0 只在 eval forward 中替换 N7 incremental branch 的 `x3` feature，`D0 -> C2 -> D1` 路径保持不变。`true` mode 的 VKITTI final `0.117277`，和第 2 节原 N7 `0.117293` 只有 `-0.000015` 的 eval 实现差异。
+
+| mode | VK final | final-D1 | boundary | high-error | far50 | saturated | KITTI final | mean_gate | mean_abs_gate_delta |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| true | 0.117277 | -0.003698 | 0.243098 | 0.253341 | 0.260432 | 0.118314 | 0.096190 | 0.060197 | 0.016517 |
+| shuffle | 0.121276 | +0.000301 | 0.262365 | 0.262292 | 0.269875 | 0.138477 | 0.096374 | 0.063905 | 0.018041 |
+| mean | 0.122053 | +0.001078 | 0.261142 | 0.263814 | 0.277322 | 0.132784 | 0.096222 | 0.063438 | 0.017170 |
+| zero | 0.123673 | +0.002697 | 0.259612 | 0.257048 | 0.295021 | 0.133911 | 0.095979 | 0.122688 | 0.033881 |
+
+| ablation - true | VK final | boundary | high-error | far50 | saturated | KITTI final |
+|---|---:|---:|---:|---:|---:|---:|
+| shuffle | +0.003999 | +0.019267 | +0.008952 | +0.009443 | +0.020163 | +0.000183 |
+| mean | +0.004776 | +0.018044 | +0.010473 | +0.016890 | +0.014470 | +0.000032 |
+| zero | +0.006395 | +0.016514 | +0.003707 | +0.034589 | +0.015596 | -0.000211 |
+
+P0 D0/D1 invariance check 通过：tolerance `1e-7`，D0 max diffs 和 D1 max diffs 全部为 `0.0`。threshold check 也通过：overall true-shuffle improvement `0.003999`，boundary `0.019267`，saturated `0.020163`。
+
+P1/P2 使用同一 N7 loss 语义和 `lambda_lp=0.5, q_good=0.3`。P1 在 train/eval 都把 `x3` 置零；P2 把 `incremental_feature_source` 换成 RGB，并保留 stop-gradient D1-conditioned delta。
+
+| method | selected ckpt | VK final | vs N7 | VK d1 | boundary | vs N7 | far50 | vs N7 | saturated | vs N7 | KITTI final |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| N7 true | e9 | 0.117293 | 0.000000 | 0.860387 | 0.243164 | 0.000000 | 0.260525 | 0.000000 | 0.118525 | 0.000000 | 0.096222 |
+| N7-zero-x3-train | e0 | 0.118975 | +0.001683 | 0.855405 | 0.253052 | +0.009888 | 0.277245 | +0.016720 | 0.128249 | +0.009723 | 0.095021 |
+| N7-RGB matched | e8 | 0.118373 | +0.001080 | 0.858488 | 0.249846 | +0.006681 | 0.264095 | +0.003570 | 0.124623 | +0.006098 | 0.096184 |
+
+阶段判断：
+
+- P0 `shuffle/mean/zero` 都显著伤害 VKITTI final，说明原 N7 不是忽略 `x3` 的 degenerate solution；退化集中在 boundary / saturated / far50，和 detail cue 的预期一致。
+- P1 zero-x3 train 比原 N7 弱：VK final `+0.001683`，boundary `+0.009888`，far50 `+0.016720`，saturated `+0.009723`。这说明 N7 的 VKITTI 收益不只是 stop-gradient D1-conditioned head capacity，图像对应的 `x3` 仍有额外贡献。
+- P2 N7-RGB matched 接近原 N7，但仍弱：VK final `+0.001080`，boundary `+0.006681`，far50 `+0.003570`，saturated `+0.006098`。这支持 clean VKITTI 上 RAW/RAM `x3` 相比 matched RGB cue 有稳定边际收益。
+- KITTI 不支持强 RAW/x3 跨域 claim：P1 zero-x3 train 的 KITTI final `0.095021` 反而优于原 N7 `0.096222`；P2 N7-RGB `0.096184` 与原 N7 基本持平。
+
 ## 5. 当前结论
 
 - N2 相比 previous direct RAW/RAM residual 有实质改善：`lp0.5/q0.3` 和 `lp0.8/q0.3` 的 VKITTI overall abs_rel 分别为 `0.118629` / `0.118624`，均优于 C2 `0.1210`、M1 RA0 `0.1254` 和 M2 RA0 `0.1262`。
 - N2 的收益主要来自 C2 之后的增量修正。`lp0.8/q0.3` 相对 D1 的 overall 改善为 `-0.002374`，boundary 改善为 `-0.019708`，说明 x3 incremental branch 在局部结构区域确实有正信号。
 - N3 RGB incremental control 已完成。它也能改善 C2，但 matched N2 x3 `lp0.5/q0.3` 在 VKITTI overall、boundary、high-error、saturated 和 KITTI same-checkpoint 上均小幅优于 N3，支持 x3/RAW-like cue 有边际贡献。
 - N4 ffm_mid incremental control 已完成。它相对 D1 有 overall / boundary / far50 改善，但没有复现旧 M2 RA0 的 far50 优势；因此当前 N-series 口径下，`ffm_mid` 不是 far50 的明确优选。
-- N5 D1-only extra head 已完成。它在 VKITTI 上也能改善 C2，并且 KITTI same-checkpoint `0.095078` 是当前 N-series control 中最好，说明 extra head / loss / regularization 本身能贡献显著收益，不能把全部收益归因于 RAW/x3。
+- N5 D1-only extra head 已完成。它在 VKITTI 上也能改善 C2，并且 KITTI same-checkpoint `d1=0.8979` 仍是当前 control 中最高；新增 P1 zero-x3 train 的 KITTI abs_rel `0.095021` 更低，进一步说明跨域 sanity 不一定来自 RAW/x3 cue。
 - N6 eval-time shuffled x3 ablation 已完成。对 N2 `lp0.8/q0.3` best checkpoint，shuffle x3 让 VKITTI final abs_rel 变差 `+0.001897`，boundary 变差 `+0.012266`，saturated 变差 `+0.010955`，说明 N2 确实在使用 x3；但 KITTI final 只变差 `+0.000113`，跨域收益证据仍弱。
-- N7 stop-gradient D1 delta 已完成，是当前 VKITTI overall / boundary / high-error / far50 / saturated 最强 N-series：overall `0.117293`，boundary `0.243164`。但它的 delta head 已接收 stop-gradient D1 feature，语义上不等同于 N2 的 `feature_only` x3 delta。
+- N7 stop-gradient D1 delta 已完成，是当前 VKITTI overall / boundary / high-error / far50 / saturated 最强 N-series：overall `0.117293`，boundary `0.243164`。三组 N7 controls 表明：原 N7 依赖图像对应 `x3`，zero-x3 retrain 不能追平，matched RGB 也略弱；但它的 delta head 已接收 stop-gradient D1 feature，语义上不等同于 N2 的 `feature_only` x3 delta。
 - `lambda_lp` 越大，低频比例下降、高频比例上升：`low_ratio 0.936 -> 0.730`，`high_ratio 0.588 -> 1.229`。这和 N2 设计目标一致：RAW/x3 branch 更偏 local/detail correction，而不是重新学习 C2 的低频 calibration。
 - `lp0.8/q0.3` 是 N2 feature-only x3 中的 VKITTI overall / boundary 最强；但 KITTI same-checkpoint sanity 仍不如 `lp0.5/q0.5` 稳：`0.096738` vs `0.096603`。`lp0.8/q0.7` 的 KITTI same-checkpoint regression 最大，`KITTI final-D1=+0.001266`。
 - `far50` 仍不是 N2/N4 的优势项。M2 RA0 `ffm_mid + D0` 在 far50 上仍最好，`0.2254`；N7 的 far50 `0.260525` 是当前 N-series 最好，但仍显著弱于旧 M2 RA0。
@@ -486,7 +561,7 @@ Diagnostics：
 ## 6. 后续使用建议
 
 - 如果坚持 N2 的 `feature_only` x3 delta 语义，`lp0.8/q0.3` 可作为 VKITTI overall / boundary 最强候选；`lp0.5/q0.5` 仍应作为 KITTI same-checkpoint sanity 更稳的保守候选。
-- 如果允许 delta head 接收 stop-gradient D1 feature，N7 是当前最强 VKITTI 候选；但 claim 应写成 `x3 + stop-gradient D1-conditioned delta`，不要和 N2 的纯 feature-only x3 delta 混写。
-- N5 应作为后续写作的关键 baseline：任何 RAW/x3 增益 claim 都需要说明它相对 D1-only extra head 的额外收益，而不是只相对 C2。
-- 结论仍不能写成 RAW/x3 已经全面优于所有控制项。更准确的是：N2 证明 `C2 frozen + x3 incremental correction` 能在 VKITTI overall 和 boundary 上超过 C2/N3/N5，但跨域 KITTI 最强目前来自 N5，far50 / high-error 也没有全面超过旧方法或 C2。
-- N6 true/shuffle 已经补上关键方向性证据：N2 的 VKITTI / boundary / saturated 收益确实依赖 x3。仍可追加 `zero` / `mean` mode 来和 M-series ablation 诊断完全对齐，但当前 shuffled x3 已足够支持 N6 的最低验收语义。
+- 如果允许 delta head 接收 stop-gradient D1 feature，N7 是当前最强 VKITTI 候选；claim 应写成 `x3 + stop-gradient D1-conditioned delta`，并可用 P0/P1/P2 支撑“clean VKITTI 上对应 x3 优于 zero-x3 train 和 matched RGB cue”。
+- N5 与 P1 zero-x3 train 都应作为后续写作的关键 baseline：任何 RAW/x3 增益 claim 都需要说明它相对 D1-only / no-x3 head capacity 的额外收益，而不是只相对 C2。
+- 结论仍不能写成 RAW/x3 已经全面优于所有控制项。更准确的是：N2/N7 证明 `C2 frozen + x3 incremental correction` 能在 VKITTI overall 和 boundary 上超过 C2/N3/N5/P2，但跨域 KITTI 没有形成 RAW/x3 优势，far50 / high-error 也没有全面超过旧方法或 C2。
+- N6 true/shuffle 已经补上 N2 的方向性证据；N7 P0/P1/P2 进一步补上 N7 的方向性证据。若需要和 M-series feature ablation 完全统一，仍可追加 N2/N6 的 `zero` / `mean` eval，但当前 N7 控制已足够支持 N7 的最低验收语义。
