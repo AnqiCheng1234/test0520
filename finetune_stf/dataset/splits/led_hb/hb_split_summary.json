@@ -1,0 +1,292 @@
+{
+  "counts": {
+    "by_map": {
+      "train": {
+        "china": 4999,
+        "herrenberg": 4999,
+        "ottosuhrallee": 4999
+      },
+      "val_raw": {
+        "hamburg": 4999
+      },
+      "val_selected": {
+        "hamburg": 1000
+      }
+    },
+    "train": 14997,
+    "val": 1000
+  },
+  "dataset_name": "led_hb",
+  "first_10": {
+    "train": [
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/camera_params/0.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/distance_to_image_plane/0.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/ldr_color/0.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/transforms/0.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/camera_params/1.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/distance_to_image_plane/1.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/ldr_color/1.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/transforms/1.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/camera_params/2.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/distance_to_image_plane/2.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/ldr_color/2.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/transforms/2.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/camera_params/3.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/distance_to_image_plane/3.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/ldr_color/3.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/transforms/3.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/camera_params/4.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/distance_to_image_plane/4.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/ldr_color/4.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/transforms/4.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/camera_params/5.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/distance_to_image_plane/5.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/ldr_color/5.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/transforms/5.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/camera_params/6.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/distance_to_image_plane/6.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/ldr_color/6.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/transforms/6.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/camera_params/7.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/distance_to_image_plane/7.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/ldr_color/7.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/transforms/7.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/camera_params/8.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/distance_to_image_plane/8.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/ldr_color/8.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/transforms/8.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/camera_params/9.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/distance_to_image_plane/9.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/ldr_color/9.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/train/china/transforms/9.p"
+      }
+    ],
+    "val": [
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/camera_params/0.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/distance_to_image_plane/0.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/ldr_color/0.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/transforms/0.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/camera_params/5.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/distance_to_image_plane/5.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/ldr_color/5.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/transforms/5.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/camera_params/10.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/distance_to_image_plane/10.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/ldr_color/10.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/transforms/10.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/camera_params/15.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/distance_to_image_plane/15.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/ldr_color/15.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/transforms/15.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/camera_params/20.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/distance_to_image_plane/20.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/ldr_color/20.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/transforms/20.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/camera_params/25.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/distance_to_image_plane/25.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/ldr_color/25.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/transforms/25.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/camera_params/30.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/distance_to_image_plane/30.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/ldr_color/30.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/transforms/30.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/camera_params/35.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/distance_to_image_plane/35.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/ldr_color/35.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/transforms/35.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/camera_params/40.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/distance_to_image_plane/40.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/ldr_color/40.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/transforms/40.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/camera_params/45.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/distance_to_image_plane/45.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/ldr_color/45.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/transforms/45.p"
+      }
+    ]
+  },
+  "illumination": "HB",
+  "last_10": {
+    "train": [
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/camera_params/4989.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/distance_to_image_plane/4989.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/ldr_color/4989.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/transforms/4989.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/camera_params/4990.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/distance_to_image_plane/4990.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/ldr_color/4990.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/transforms/4990.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/camera_params/4991.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/distance_to_image_plane/4991.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/ldr_color/4991.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/transforms/4991.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/camera_params/4992.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/distance_to_image_plane/4992.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/ldr_color/4992.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/transforms/4992.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/camera_params/4993.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/distance_to_image_plane/4993.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/ldr_color/4993.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/transforms/4993.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/camera_params/4994.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/distance_to_image_plane/4994.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/ldr_color/4994.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/transforms/4994.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/camera_params/4995.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/distance_to_image_plane/4995.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/ldr_color/4995.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/transforms/4995.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/camera_params/4996.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/distance_to_image_plane/4996.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/ldr_color/4996.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/transforms/4996.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/camera_params/4997.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/distance_to_image_plane/4997.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/ldr_color/4997.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/transforms/4997.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/camera_params/4998.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/distance_to_image_plane/4998.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/ldr_color/4998.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/train/ottosuhrallee/transforms/4998.p"
+      }
+    ],
+    "val": [
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/camera_params/4950.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/distance_to_image_plane/4950.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/ldr_color/4950.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/transforms/4950.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/camera_params/4955.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/distance_to_image_plane/4955.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/ldr_color/4955.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/transforms/4955.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/camera_params/4960.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/distance_to_image_plane/4960.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/ldr_color/4960.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/transforms/4960.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/camera_params/4965.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/distance_to_image_plane/4965.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/ldr_color/4965.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/transforms/4965.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/camera_params/4970.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/distance_to_image_plane/4970.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/ldr_color/4970.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/transforms/4970.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/camera_params/4975.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/distance_to_image_plane/4975.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/ldr_color/4975.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/transforms/4975.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/camera_params/4980.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/distance_to_image_plane/4980.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/ldr_color/4980.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/transforms/4980.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/camera_params/4985.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/distance_to_image_plane/4985.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/ldr_color/4985.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/transforms/4985.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/camera_params/4990.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/distance_to_image_plane/4990.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/ldr_color/4990.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/transforms/4990.p"
+      },
+      {
+        "camera_params": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/camera_params/4995.json",
+        "depth": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/distance_to_image_plane/4995.exr",
+        "rgb": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/ldr_color/4995.png",
+        "transforms": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/transforms/4995.p"
+      }
+    ]
+  },
+  "led_root": "/mnt/drive/3333_raw/led_night",
+  "seed": 42,
+  "selection": {
+    "seed_semantics": "provenance only; no random sampling",
+    "train": "all numerically sorted frames from each train map",
+    "val": "position stride over numerically sorted frames, then truncated to val_n"
+  },
+  "train_maps": [
+    "china",
+    "herrenberg",
+    "ottosuhrallee"
+  ],
+  "train_split": "hb_train_all",
+  "val_maps": [
+    "hamburg"
+  ],
+  "val_n": 1000,
+  "val_split": "hb_val_stride5_n1000_seed42",
+  "val_stride": 5
+}

@@ -1,0 +1,354 @@
+{
+  "input_list": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/dataset/splits/led_hb/hb_val_stride5_n1000_seed42.txt",
+  "num_dataset_samples": 1000,
+  "num_stats_samples": 1000,
+  "pixel_stride": 16,
+  "onepage_raw_axis_max": 0.1,
+  "preview_samples": [
+    {
+      "dataset_index": 0,
+      "sample_name": "led_hb_val_hamburg_0",
+      "image_path": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/ldr_color/0.png",
+      "red_gain": 2.1500000953674316,
+      "blue_gain": 1.7000000476837158,
+      "light_scale": 1.0,
+      "raw_min": 0.0,
+      "raw_max": 1.0,
+      "raw_mean": 0.005625066813081503,
+      "raw_p99": 0.07078860260546198
+    },
+    {
+      "dataset_index": 200,
+      "sample_name": "led_hb_val_hamburg_1000",
+      "image_path": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/ldr_color/1000.png",
+      "red_gain": 2.1500000953674316,
+      "blue_gain": 1.7000000476837158,
+      "light_scale": 1.0,
+      "raw_min": 0.0,
+      "raw_max": 1.0,
+      "raw_mean": 0.003601677482947707,
+      "raw_p99": 0.05273969650268555
+    },
+    {
+      "dataset_index": 400,
+      "sample_name": "led_hb_val_hamburg_2000",
+      "image_path": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/ldr_color/2000.png",
+      "red_gain": 2.1500000953674316,
+      "blue_gain": 1.7000000476837158,
+      "light_scale": 1.0,
+      "raw_min": 0.0,
+      "raw_max": 1.0,
+      "raw_mean": 0.004199272952973843,
+      "raw_p99": 0.06161425068974495
+    },
+    {
+      "dataset_index": 599,
+      "sample_name": "led_hb_val_hamburg_2995",
+      "image_path": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/ldr_color/2995.png",
+      "red_gain": 2.1500000953674316,
+      "blue_gain": 1.7000000476837158,
+      "light_scale": 1.0,
+      "raw_min": 0.0,
+      "raw_max": 1.0,
+      "raw_mean": 0.005928421393036842,
+      "raw_p99": 0.0685003545880317
+    },
+    {
+      "dataset_index": 799,
+      "sample_name": "led_hb_val_hamburg_3995",
+      "image_path": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/ldr_color/3995.png",
+      "red_gain": 2.1500000953674316,
+      "blue_gain": 1.7000000476837158,
+      "light_scale": 1.0,
+      "raw_min": 0.0,
+      "raw_max": 1.0,
+      "raw_mean": 0.0032431730069220066,
+      "raw_p99": 0.057362850196659564
+    },
+    {
+      "dataset_index": 999,
+      "sample_name": "led_hb_val_hamburg_4995",
+      "image_path": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/ldr_color/4995.png",
+      "red_gain": 2.1500000953674316,
+      "blue_gain": 1.7000000476837158,
+      "light_scale": 1.0,
+      "raw_min": 0.0,
+      "raw_max": 1.0,
+      "raw_mean": 0.013004087843000889,
+      "raw_p99": 0.4651162624359131
+    }
+  ],
+  "geometry": {
+    "dataset_name": "led_hb",
+    "illumination": "HB",
+    "source_original_hw": [
+      1080,
+      1920
+    ],
+    "resized_fullres_hw": [
+      756,
+      1344
+    ],
+    "input_hw": [
+      378,
+      672
+    ],
+    "resize_scale_h": 0.7,
+    "resize_scale_w": 0.7,
+    "isotropic_resize": true,
+    "raw_storage_format": "synthetic_packed_bayer_4ch_halfres",
+    "led_geometry_mode": "resize_fullres_756x1344_then_halfres_378x672",
+    "rgb_input_space": "resize_area_756x1344_then_2x2_area",
+    "depth_target_space": "resize_nearest_756x1344_then_2x2_valid_mean",
+    "depth_label": "distance_to_image_plane",
+    "depth_unit": "meter",
+    "packed_hw": [
+      378,
+      672
+    ]
+  },
+  "unprocessing": {
+    "unprocessing_method": "raw_adapter_style",
+    "vkitti_unprocessing_preset": "not_applicable",
+    "vkitti_unprocessing_mix_weights": null,
+    "randomize": false,
+    "randomize_unprocessing": false,
+    "raw_adapter_backend": "analytic",
+    "raw_adapter_config_hash": "5fd8f0d2345f9683",
+    "preset_hash": "5fd8f0d2345f9683",
+    "selected_sub_preset_hash": "5fd8f0d2345f9683",
+    "raw_adapter_cfa_pattern": "RGGB",
+    "cfa_pattern": "RGGB",
+    "raw_adapter_packed_channel_order": "R_Gr_Gb_B",
+    "packed_channel_order": [
+      "R",
+      "Gr",
+      "Gb",
+      "B"
+    ],
+    "raw_adapter_original_order": [
+      "R",
+      "G1",
+      "G2",
+      "B"
+    ],
+    "raw_adapter_rgb_transfer": "srgb_piecewise",
+    "rgb_transfer": "srgb_piecewise",
+    "raw_adapter_inverse_tone": "global_0p15",
+    "inverse_tone": "global_0p15",
+    "raw_adapter_ccm": "identity",
+    "ccm": "identity",
+    "raw_adapter_red_gain_range": [
+      1.9,
+      2.4
+    ],
+    "raw_adapter_blue_gain_range": [
+      1.5,
+      1.9
+    ],
+    "fixed_red_gain": 2.15,
+    "fixed_blue_gain": 1.7,
+    "variant_policy": "normal",
+    "raw_adapter_variant_policy": "normal",
+    "raw_adapter_variant_weights": {
+      "normal": 1.0,
+      "dark": 0.0,
+      "over": 0.0
+    },
+    "fixed_light_scale": 1.0,
+    "raw_adapter_dark_light_scale_range": [
+      0.05,
+      0.4
+    ],
+    "raw_adapter_over_light_scale_range": [
+      1.5,
+      2.5
+    ],
+    "noise_model": "none",
+    "noise_realization_applied": false,
+    "shot_noise": 0.001,
+    "read_noise": 0.0005,
+    "noise_mean_mode": "zero",
+    "black_level": 0.0,
+    "white_level": 1.0,
+    "raw_adapter_random_seed_policy": "dataloader_generator",
+    "raw_adapter_external_raw_rgb_root": "not_applicable",
+    "raw_adapter_external_key": "not_applicable",
+    "raw_adapter_external_cache_space": "not_applicable"
+  },
+  "notes": [
+    "This uses the same LEDHBRaw formal RA0 online inverse-ISP path as N2/N7.",
+    "randomize_unprocessing=false fixes red/blue gains and light scale.",
+    "noise parameters are kept in config, but noise realization is disabled when randomize_unprocessing=false.",
+    "raw4 channel order is R,Gr,Gb,B packed from RGGB."
+  ],
+  "raw_all_quantiles": {
+    "q0": 0.0,
+    "q0.001": 0.0,
+    "q0.01": 0.0,
+    "q0.05": 0.0,
+    "q0.1": 0.0,
+    "q0.25": 0.0,
+    "q0.5": 0.0,
+    "q0.75": 0.0010710996575653553,
+    "q0.9": 0.005162401590496302,
+    "q0.95": 0.013914840295910835,
+    "q0.99": 0.07201099395751953,
+    "q0.999": 0.6940669546723582,
+    "q1": 1.0
+  },
+  "rgb_luma_quantiles": {
+    "q0": 0.0,
+    "q0.001": 0.0,
+    "q0.01": 0.0,
+    "q0.05": 0.0,
+    "q0.1": 0.0,
+    "q0.25": 0.0,
+    "q0.5": 0.00021614904107991606,
+    "q0.75": 0.017808157950639725,
+    "q0.9": 0.067001573741436,
+    "q0.95": 0.13595094531774513,
+    "q0.99": 0.30832239985466003,
+    "q0.999": 0.940810291886348,
+    "q1": 1.0
+  },
+  "channel_quantiles": {
+    "R": {
+      "q0": 0.0,
+      "q0.001": 0.0,
+      "q0.01": 0.0,
+      "q0.05": 0.0,
+      "q0.1": 0.0,
+      "q0.25": 0.0,
+      "q0.5": 0.0,
+      "q0.75": 0.0005978037952445447,
+      "q0.9": 0.0028327133040875196,
+      "q0.95": 0.009358825162053108,
+      "q0.99": 0.04811080917716026,
+      "q0.999": 0.4651162624359131,
+      "q1": 0.4651162624359131
+    },
+    "Gr": {
+      "q0": 0.0,
+      "q0.001": 0.0,
+      "q0.01": 0.0,
+      "q0.05": 0.0,
+      "q0.1": 0.0,
+      "q0.25": 0.0,
+      "q0.5": 0.0,
+      "q0.75": 0.001538705313578248,
+      "q0.9": 0.006588061805814505,
+      "q0.95": 0.01931314542889595,
+      "q0.99": 0.09004207700490952,
+      "q0.999": 0.980952262878418,
+      "q1": 1.0
+    },
+    "Gb": {
+      "q0": 0.0,
+      "q0.001": 0.0,
+      "q0.01": 0.0,
+      "q0.05": 0.0,
+      "q0.1": 0.0,
+      "q0.25": 0.0,
+      "q0.5": 0.0,
+      "q0.75": 0.0015993821434676647,
+      "q0.9": 0.006588061805814505,
+      "q0.95": 0.019180290400981903,
+      "q0.99": 0.08905676499009153,
+      "q0.999": 0.9786930994987559,
+      "q1": 1.0
+    },
+    "B": {
+      "q0": 0.0,
+      "q0.001": 0.0,
+      "q0.01": 0.0,
+      "q0.05": 0.0,
+      "q0.1": 0.0,
+      "q0.25": 0.0,
+      "q0.5": 0.0,
+      "q0.75": 0.0010541840456426144,
+      "q0.9": 0.004436388611793518,
+      "q0.95": 0.009970325976610184,
+      "q0.99": 0.043343041092157364,
+      "q0.999": 0.5804912436008538,
+      "q1": 0.5882352590560913
+    }
+  },
+  "per_sample_summary": {
+    "raw_mean": {
+      "q0": 0.001022515119984746,
+      "q0.001": 0.0013234735465375705,
+      "q0.01": 0.0016575842548627406,
+      "q0.05": 0.0019987383508123457,
+      "q0.1": 0.002355613117106259,
+      "q0.25": 0.003037245129235089,
+      "q0.5": 0.00415583373978734,
+      "q0.75": 0.006253005121834576,
+      "q0.9": 0.008793796040117742,
+      "q0.95": 0.010384649690240621,
+      "q0.99": 0.01592465320602059,
+      "q0.999": 0.021849900005385253,
+      "q1": 0.02291565015912056
+    },
+    "raw_p99": {
+      "q0": 0.026282671838998795,
+      "q0.001": 0.026432172687724232,
+      "q0.01": 0.02929740436375141,
+      "q0.05": 0.0336783230304718,
+      "q0.1": 0.037745846807956694,
+      "q0.25": 0.04488986078649759,
+      "q0.5": 0.05825914442539215,
+      "q0.75": 0.09873811714351177,
+      "q0.9": 0.17450858652591705,
+      "q0.95": 0.28177996575832365,
+      "q0.99": 0.49739574730396263,
+      "q0.999": 0.6416335597634296,
+      "q1": 0.7255816459655762
+    },
+    "raw_zero_frac_lt_1e_4": {
+      "q0": 0.2628968358039856,
+      "q0.001": 0.2728075420558453,
+      "q0.01": 0.3107192525267601,
+      "q0.05": 0.3588169664144516,
+      "q0.1": 0.3888392925262451,
+      "q0.25": 0.4510788768529892,
+      "q0.5": 0.5276537835597992,
+      "q0.75": 0.623139888048172,
+      "q0.9": 0.7849702239036561,
+      "q0.95": 0.8514756679534912,
+      "q0.99": 0.8623536592721939,
+      "q0.999": 0.8675620323419571,
+      "q1": 0.870039701461792
+    },
+    "raw_sat_frac_gt_0p999": {
+      "q0": 0.0,
+      "q0.001": 0.0,
+      "q0.01": 0.0,
+      "q0.05": 0.0,
+      "q0.1": 0.0,
+      "q0.25": 0.0,
+      "q0.5": 0.0,
+      "q0.75": 0.0004960317746736109,
+      "q0.9": 0.0012400794075801969,
+      "q0.95": 0.0024801588151603937,
+      "q0.99": 0.004464285913854837,
+      "q0.999": 0.005705605284310848,
+      "q1": 0.0069444444961845875
+    },
+    "rgb_luma_mean": {
+      "q0": 0.00887466873973608,
+      "q0.001": 0.010269043317995965,
+      "q0.01": 0.010971630020067095,
+      "q0.05": 0.012423527892678976,
+      "q0.1": 0.013932514376938343,
+      "q0.25": 0.017288751434534788,
+      "q0.5": 0.022653499618172646,
+      "q0.75": 0.03059677081182599,
+      "q0.9": 0.04065711721777916,
+      "q0.95": 0.04767295103520154,
+      "q0.99": 0.059519538432359693,
+      "q0.999": 0.07021675752103301,
+      "q1": 0.08201904594898224
+    }
+  }
+}

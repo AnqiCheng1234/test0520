@@ -1,0 +1,114 @@
+{
+  "alignment_protocol": "per_image_affine_disp_depth_anything_v2",
+  "dataset_geometry": {
+    "dataset_name": "led_hb",
+    "depth_label": "distance_to_image_plane",
+    "depth_target_space": "resize_nearest_756x1344_then_2x2_valid_mean",
+    "depth_unit": "meter",
+    "illumination": "HB",
+    "input_hw": [
+      378,
+      672
+    ],
+    "isotropic_resize": true,
+    "led_geometry_mode": "resize_fullres_756x1344_then_halfres_378x672",
+    "raw_storage_format": "not_applicable",
+    "resize_scale_h": 0.7,
+    "resize_scale_w": 0.7,
+    "resized_fullres_hw": [
+      756,
+      1344
+    ],
+    "rgb_input_space": "resize_area_756x1344_then_2x2_area",
+    "source_original_hw": [
+      1080,
+      1920
+    ]
+  },
+  "dataset_name": "led_hb",
+  "elapsed_seconds": 135.11493015289307,
+  "encoder": "vits",
+  "illumination": "HB",
+  "input_height": 378,
+  "input_width": 672,
+  "led_val_list": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/dataset/splits/led_hb/hb_val_stride5_n1000_seed42.txt",
+  "max_depth": 200.0,
+  "max_val_samples": null,
+  "metrics_by_sign": {
+    "+1": {
+      "abs_rel": 0.5552307371646683,
+      "d1": 0.37196094563520504,
+      "d2": 0.6679565243839813,
+      "d3": 0.7828230961976652,
+      "log10": 0.20039729286624208,
+      "rmse": 26.60673669241366,
+      "rmse_log": 0.6528841432091353,
+      "silog": 0.6494942016503371,
+      "silog_x100": 64.94942016503371,
+      "sq_rel": 26.16844410742639
+    },
+    "-1": {
+      "abs_rel": 0.5552307371646683,
+      "d1": 0.37196094563520504,
+      "d2": 0.6679565243839813,
+      "d3": 0.7828230961976652,
+      "log10": 0.20039729286624208,
+      "rmse": 26.60673669241366,
+      "rmse_log": 0.6528841432091353,
+      "silog": 0.6494942016503371,
+      "silog_x100": 64.94942016503371,
+      "sq_rel": 26.16844410742639
+    }
+  },
+  "min_depth": 1.0,
+  "pretrained_from": "/mnt/drive/9999_backup_from_home_0514/333_cvpr/da_ours/checkpoints/depth_anything_v2_vits.pth",
+  "processed_samples": 1000,
+  "recommended_d0_sign": 1,
+  "region_by_sign": {
+    "+1": {
+      "boundary_abs_rel": 0.8218315029125612,
+      "d0_high_error_abs_rel": 0.515615750349903,
+      "dark_q20_abs_rel": 0.5326211263914625,
+      "far100_abs_rel": 0.6936408546663451,
+      "far50_abs_rel": 0.7607898870155346,
+      "mid_20_50_abs_rel": 0.8088352447811219,
+      "near_1_20_abs_rel": 0.47708467693475554,
+      "saturated_abs_rel": 0.40502618753224456
+    },
+    "-1": {
+      "boundary_abs_rel": 0.8218315029125612,
+      "d0_high_error_abs_rel": 0.29492045051156013,
+      "dark_q20_abs_rel": 0.5326211263914625,
+      "far100_abs_rel": 0.6936408546663451,
+      "far50_abs_rel": 0.7607898870155346,
+      "mid_20_50_abs_rel": 0.8088352447811219,
+      "near_1_20_abs_rel": 0.47708467693475554,
+      "saturated_abs_rel": 0.40502618753224456
+    }
+  },
+  "selected": {
+    "overall": {
+      "abs_rel": 0.5552307371646683,
+      "d1": 0.37196094563520504,
+      "d2": 0.6679565243839813,
+      "d3": 0.7828230961976652,
+      "log10": 0.20039729286624208,
+      "rmse": 26.60673669241366,
+      "rmse_log": 0.6528841432091353,
+      "silog": 0.6494942016503371,
+      "silog_x100": 64.94942016503371,
+      "sq_rel": 26.16844410742639
+    },
+    "region": {
+      "boundary_abs_rel": 0.8218315029125612,
+      "d0_high_error_abs_rel": 0.515615750349903,
+      "dark_q20_abs_rel": 0.5326211263914625,
+      "far100_abs_rel": 0.6936408546663451,
+      "far50_abs_rel": 0.7607898870155346,
+      "mid_20_50_abs_rel": 0.8088352447811219,
+      "near_1_20_abs_rel": 0.47708467693475554,
+      "saturated_abs_rel": 0.40502618753224456
+    },
+    "sign": 1
+  }
+}
