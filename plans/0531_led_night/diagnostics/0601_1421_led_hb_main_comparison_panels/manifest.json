@@ -1,0 +1,477 @@
+{
+  "checkpoints": {
+    "c2": "/mnt/drive/3333_raw/0000_exp_ckpt/0531_2341_led_hb_c2_d0only_residual_vits_half378x672_trainall_valstride5n1000_seed42_bs8_acc1_e20/best_abs_rel.pth",
+    "n2": "/mnt/drive/3333_raw/0000_exp_ckpt/0601_0751_led_hb_n2_x3_lp0p8_q0p3_lfl0p0_rfttrue_vits_half378x672_trainall_valstride5n1000_seed42_bs8_acc1_e10/best_abs_rel.pth",
+    "n3": "/mnt/drive/3333_raw/0000_exp_ckpt/0601_0550_led_hb_n3_rgb_lp0p5_q0p3_lfl0p0_rftnot_applicable_vits_half378x672_trainall_valstride5n1000_seed42_bs8_acc1_e10/best_abs_rel.pth",
+    "n5": "/mnt/drive/3333_raw/0000_exp_ckpt/0601_0355_led_hb_n5_d1_lp0p5_q0p3_lfl0p0_rftnot_applicable_vits_half378x672_trainall_valstride5n1000_seed42_bs8_acc1_e10/best_abs_rel.pth",
+    "n7": "/mnt/drive/3333_raw/0000_exp_ckpt/0601_1005_led_hb_n7_x3_lp0p5_q0p3_lfl0p0_rfttrue_vits_half378x672_trainall_valstride5n1000_seed42_bs8_acc1_e10/best_abs_rel.pth"
+  },
+  "improvement_definition": "improvement = C2_absrel_error - method_absrel_error; green means method is better than C2",
+  "max_depth": 200.0,
+  "output_dir": "/home/caq/6666_raw/dav2_raw_0522/plans/0531_led_night/diagnostics/0601_1421_led_hb_main_comparison_panels",
+  "panel_layout": [
+    "RGB input",
+    "RGB distribution",
+    "RAW-like raw4",
+    "RAW-like distribution",
+    "x3 feature",
+    "GT depth",
+    "D0 depth/error",
+    "C2/D1 depth/error",
+    "N5/N3/N2/N7 depth/error/improvement-vs-C2",
+    "N7 gate*delta and gate"
+  ],
+  "raw_context_method": "n7",
+  "raw_semantics": "RAW panel is inverse-ISP synthetic RAW-like packed Bayer raw4 derived from LED LDR RGB, not real sensor RAW.",
+  "records": [
+    {
+      "dataset_index": 0,
+      "depth_path": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/distance_to_image_plane/0.exr",
+      "distribution_meta": {
+        "raw4": {
+          "bins": 128,
+          "channels": [
+            "R",
+            "Gr",
+            "Gb",
+            "B"
+          ],
+          "normalization": "per_channel_max",
+          "stats": {
+            "B": {
+              "max": 0.5882352590560913,
+              "min": 0.0,
+              "p50": 0.00023104499268811196,
+              "p99": 0.04483024775981903
+            },
+            "Gb": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.0005141707952134311,
+              "p99": 0.08775953948497772
+            },
+            "Gr": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.0005213114782236516,
+              "p99": 0.088434009253979
+            },
+            "R": {
+              "max": 0.4651162624359131,
+              "min": 0.0,
+              "p50": 0.00020261490135453641,
+              "p99": 0.04231815394014126
+            }
+          },
+          "x_range": [
+            0.0,
+            1.0
+          ]
+        },
+        "rgb": {
+          "bins": 128,
+          "channels": [
+            "R",
+            "G",
+            "B"
+          ],
+          "normalization": "per_channel_max",
+          "stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.005274510011076927,
+              "p99": 0.28192845880985273
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.0062745101749897,
+              "p99": 0.30274216234684004
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.005352941807359457,
+              "p99": 0.3078431487083435
+            }
+          },
+          "x_range": [
+            0.0,
+            1.0
+          ]
+        }
+      },
+      "image_path": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/ldr_color/0.png",
+      "metrics": {
+        "c2": {
+          "abs_rel": 0.343355412912253,
+          "d1": 0.6293910912637637
+        },
+        "d0": {
+          "abs_rel": 0.6088777774527266,
+          "d1": 0.3734726087841966
+        },
+        "n2": {
+          "abs_rel": 0.27486412065679056,
+          "d1": 0.6516526169448484
+        },
+        "n3": {
+          "abs_rel": 0.27703495196282346,
+          "d1": 0.6529931163149768
+        },
+        "n5": {
+          "abs_rel": 0.29002215236977213,
+          "d1": 0.6440939689075833
+        },
+        "n7": {
+          "abs_rel": 0.2552645148987707,
+          "d1": 0.6702338772526051
+        }
+      },
+      "order": 1,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0531_led_night/diagnostics/0601_1421_led_hb_main_comparison_panels/panel_01_validx0000_led_hb_val_hamburg_0.png",
+      "sample_name": "led_hb_val_hamburg_0"
+    },
+    {
+      "dataset_index": 250,
+      "depth_path": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/distance_to_image_plane/1250.exr",
+      "distribution_meta": {
+        "raw4": {
+          "bins": 128,
+          "channels": [
+            "R",
+            "Gr",
+            "Gb",
+            "B"
+          ],
+          "normalization": "per_channel_max",
+          "stats": {
+            "B": {
+              "max": 0.5882352590560913,
+              "min": 0.0,
+              "p50": 0.0,
+              "p99": 0.03213212266564369
+            },
+            "Gb": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.0,
+              "p99": 0.08490496762096895
+            },
+            "Gr": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.0,
+              "p99": 0.08439762145280838
+            },
+            "R": {
+              "max": 0.4651162624359131,
+              "min": 0.0,
+              "p50": 0.0,
+              "p99": 0.0537798956036572
+            }
+          },
+          "x_range": [
+            0.0,
+            1.0
+          ]
+        },
+        "rgb": {
+          "bins": 128,
+          "channels": [
+            "R",
+            "G",
+            "B"
+          ],
+          "normalization": "per_channel_max",
+          "stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.0,
+              "p99": 0.24015540108084685
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.0,
+              "p99": 0.29776325225830086
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.0,
+              "p99": 0.34996815770864687
+            }
+          },
+          "x_range": [
+            0.0,
+            1.0
+          ]
+        }
+      },
+      "image_path": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/ldr_color/1250.png",
+      "metrics": {
+        "c2": {
+          "abs_rel": 0.5492274182835275,
+          "d1": 0.2713377969209774
+        },
+        "d0": {
+          "abs_rel": 0.5676260092939382,
+          "d1": 0.45877423906123643
+        },
+        "n2": {
+          "abs_rel": 0.5389550229535099,
+          "d1": 0.3000116296456281
+        },
+        "n3": {
+          "abs_rel": 0.5527014396888504,
+          "d1": 0.2858856957162974
+        },
+        "n5": {
+          "abs_rel": 0.5173589887127852,
+          "d1": 0.31000849246188905
+        },
+        "n7": {
+          "abs_rel": 0.592659412660541,
+          "d1": 0.3010133483581768
+        }
+      },
+      "order": 2,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0531_led_night/diagnostics/0601_1421_led_hb_main_comparison_panels/panel_02_validx0250_led_hb_val_hamburg_1250.png",
+      "sample_name": "led_hb_val_hamburg_1250"
+    },
+    {
+      "dataset_index": 500,
+      "depth_path": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/distance_to_image_plane/2500.exr",
+      "distribution_meta": {
+        "raw4": {
+          "bins": 128,
+          "channels": [
+            "R",
+            "Gr",
+            "Gb",
+            "B"
+          ],
+          "normalization": "per_channel_max",
+          "stats": {
+            "B": {
+              "max": 0.5882352590560913,
+              "min": 0.0,
+              "p50": 0.0004200615512672812,
+              "p99": 0.14843047782779045
+            },
+            "Gb": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.0007141046808101237,
+              "p99": 0.276882192492486
+            },
+            "Gr": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.0007141046808101237,
+              "p99": 0.2778798192739489
+            },
+            "R": {
+              "max": 0.4651162624359131,
+              "min": 0.0,
+              "p50": 0.0004981858655810356,
+              "p99": 0.3649041652679445
+            }
+          },
+          "x_range": [
+            0.0,
+            1.0
+          ]
+        },
+        "rgb": {
+          "bins": 128,
+          "channels": [
+            "R",
+            "G",
+            "B"
+          ],
+          "normalization": "per_channel_max",
+          "stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.007843137718737125,
+              "p99": 0.5039563804864885
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.00875000050291419,
+              "p99": 0.5249853074550646
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.011911764740943909,
+              "p99": 0.8665755271911623
+            }
+          },
+          "x_range": [
+            0.0,
+            1.0
+          ]
+        }
+      },
+      "image_path": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/ldr_color/2500.png",
+      "metrics": {
+        "c2": {
+          "abs_rel": 0.3629593528800463,
+          "d1": 0.590810935318083
+        },
+        "d0": {
+          "abs_rel": 0.8469184512411317,
+          "d1": 0.39283737784954553
+        },
+        "n2": {
+          "abs_rel": 0.2921874135660383,
+          "d1": 0.6160723283569197
+        },
+        "n3": {
+          "abs_rel": 0.29321100814620416,
+          "d1": 0.6187329489422045
+        },
+        "n5": {
+          "abs_rel": 0.3048657688899226,
+          "d1": 0.6045893945828444
+        },
+        "n7": {
+          "abs_rel": 0.2608662037209901,
+          "d1": 0.6367281129209884
+        }
+      },
+      "order": 3,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0531_led_night/diagnostics/0601_1421_led_hb_main_comparison_panels/panel_03_validx0500_led_hb_val_hamburg_2500.png",
+      "sample_name": "led_hb_val_hamburg_2500"
+    },
+    {
+      "dataset_index": 750,
+      "depth_path": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/distance_to_image_plane/3750.exr",
+      "distribution_meta": {
+        "raw4": {
+          "bins": 128,
+          "channels": [
+            "R",
+            "Gr",
+            "Gb",
+            "B"
+          ],
+          "normalization": "per_channel_max",
+          "stats": {
+            "B": {
+              "max": 0.5882352590560913,
+              "min": 0.0,
+              "p50": 0.0005460624233819544,
+              "p99": 0.5299153804779065
+            },
+            "Gb": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.0010710996575653553,
+              "p99": 0.3277712136507061
+            },
+            "Gr": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.0010710996575653553,
+              "p99": 0.3296983540058136
+            },
+            "R": {
+              "max": 0.4651162624359131,
+              "min": 0.0,
+              "p50": 0.0004815822176169604,
+              "p99": 0.08137946873903311
+            }
+          },
+          "x_range": [
+            0.0,
+            1.0
+          ]
+        },
+        "rgb": {
+          "bins": 128,
+          "channels": [
+            "R",
+            "G",
+            "B"
+          ],
+          "normalization": "per_channel_max",
+          "stats": {
+            "B": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.010769607964903116,
+              "p99": 0.9396073102951099
+            },
+            "G": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.011764707043766975,
+              "p99": 0.5745431959629062
+            },
+            "R": {
+              "max": 1.0,
+              "min": 0.0,
+              "p50": 0.01139215799048543,
+              "p99": 0.43036817908287067
+            }
+          },
+          "x_range": [
+            0.0,
+            1.0
+          ]
+        }
+      },
+      "image_path": "/mnt/drive/3333_raw/led_night/extracted/HB/val/hamburg/ldr_color/3750.png",
+      "metrics": {
+        "c2": {
+          "abs_rel": 0.3105195734698258,
+          "d1": 0.541016977089171
+        },
+        "d0": {
+          "abs_rel": 0.4064584325789976,
+          "d1": 0.3664699878009311
+        },
+        "n2": {
+          "abs_rel": 0.2995847305127037,
+          "d1": 0.5519696719960442
+        },
+        "n3": {
+          "abs_rel": 0.30347028650152846,
+          "d1": 0.5474534366243613
+        },
+        "n5": {
+          "abs_rel": 0.2992069739239341,
+          "d1": 0.5534119004450305
+        },
+        "n7": {
+          "abs_rel": 0.3017977133618398,
+          "d1": 0.5548294049777485
+        }
+      },
+      "order": 4,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0522/plans/0531_led_night/diagnostics/0601_1421_led_hb_main_comparison_panels/panel_04_validx0750_led_hb_val_hamburg_3750.png",
+      "sample_name": "led_hb_val_hamburg_3750"
+    }
+  ],
+  "run_dirs": {
+    "c2": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0531_2341_led_hb_c2_d0only_residual_vits_half378x672_trainall_valstride5n1000_seed42_bs8_acc1_e20",
+    "n2": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0601_0751_led_hb_n2_x3_lp0p8_q0p3_lfl0p0_rfttrue_vits_half378x672_trainall_valstride5n1000_seed42_bs8_acc1_e10",
+    "n3": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0601_0550_led_hb_n3_rgb_lp0p5_q0p3_lfl0p0_rftnot_applicable_vits_half378x672_trainall_valstride5n1000_seed42_bs8_acc1_e10",
+    "n5": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0601_0355_led_hb_n5_d1_lp0p5_q0p3_lfl0p0_rftnot_applicable_vits_half378x672_trainall_valstride5n1000_seed42_bs8_acc1_e10",
+    "n7": "/home/caq/6666_raw/dav2_raw_0522/finetune_stf/exp/0601_1005_led_hb_n7_x3_lp0p5_q0p3_lfl0p0_rfttrue_vits_half378x672_trainall_valstride5n1000_seed42_bs8_acc1_e10"
+  },
+  "sample_indices": [
+    0,
+    250,
+    500,
+    750
+  ]
+}
