@@ -20,16 +20,13 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from anqi_eval.eval_rel_depth_strict import affine_align_disp, compute_metrics
 from depth_anything_v2.dpt import DepthAnythingV2
-from foundation.tools._viz_distribution import DEFAULT_RAW_COLORS, DEFAULT_RGB_COLORS, draw_distribution_tile
 from foundation.tools.eval_led_hb_formal import build_raw_dataset, load_json
 from foundation.tools.make_vkitti_raw_residual_qual_panels import (
     choose_depth_range,
     clip_metric_depth_for_eval,
     colorize_depth,
     colorize_error,
-    colorize_gate,
     colorize_improvement,
-    colorize_signed,
     draw_tile,
     image_from_array,
     load_font,
@@ -93,7 +90,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--tile-width", type=int, default=360)
     parser.add_argument("--tile-height", type=int, default=120)
     parser.add_argument("--header-height", type=int, default=30)
-    parser.add_argument("--hist-bins", type=int, default=128)
     parser.add_argument("--raw-context-method", default="n7", choices=["n2", "n7"])
     parser.add_argument("--device", default="cuda", choices=["cuda", "cpu"])
     return parser.parse_args()
@@ -212,7 +208,8 @@ def make_panel(
     header_h = int(args.header_height)
     font = load_font(12)
     small_font = load_font(10)
-    canvas = Image.new("RGB", (tile_w * 4, (tile_h + header_h) * 6), (0, 0, 0))
+    cols = 4
+    canvas = Image.new("RGB", (tile_w * cols, (tile_h + header_h) * 6), (0, 0, 0))
 
     valid = record["valid"]
     depth_range = f"{record['depth_vmin']:.1f}..{record['depth_vmax']:.1f}m"
@@ -220,30 +217,6 @@ def make_panel(
     improve_range = "green: better than C2"
     raw_title = f"RAW-like raw4 ({raw_context.upper()} context)"
     x3_title = f"x3 feature ({raw_context.upper()} context)"
-
-    rgb_hist, rgb_meta = draw_distribution_tile(
-        record["rgb"],
-        channels=("R", "G", "B"),
-        colors=DEFAULT_RGB_COLORS,
-        channel_axis=2,
-        bins=int(args.hist_bins),
-        width=tile_w,
-        height=tile_h,
-        font=font,
-        small_font=small_font,
-    )
-    raw_hist, raw_meta = draw_distribution_tile(
-        sample["raw"].detach().cpu().numpy().astype(np.float32),
-        channels=("R", "Gr", "Gb", "B"),
-        colors=DEFAULT_RAW_COLORS,
-        channel_axis=0,
-        bins=int(args.hist_bins),
-        width=tile_w,
-        height=tile_h,
-        font=font,
-        small_font=small_font,
-    )
-    record["distribution_meta"] = {"rgb": rgb_meta, "raw4": raw_meta}
 
     def depth_tile(name: str) -> Image.Image:
         return image_from_array(
@@ -266,13 +239,20 @@ def make_panel(
             tile_height=tile_h,
         )
 
+    def improve_vs_n3_tile(name: str) -> Image.Image:
+        return image_from_array(
+            colorize_improvement(record["n3"]["error"] - record[name]["error"], valid, vlim=float(args.error_max_abs_rel)),
+            tile_width=tile_w,
+            tile_height=tile_h,
+        )
+
     def metric_subtitle(name: str) -> str:
         metrics = record[name]["metrics"]
-        return f"absrel={metrics['abs_rel']:.3f} d1={metrics['d1']:.3f}"
-
-    residual_values = record["n7"]["gate_delta"][valid]
-    residual_vlim = float(np.percentile(np.abs(residual_values), 99.0)) if residual_values.size else 1.0
-    residual_vlim = max(residual_vlim, 1e-6)
+        subtitle = f"absrel={metrics['abs_rel']:.3f} d1={metrics['d1']:.3f}"
+        if name in ("n5", "n3", "n2", "n7"):
+            delta = float(metrics["abs_rel"]) - float(record["c2"]["metrics"]["abs_rel"])
+            subtitle = f"{subtitle} vsC2={delta:+.3f}"
+        return subtitle
 
     tiles = [
         (
@@ -280,48 +260,30 @@ def make_panel(
             str(sample["sample_name"]),
             image_from_array(np.clip(record["rgb"] * 255.0, 0.0, 255.0).round().astype(np.uint8), tile_width=tile_w, tile_height=tile_h),
         ),
-        ("RGB distribution", "min/p50/p99/max", rgb_hist),
         (raw_title, "synthetic packed Bayer [R,Gr,Gb,B]", image_from_array(np.clip(raw_visual(sample["raw"]) * 255.0, 0.0, 255.0).round().astype(np.uint8), tile_width=tile_w, tile_height=tile_h)),
-        ("RAW-like distribution", "actual raw4 tensor values", raw_hist),
         (x3_title, "normalized 2..98 percentile", image_from_array(np.clip(record[raw_context]["x3_visual"] * 255.0, 0.0, 255.0).round().astype(np.uint8), tile_width=tile_w, tile_height=tile_h)),
         ("GT depth", depth_range, image_from_array(colorize_depth(record["depth"], valid, vmin=record["depth_vmin"], vmax=record["depth_vmax"]), tile_width=tile_w, tile_height=tile_h)),
         ("D0 depth", metric_subtitle("d0"), depth_tile("d0")),
         ("D0 error", error_range, error_tile("d0")),
         ("C2 / D1 depth", metric_subtitle("c2"), depth_tile("c2")),
         ("C2 / D1 error", error_range, error_tile("c2")),
-        ("N5 depth", metric_subtitle("n5"), depth_tile("n5")),
-        ("N5 error", error_range, error_tile("n5")),
-        ("N5 improve vs C2", improve_range, improve_tile("n5")),
-        ("N3 depth", metric_subtitle("n3"), depth_tile("n3")),
-        ("N3 error", error_range, error_tile("n3")),
-        ("N3 improve vs C2", improve_range, improve_tile("n3")),
-        ("N2 depth", metric_subtitle("n2"), depth_tile("n2")),
-        ("N2 error", error_range, error_tile("n2")),
-        ("N2 improve vs C2", improve_range, improve_tile("n2")),
-        ("N7 depth", metric_subtitle("n7"), depth_tile("n7")),
-        ("N7 error", error_range, error_tile("n7")),
-        ("N7 improve vs C2", improve_range, improve_tile("n7")),
-        (
-            "N7 gate*delta",
-            f"+/-{residual_vlim:.3f}",
-            image_from_array(
-                colorize_signed(record["n7"]["gate_delta"], valid, vlim=residual_vlim, cmap_name="coolwarm"),
-                tile_width=tile_w,
-                tile_height=tile_h,
-            ),
-        ),
-        (
-            "N7 gate",
-            "0..1",
-            image_from_array(colorize_gate(record["n7"]["gate"], valid), tile_width=tile_w, tile_height=tile_h),
-        ),
     ]
+    for name in ("n5", "n3", "n2", "n7"):
+        n3_subtitle = "reference" if name == "n3" else "green: better than N3"
+        tiles.extend(
+            [
+                (method_label(name), metric_subtitle(name), depth_tile(name)),
+                (f"{name.upper()} error", error_range, error_tile(name)),
+                (f"{name.upper()} improve vs C2", improve_range, improve_tile(name)),
+                (f"{name.upper()} improve vs N3", n3_subtitle, improve_vs_n3_tile(name)),
+            ]
+        )
 
     for i, (title, subtitle, tile) in enumerate(tiles):
         draw_tile(
             canvas,
-            col=i % 4,
-            row=i // 4,
+            col=i % cols,
+            row=i // cols,
             tile=tile,
             title=title,
             subtitle=subtitle,
@@ -481,7 +443,6 @@ def main() -> None:
                         name: {"abs_rel": float(record[name]["metrics"]["abs_rel"]), "d1": float(record[name]["metrics"]["d1"])}
                         for name in ("d0", "c2", "n5", "n3", "n2", "n7")
                     },
-                    "distribution_meta": record.get("distribution_meta", {}),
                 }
             )
             print(f"wrote {panel_path}", flush=True)
@@ -494,18 +455,12 @@ def main() -> None:
         "run_dirs": {key: str(value) for key, value in run_dirs.items()},
         "checkpoints": {key: str(value) for key, value in checkpoints.items()},
         "improvement_definition": "improvement = C2_absrel_error - method_absrel_error; green means method is better than C2",
+        "n3_comparison_definition": "improvement_vs_n3 = N3_absrel_error - method_absrel_error; green means method is better than N3 RGB control",
         "raw_semantics": "RAW panel is inverse-ISP synthetic RAW-like packed Bayer raw4 derived from LED LDR RGB, not real sensor RAW.",
         "panel_layout": [
-            "RGB input",
-            "RGB distribution",
-            "RAW-like raw4",
-            "RAW-like distribution",
-            "x3 feature",
-            "GT depth",
-            "D0 depth/error",
-            "C2/D1 depth/error",
-            "N5/N3/N2/N7 depth/error/improvement-vs-C2",
-            "N7 gate*delta and gate",
+            "Row 1: RGB / RAW-like raw4 / x3 / GT",
+            "Row 2: D0 depth / D0 error / C2-D1 depth / C2-D1 error",
+            "Rows 3-6: method depth / method error / method improve-vs-C2 / method improve-vs-N3",
         ],
         "records": manifest_records,
     }
