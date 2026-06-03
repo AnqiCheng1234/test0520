@@ -17,7 +17,7 @@ STF_LUT_TO_0_1_DECOMPAND = "stf_lut_to_0_1"
 STF_STF_STORAGE_FORMATS = {
     "legacy_bggR_decomp16": RawStorageSpec(
         name="legacy_bggR_decomp16",
-        storage_channel_order=("B", "G", "G", "R"),
+        storage_channel_order=("B", "Gr", "Gb", "R"),
         model_channel_order=("R", "Gr", "Gb", "B"),
         channel_reorder=(3, 1, 2, 0),
         decompand=STF_LUT_TO_0_1_DECOMPAND,

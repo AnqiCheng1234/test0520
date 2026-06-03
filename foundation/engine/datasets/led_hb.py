@@ -79,6 +79,19 @@ def _check_float_equal(name: str, actual: Any, expected: float, *, atol: float =
         raise ValueError(f"{name} must be {expected!r}, got {actual!r}")
 
 
+def _float_pair(value: Any, *, name: str) -> tuple[float, float]:
+    if isinstance(value, str):
+        parts = [item.strip() for item in value.replace(",", " ").split() if item.strip()]
+    else:
+        parts = list(value)
+    if len(parts) != 2:
+        raise ValueError(f"{name} must contain two values, got {value!r}")
+    low, high = float(parts[0]), float(parts[1])
+    if not (math.isfinite(low) and math.isfinite(high) and low <= high):
+        raise ValueError(f"{name} must satisfy finite low <= high, got {(low, high)}")
+    return low, high
+
+
 def _check_not_applicable(kwargs: Mapping[str, Any], keys: tuple[str, ...]) -> None:
     for key in keys:
         if key in kwargs and str(kwargs[key]) != NOT_APPLICABLE:
@@ -172,6 +185,8 @@ def validate_led_hb_raw_semantics(
     randomize_unprocessing: bool = False,
     raw_adapter_fixed_light_scale: float = 1.0,
     raw_adapter_variant_policy: str = "normal",
+    raw_adapter_dark_light_scale_range: Any = (0.05, 0.4),
+    raw_adapter_over_light_scale_range: Any = (1.5, 2.5),
     **_kwargs: Any,
 ) -> None:
     _validate_common_led_semantics(
@@ -192,8 +207,26 @@ def validate_led_hb_raw_semantics(
     _check_equal("raw_adapter_backend", raw_adapter_backend, "analytic")
     if bool(randomize_unprocessing):
         raise ValueError("randomize_unprocessing must be false for LED-HB RA0 RAW")
-    _check_float_equal("raw_adapter_fixed_light_scale", raw_adapter_fixed_light_scale, 1.0)
-    _check_equal("raw_adapter_variant_policy", raw_adapter_variant_policy, "normal")
+    variant = str(raw_adapter_variant_policy)
+    fixed_light_scale = float(raw_adapter_fixed_light_scale)
+    if variant == "normal":
+        _check_float_equal("raw_adapter_fixed_light_scale", fixed_light_scale, 1.0)
+    elif variant == "dark":
+        low, high = _float_pair(raw_adapter_dark_light_scale_range, name="raw_adapter_dark_light_scale_range")
+        if not (low <= fixed_light_scale <= high):
+            raise ValueError(
+                "raw_adapter_fixed_light_scale must fall inside raw_adapter_dark_light_scale_range "
+                f"when raw_adapter_variant_policy='dark', got {fixed_light_scale} not in {(low, high)}"
+            )
+    elif variant == "over":
+        low, high = _float_pair(raw_adapter_over_light_scale_range, name="raw_adapter_over_light_scale_range")
+        if not (low <= fixed_light_scale <= high):
+            raise ValueError(
+                "raw_adapter_fixed_light_scale must fall inside raw_adapter_over_light_scale_range "
+                f"when raw_adapter_variant_policy='over', got {fixed_light_scale} not in {(low, high)}"
+            )
+    else:
+        raise ValueError("raw_adapter_variant_policy must be one of 'normal', 'dark', or 'over' for LED-HB RA0 RAW")
 
 
 def _numpy_to_torch(array: np.ndarray) -> torch.Tensor:
@@ -541,6 +574,8 @@ class LEDHBRaw(LEDHBHalfresRGBDepth):
             randomize_unprocessing=self.resolved_unprocessing_config["randomize_unprocessing"],
             raw_adapter_fixed_light_scale=self.resolved_unprocessing_config["raw_adapter_fixed_light_scale"],
             raw_adapter_variant_policy=self.resolved_unprocessing_config["raw_adapter_variant_policy"],
+            raw_adapter_dark_light_scale_range=self.resolved_unprocessing_config["raw_adapter_dark_light_scale_range"],
+            raw_adapter_over_light_scale_range=self.resolved_unprocessing_config["raw_adapter_over_light_scale_range"],
         )
         split = "train" if self.mode == "train" else "led_hb_val"
         self.unprocessing, self.raw_adapter_unprocessing_summary = build_unprocessing_transform_from_resolved_config(

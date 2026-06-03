@@ -1,8 +1,8 @@
 # LED-HB 结果汇总
 
-日期：2026-06-01
+日期：2026-06-02
 
-本文用于持续记录 `plans/0531_led_night/led_night_main_experiment_plan.md` 和 `plans/0531_led_night/led_hb_code_and_formal_experiment_execution_plan.md` 对应的 LED-HB 实验参数与结果。当前版本已纳入 C2 D0-only residual run，以及 2026-06-01 完成的 N5 / N3 / N2 / N7 四条 N-series run；frozen DAv2-S `D0` standalone eval 只作为 fp32 sanity/reference 记录。
+本文用于持续记录 `plans/0531_led_night/led_night_main_experiment_plan.md` 和 `plans/0531_led_night/led_hb_code_and_formal_experiment_execution_plan.md` 对应的 LED-HB 实验参数与结果。当前版本已纳入 C2 D0-only residual run、2026-06-01 完成的 N5 / N3 / N2 / N7 四条 N-series run，以及 0601_2320 stfcalibv1 calibrated over-only N2 / N7 rerun；frozen DAv2-S `D0` standalone eval 只作为 fp32 sanity/reference 记录。
 
 写作规约：主指标表只放 formal eval、run 内 best metrics 或同口径 eval json/log 中的数字；smoke、probe、诊断 sample loss 不混入主指标表。`abs_rel` / `rmse` / `silog_x100` 越低越好，`d1/d2/d3` 越高越好。
 
@@ -38,6 +38,14 @@
   - label：N7 x3 stop-gradient D1 delta control，`lambda_lp=0.5, q_good=0.3`。
   - path：`finetune_stf/exp/0601_1005_led_hb_n7_x3_lp0p5_q0p3_lfl0p0_rfttrue_vits_half378x672_trainall_valstride5n1000_seed42_bs8_acc1_e10`
   - LED-HB overall-best checkpoint：epoch 4。
+- `0601_2320_led_hb_n2_x3_stfcalibv1_lp0p8_q0p3_lfl0p0_rfttrue_vits_half378x672_trainall_valstride5n1000_seed42_bs8_acc1_e10`
+  - label：N2 x3 stfcalibv1 calibrated over-only rerun，`lambda_lp=0.8, q_good=0.3`。
+  - path：`finetune_stf/exp/0601_2320_led_hb_n2_x3_stfcalibv1_lp0p8_q0p3_lfl0p0_rfttrue_vits_half378x672_trainall_valstride5n1000_seed42_bs8_acc1_e10`
+  - LED-HB overall-best checkpoint：epoch 8；target-region best checkpoint：epoch 4。
+- `0601_2320_led_hb_n7_x3_stfcalibv1_lp0p5_q0p3_lfl0p0_rfttrue_vits_half378x672_trainall_valstride5n1000_seed42_bs8_acc1_e10`
+  - label：N7 x3 stfcalibv1 stop-gradient D1 delta rerun，`lambda_lp=0.5, q_good=0.3`。
+  - path：`finetune_stf/exp/0601_2320_led_hb_n7_x3_stfcalibv1_lp0p5_q0p3_lfl0p0_rfttrue_vits_half378x672_trainall_valstride5n1000_seed42_bs8_acc1_e10`
+  - LED-HB overall-best checkpoint：epoch 3。
 
 数据源优先级：
 
@@ -93,8 +101,10 @@
 | `0601_0550...n3_rgb...` | N3 RGB incremental control | `input_domain=rgb`；`model_input_tensor=image`；`front_end=c2_frozen_rgb_incremental`；`raw_storage_format=not_applicable`；`incremental_feature_source=rgb` | frozen DAv2-S + frozen C2；RGB incremental branch trainable | `delta_condition=feature_only`；`gate_condition=feature_d1`；`lambda_lp=0.5`；`q_good=0.3`；`lambda_lowfreq_loss=0.0` | 10 | `8/1/8` | `1e-4 / 1e-4` | 279,490 | total params `27,946,437`；best e8 |
 | `0601_0751...n2_x3...` | N2 x3 incremental | `input_domain=raw4`；`model_input_tensor=raw`；`front_end=c2_frozen_raw_ram_incremental`；`raw_storage_format=synthetic_packed_bayer_4ch_halfres`；`incremental_feature_source=x3` | frozen DAv2-S + frozen C2；RAW/RAM x3 branch trainable | `delta_condition=feature_only`；`gate_condition=feature_d1`；`lambda_lp=0.8`；`q_good=0.3`；`lambda_lowfreq_loss=0.0`；`raw_adapter_fixed_light_scale=1.0`；normal-only unprocessing | 10 | `8/1/8` | `1e-4 / 1e-4` | 420,393 | total params `28,087,340`；best e6 |
 | `0601_1005...n7_x3...` | N7 x3 stop-gradient D1 delta | `input_domain=raw4`；`model_input_tensor=raw`；`front_end=c2_frozen_raw_ram_incremental`；`raw_storage_format=synthetic_packed_bayer_4ch_halfres`；`incremental_feature_source=x3` | frozen DAv2-S + frozen C2；RAW/RAM x3 branch trainable | `delta_condition=feature_d1_stopgrad`；`gate_condition=feature_d1`；`lambda_lp=0.5`；`q_good=0.3`；`lambda_lowfreq_loss=0.0`；`raw_adapter_fixed_light_scale=1.0`；normal-only unprocessing | 10 | `8/1/8` | `1e-4 / 1e-4` | 438,825 | total params `28,105,772`；best e4 |
+| `0601_2320...n2_x3_stfcalibv1...` | N2 x3 stfcalibv1 incremental | `input_domain=raw4`；`model_input_tensor=raw`；`front_end=c2_frozen_raw_ram_incremental`；`raw_storage_format=synthetic_packed_bayer_4ch_halfres`；`incremental_feature_source=x3` | frozen DAv2-S + frozen C2；RAW/RAM x3 branch trainable | `delta_condition=feature_only`；`gate_condition=feature_d1`；`lambda_lp=0.8`；`q_good=0.3`；`lambda_lowfreq_loss=0.0`；`raw_adapter_fixed_light_scale=1.680734683`；stfcalibv1 calibrated over-only unprocessing | 10 | `8/1/8` | `1e-4 / 1e-4` | 420,393 | total params `28,087,340`；overall best e8；target-region best e4 |
+| `0601_2320...n7_x3_stfcalibv1...` | N7 x3 stfcalibv1 stop-gradient D1 delta | `input_domain=raw4`；`model_input_tensor=raw`；`front_end=c2_frozen_raw_ram_incremental`；`raw_storage_format=synthetic_packed_bayer_4ch_halfres`；`incremental_feature_source=x3` | frozen DAv2-S + frozen C2；RAW/RAM x3 branch trainable | `delta_condition=feature_d1_stopgrad`；`gate_condition=feature_d1`；`lambda_lp=0.5`；`q_good=0.3`；`lambda_lowfreq_loss=0.0`；`raw_adapter_fixed_light_scale=1.680734683`；stfcalibv1 calibrated over-only unprocessing | 10 | `8/1/8` | `1e-4 / 1e-4` | 438,825 | total params `28,105,772`；best e3 |
 
-0601 N-series 参数比对结论：四条 run 均使用同一个 C2 checkpoint `0531_2341.../best_abs_rel.pth`、同一个 LED-HB split / geometry / depth range；实际 config 与 formal queue 的 N5/N3/N2/N7 语义设置一致，未发现混用 split、checkpoint 或 input interface。
+0601 N-series 参数比对结论：六条 N-series / stfcalibv1 run 均使用同一个 C2 checkpoint `0531_2341.../best_abs_rel.pth`、同一个 LED-HB split / geometry / depth range；实际 config 与 formal queue 的 N5/N3/N2/N7 语义设置一致，未发现混用 split、checkpoint 或 input interface。0601_2320 两条 rerun 改为 stfcalibv1 calibrated over-only unprocessing：`raw_adapter_fixed_light_scale=1.680734683`，`raw_adapter_variant_policy=over`。
 
 ## 2. LED-HB hamburg val
 
@@ -107,7 +117,9 @@
 | N5 D1-only `lp0.5 q0.3` | e8 | `best_val_metrics.json` | 0.42353 | 0.47622 | 0.69659 | 0.81191 | 20.881 | 54.90 | `-0.03396 vs same-pass D1` | same-pass D0 abs_rel 改善约 `23.91%` |
 | N3 RGB `lp0.5 q0.3` | e8 | `best_val_metrics.json` | 0.42070 | 0.47420 | 0.69377 | 0.81097 | 20.739 | 54.78 | `-0.03678 vs same-pass D1` | best RGB incremental；same-pass D0 改善约 `24.42%` |
 | N2 x3 `lp0.8 q0.3` | e6 | `best_val_metrics.json` | 0.42223 | **0.47745** | 0.69634 | 0.81240 | 21.305 | 54.98 | `-0.03525 vs same-pass D1` | best `d1`；same-pass D0 改善约 `24.14%` |
-| N7 x3 stopgrad `lp0.5 q0.3` | e4 | `best_val_metrics.json` | **0.41137** | 0.47382 | 0.69457 | 0.81079 | **20.109** | **54.29** | **`-0.04611 vs same-pass D1`** | best overall abs_rel / rmse / silog；same-pass D0 改善约 `26.09%` |
+| N7 x3 stopgrad `lp0.5 q0.3` | e4 | `best_val_metrics.json` | **0.41137** | 0.47382 | 0.69457 | 0.81079 | **20.109** | 54.29 | **`-0.04611 vs same-pass D1`** | best overall abs_rel / rmse；same-pass D0 改善约 `26.09%` |
+| N2 x3 stfcalibv1 `lp0.8 q0.3` | e8 | `best_val_metrics.json` | 0.42431 | 0.47643 | 0.69809 | 0.81419 | 21.244 | 54.68 | `-0.03317 vs same-pass D1` | calibrated over-only；same-pass D0 改善约 `23.77%`；target-region best at e4 |
+| N7 x3 stfcalibv1 stopgrad `lp0.5 q0.3` | e3 | `best_val_metrics.json` | 0.41840 | 0.47266 | 0.69691 | 0.81287 | 20.434 | **54.13** | `-0.03910 vs same-pass D1` | best silog；calibrated over-only；same-pass D0 改善约 `24.83%` |
 
 ### 2.2 Region metrics at selected checkpoint
 
@@ -119,7 +131,9 @@
 | N5 D1-only | 8 | D1 | 0.64159 (-0.08556) | 0.81673 (-0.10739) | 0.90918 (-0.06537) | 0.65755 (-0.01263) | 0.70054 (+0.04022) | **0.46598 (-0.01307)** | 0.28249 (-0.03674) | 0.50049 (-0.08153) | 0.11635 | 0.04137 |
 | N3 RGB | 8 | D1 | 0.62149 (-0.10567) | 0.79824 (-0.12585) | 0.90025 (-0.07427) | 0.65555 (-0.01462) | 0.69832 (+0.03802) | 0.47066 (-0.00838) | 0.26094 (-0.05831) | 0.49544 (-0.08656) | 0.10408 | 0.03540 |
 | N2 x3 | 6 | D1 | 0.62916 (-0.09800) | 0.78415 (-0.13994) | **0.88216 (-0.09236)** | 0.66315 (-0.00703) | 0.69525 (+0.03495) | 0.47703 (-0.00201) | 0.29908 (-0.02017) | 0.51580 (-0.06620) | 0.09059 | 0.03445 |
-| N7 x3 stopgrad | 4 | D1 | **0.60355 (-0.12361)** | **0.76285 (-0.16123)** | 0.88592 (-0.08860) | **0.65343 (-0.01675)** | 0.71623 (+0.05593) | 0.47123 (-0.00781) | **0.25002 (-0.06923)** | **0.45660 (-0.12540)** | 0.20463 | 0.06795 |
+| N7 x3 stopgrad | 4 | D1 | **0.60355 (-0.12361)** | **0.76285 (-0.16123)** | 0.88592 (-0.08860) | 0.65343 (-0.01675) | 0.71623 (+0.05593) | 0.47123 (-0.00781) | **0.25002 (-0.06923)** | **0.45660 (-0.12540)** | 0.20463 | 0.06795 |
+| N2 x3 stfcalibv1 | 8 | D1 | 0.62792 (-0.09899) | 0.80297 (-0.12115) | 0.89218 (-0.08239) | 0.65684 (-0.01322) | 0.68581 (+0.02558) | 0.47570 (-0.00335) | 0.30370 (-0.01545) | 0.51755 (-0.06436) | 0.07061 | 0.02828 |
+| N7 x3 stfcalibv1 stopgrad | 3 | D1 | 0.61143 (-0.11549) | 0.77724 (-0.14689) | 0.89109 (-0.08345) | **0.64960 (-0.02050)** | 0.69601 (+0.03577) | 0.47624 (-0.00282) | 0.26747 (-0.05177) | 0.47768 (-0.10426) | 0.14864 | 0.05157 |
 
 ### 2.3 Training / eval trend snapshot
 
@@ -132,11 +146,14 @@
 | N3 RGB | `0.76131 -> 0.71272` | 0.43111 | 8 | 0.42070 | **0.42441** | RGB incremental 最好 |
 | N2 x3 | `0.74740 -> 0.70474` | **0.42856** | 6 | 0.42223 | 0.42778 | best d1；overall 略弱于 N3 |
 | N7 x3 stopgrad | `0.73604 -> 0.66622` | 0.43609 | 4 | **0.41137** | 0.42798 | overall / key regions 最好，后期震荡回落 |
+| N2 x3 stfcalibv1 | `0.74798 -> 0.70407` | 0.43420 | 8 | 0.42431 | 0.42694 | calibrated over-only；overall best at e8；target-region best at e4 |
+| N7 x3 stfcalibv1 stopgrad | `0.73665 -> 0.66601` | 0.42913 | 3 | 0.41840 | 0.43075 | calibrated over-only；best at e3，后期震荡回落；best silog |
 
 观察：
 
-- C2 明显优于 frozen D0，N-series 又明显优于 C2/D1：四条 N-series 相对 D1 的 overall `abs_rel` 改善在 `0.03396` 到 `0.04611` 之间。
-- N7 x3 stopgrad 是当前最佳：overall `abs_rel=0.41137`，相对 same-pass D1 改善约 `10.08%`，相对 same-pass D0 改善约 `26.09%`；boundary、D0 high-error、saturated、mid-depth region 也最好。
+- C2 明显优于 frozen D0，N-series / stfcalibv1 rerun 又明显优于 C2/D1：六条 N-series 相对 D1 的 overall `abs_rel` 改善在 `0.03317` 到 `0.04611` 之间。
+- N7 x3 stopgrad normal-only 仍是当前 overall 最佳：`abs_rel=0.41137`，相对 same-pass D1 改善约 `10.08%`，相对 same-pass D0 改善约 `26.09%`；boundary、D0 high-error、saturated、mid-depth region 也最好。
+- 0601_2320 stfcalibv1 calibrated over-only rerun 没有刷新 overall best：N7 stfcalibv1 为 `0.41840`，排第二，但刷新了 `silog_x100=54.13` 和 `far50_abs_rel=0.64960`；N2 stfcalibv1 为 `0.42431`，略弱于 normal-only N2 `0.42223`。
 - N3 RGB control 已经很强：`abs_rel=0.42070`，优于 N2 x3 `0.42223`，说明本轮 LED-HB 的整体收益不能简单归因于 RAW/x3 cue。
 - N2 x3 的 `d1=0.47745` 是当前最高，且 `d1_high_error` region 最好；但 overall / boundary / saturated 不如 N7。
 - N-series 在 `far100` 上相对 D1 都变差，N7 变差最大（`+0.05593`）。如果后续写结论，远距离极深区需要单独检查或报告为 tradeoff。
@@ -147,8 +164,10 @@
 | Rank | Method | best epoch | abs_rel | delta vs D1 | target_region_score | short read |
 |---:|---|---:|---:|---:|---:|---|
 | 1 | N7 x3 stopgrad `lp0.5 q0.3` | 4 | **0.41137** | **-0.04611** | **-0.06120** | 当前 LED-HB best overall 和 best region row |
-| 2 | N3 RGB `lp0.5 q0.3` | 8 | 0.42070 | -0.03678 | -0.05225 | 最强 RGB incremental control |
-| 3 | N2 x3 `lp0.8 q0.3` | 6 | 0.42223 | -0.03525 | -0.04391 | best d1 / d1-high-error，overall 略弱 |
-| 4 | N5 D1-only `lp0.5 q0.3` | 8 | 0.42353 | -0.03396 | -0.04267 | D1-only extra head 也能明显改善 C2 |
-| 5 | C2 D0-only / D1 | 19 | 0.45750 | n/a | n/a | N-series baseline |
-| 6 | Frozen DAv2-S D0 | same pass as C2 e19 | 0.55660 | n/a | n/a | AMP/bf16 same-pass baseline；fp32 reference `0.55523` |
+| 2 | N7 x3 stfcalibv1 stopgrad `lp0.5 q0.3` | 3 | 0.41840 | -0.03910 | -0.05481 | calibrated over-only；best silog，overall 第二 |
+| 3 | N3 RGB `lp0.5 q0.3` | 8 | 0.42070 | -0.03678 | -0.05225 | 最强 RGB incremental control |
+| 4 | N2 x3 `lp0.8 q0.3` | 6 | 0.42223 | -0.03525 | -0.04391 | best d1 / d1-high-error，overall 略弱 |
+| 5 | N5 D1-only `lp0.5 q0.3` | 8 | 0.42353 | -0.03396 | -0.04267 | D1-only extra head 也能明显改善 C2 |
+| 6 | N2 x3 stfcalibv1 `lp0.8 q0.3` | 8 | 0.42431 | -0.03317 | -0.04268 | calibrated over-only；overall 略弱于 normal-only N2 |
+| 7 | C2 D0-only / D1 | 19 | 0.45750 | n/a | n/a | N-series baseline |
+| 8 | Frozen DAv2-S D0 | same pass as C2 e19 | 0.55660 | n/a | n/a | AMP/bf16 same-pass baseline；fp32 reference `0.55523` |

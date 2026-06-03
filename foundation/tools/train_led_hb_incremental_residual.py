@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import logging
 import math
@@ -190,6 +191,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--raw-adapter-external-cache-space", default=None)
     parser.add_argument("--raw-adapter-variant-policy", default=NOT_APPLICABLE, choices=[NOT_APPLICABLE, "normal", "dark", "over", "mix"])
     parser.add_argument("--raw-adapter-variant-weights", default=None)
+    parser.add_argument("--raw-adapter-calibration-source", default=NOT_APPLICABLE)
+    parser.add_argument("--raw-adapter-calibration-sha256", default=NOT_APPLICABLE)
+    parser.add_argument("--raw-adapter-calibration-group", default=NOT_APPLICABLE)
+    parser.add_argument("--raw-adapter-calibration-visual-review", default=NOT_APPLICABLE)
     parser.add_argument("--hflip-prob", type=float, required=True)
     parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--bs", type=int, default=8)
@@ -255,6 +260,18 @@ def normalize_optional_numeric_args(args: argparse.Namespace) -> None:
 def load_json(path: Path) -> dict[str, Any]:
     with path.open("r", encoding="utf-8") as handle:
         return json.load(handle)
+
+
+def sha256_file(path: Path) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def _is_not_applicable(value: Any) -> bool:
+    return value is None or str(value).strip() in ("", NOT_APPLICABLE)
 
 
 def _as_path_str(value: Any) -> str:
@@ -329,6 +346,28 @@ def method_is_raw(args: argparse.Namespace) -> bool:
     return str(args.incremental_feature_source) == "x3"
 
 
+def validate_raw_adapter_calibration_metadata(args: argparse.Namespace) -> None:
+    if _is_not_applicable(args.raw_adapter_calibration_source):
+        return
+    source = Path(str(args.raw_adapter_calibration_source)).expanduser().resolve()
+    if not source.is_file():
+        raise FileNotFoundError(f"Missing raw adapter calibration source: {source}")
+    if _is_not_applicable(args.raw_adapter_calibration_sha256):
+        raise ValueError("--raw-adapter-calibration-sha256 is required when --raw-adapter-calibration-source is provided.")
+    actual_sha256 = sha256_file(source)
+    if actual_sha256.lower() != str(args.raw_adapter_calibration_sha256).strip().lower():
+        raise ValueError(
+            f"Calibration source sha256 mismatch for {source}: expected {args.raw_adapter_calibration_sha256}, got {actual_sha256}"
+        )
+    args.raw_adapter_calibration_source = str(source)
+    args.raw_adapter_calibration_sha256 = actual_sha256
+    if not _is_not_applicable(args.raw_adapter_calibration_visual_review):
+        review = Path(str(args.raw_adapter_calibration_visual_review)).expanduser().resolve()
+        if not review.exists():
+            raise FileNotFoundError(f"Missing raw adapter calibration visual review path: {review}")
+        args.raw_adapter_calibration_visual_review = str(review)
+
+
 def validate_args(args: argparse.Namespace) -> None:
     normalize_optional_numeric_args(args)
     args.method_id = str(args.method_id).upper()
@@ -390,6 +429,8 @@ def validate_args(args: argparse.Namespace) -> None:
             randomize_unprocessing=bool(args.randomize_unprocessing),
             raw_adapter_fixed_light_scale=float(args.raw_adapter_fixed_light_scale),
             raw_adapter_variant_policy=args.raw_adapter_variant_policy,
+            raw_adapter_dark_light_scale_range=args.raw_adapter_dark_light_scale_range,
+            raw_adapter_over_light_scale_range=args.raw_adapter_over_light_scale_range,
         )
         expected = {
             "input_domain": "raw4",
@@ -406,7 +447,10 @@ def validate_args(args: argparse.Namespace) -> None:
         for key, value in resolved.items():
             setattr(args, key, value)
         args.resolved_unprocessing_config = dict(resolved)
+        validate_raw_adapter_calibration_metadata(args)
     else:
+        if not _is_not_applicable(args.raw_adapter_calibration_source):
+            raise ValueError("--raw-adapter-calibration-source is only applicable to raw/x3 N-series runs.")
         validate_led_hb_rgb_depth_semantics(
             dataset_name=args.dataset_name,
             illumination=args.illumination,

@@ -13,6 +13,14 @@ finetune_stf/exp_0520/
 finetune_stf/logs/
 scripts/verify_output/
 metric_depth/
+third_party/
+plans/**/stf_val/
+plans/**/logs/
+plans/**/*.npy
+plans/**/*.npz
+plans/**/*.png
+plans/**/*.jpg
+plans/**/*.jsonl
 plans/**/codex_smoke_*/
 plans/0524_unprocessing/**/rawadapter_unproc_*/
 plans/0524_unprocessing/**/rgb_samples_*/
