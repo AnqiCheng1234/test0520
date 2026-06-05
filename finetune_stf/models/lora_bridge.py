@@ -353,6 +353,7 @@ class RawRamBridgeLoRADepthModel(RawRamBridgeDepthModel):
         rgb_interface_mode="residual_tanh",
         rgb_residual_scale=0.1,
         lora_block_mode=DEFAULT_LORA_BLOCK_MODE,
+        lora_tap_layers=None,
         lora_rank=8,
         lora_alpha=16.0,
         sensor_hw=SENSOR_INPUT_HW,
@@ -374,7 +375,7 @@ class RawRamBridgeLoRADepthModel(RawRamBridgeDepthModel):
         self.lora_block_indices = apply_lora_to_vit(
             self.dav2.pretrained,
             block_mode=self.lora_block_mode,
-            tap_layers=self.bridge_layers,
+            tap_layers=() if lora_tap_layers is None else tuple(int(layer) for layer in lora_tap_layers),
             rank=self.lora_rank,
             alpha=self.lora_alpha,
         )
@@ -498,6 +499,7 @@ class RawRamRgbBridgeLoRADepthModel(RawRamRgbBridgeDepthModel):
         bridge_layers=None,
         bridge_source="ram_core",
         lora_block_mode=DEFAULT_LORA_BLOCK_MODE,
+        lora_tap_layers=None,
         lora_rank=8,
         lora_alpha=16.0,
         sensor_hw=SENSOR_INPUT_HW,
@@ -517,7 +519,7 @@ class RawRamRgbBridgeLoRADepthModel(RawRamRgbBridgeDepthModel):
         self.lora_block_indices = apply_lora_to_vit(
             self.dav2.pretrained,
             block_mode=self.lora_block_mode,
-            tap_layers=self.bridge_layers,
+            tap_layers=() if lora_tap_layers is None else tuple(int(layer) for layer in lora_tap_layers),
             rank=self.lora_rank,
             alpha=self.lora_alpha,
         )
@@ -533,6 +535,7 @@ def build_raw_ram_bridge_depth_model(
     rgb_interface_mode="residual_tanh",
     rgb_residual_scale=0.1,
     lora_block_mode=DEFAULT_LORA_BLOCK_MODE,
+    lora_tap_layers=None,
     lora_rank=8,
     lora_alpha=16.0,
     sensor_hw=SENSOR_INPUT_HW,
@@ -564,6 +567,7 @@ def build_raw_ram_bridge_depth_model(
             rgb_interface_mode=rgb_interface_mode,
             rgb_residual_scale=rgb_residual_scale,
             lora_block_mode=lora_block_mode,
+            lora_tap_layers=lora_tap_layers,
             lora_rank=lora_rank,
             lora_alpha=lora_alpha,
             sensor_hw=sensor_hw,
@@ -585,6 +589,7 @@ def build_raw_ram_bridge_depth_model(
             bridge_layers=bridge_layers,
             bridge_source=bridge_source,
             lora_block_mode=lora_block_mode,
+            lora_tap_layers=lora_tap_layers,
             lora_rank=lora_rank,
             lora_alpha=lora_alpha,
             sensor_hw=sensor_hw,

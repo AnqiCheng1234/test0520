@@ -18,7 +18,15 @@ import sys
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from foundation.engine.datasets import DEFAULT_TRAIN_LIST, VKITTI2Raw
+from foundation.engine.datasets import (
+    DEFAULT_TRAIN_LIST,
+    DEPTH_TARGET_SPACE_CHOICES,
+    FULLRES_EVEN_POLICY_CHOICES,
+    RAW_STORAGE_FORMAT_CHOICES,
+    RGB_INPUT_SPACE_CHOICES,
+    VKITTI2Raw,
+    validate_vkitti_raw_semantics,
+)
 
 
 TORCH_DTYPES = {
@@ -34,6 +42,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--mode", default="train", choices=["train", "val"])
     parser.add_argument("--input-height", type=int, default=518)
     parser.add_argument("--input-width", type=int, default=966)
+    parser.add_argument("--raw-storage-format", choices=RAW_STORAGE_FORMAT_CHOICES, default="synthetic_packed_bayer_4ch")
+    parser.add_argument("--fullres-even-policy", choices=FULLRES_EVEN_POLICY_CHOICES, default="not_applicable")
+    parser.add_argument("--rgb-input-space", choices=RGB_INPUT_SPACE_CHOICES, default="not_applicable")
+    parser.add_argument("--depth-target-space", choices=DEPTH_TARGET_SPACE_CHOICES, default="not_applicable")
     parser.add_argument("--min-depth", type=float, default=1.0)
     parser.add_argument("--max-depth", type=float, default=80.0)
     parser.add_argument("--randomize-unprocessing", action="store_true", default=True)
@@ -82,6 +94,17 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def validate_args(args: argparse.Namespace) -> None:
+    validate_vkitti_raw_semantics(
+        raw_storage_format=args.raw_storage_format,
+        fullres_even_policy=args.fullres_even_policy,
+        rgb_input_space=args.rgb_input_space,
+        depth_target_space=args.depth_target_space,
+    )
+    if args.input_height <= 0 or args.input_width <= 0:
+        raise ValueError(f"Invalid input size {(args.input_height, args.input_width)}")
+
+
 def to_jsonable(value: Any) -> Any:
     if isinstance(value, torch.Tensor):
         if value.ndim == 0:
@@ -98,14 +121,23 @@ def to_jsonable(value: Any) -> Any:
 
 def build_config(args: argparse.Namespace, dataset: VKITTI2Raw, num_samples: int) -> Dict[str, Any]:
     unproc_desc = dataset.describe_unprocessing()
+    dataset_geometry = dataset.describe_geometry()
     return {
-        "cache_version": 3,
+        "cache_version": 4,
         "created_at": datetime.now().isoformat(timespec="seconds"),
         "project_root": str(PROJECT_ROOT),
         "filelist_path": str(dataset.filelist_path),
         "num_samples": num_samples,
         "mode": dataset.mode,
         "size": list(dataset.size),
+        "raw_storage_format": dataset.raw_storage_format,
+        "fullres_even_policy": dataset.fullres_even_policy,
+        "rgb_input_space": dataset.rgb_input_space,
+        "depth_target_space": dataset.depth_target_space,
+        "dataset_geometry": dataset_geometry,
+        "source_original_hw": dataset_geometry.get("source_original_hw", "n/a"),
+        "even_fullres_hw": dataset_geometry.get("even_fullres_hw", "n/a"),
+        "packed_hw": dataset_geometry.get("packed_hw", list(dataset.size)),
         "min_depth": dataset.min_depth,
         "max_depth": dataset.max_depth,
         "randomize_unprocessing": bool(unproc_desc["active_transform"]["randomize"]),
@@ -195,6 +227,7 @@ def check_capacity_or_raise(args: argparse.Namespace, output_dir: Path, num_samp
 
 def main() -> None:
     args = parse_args()
+    validate_args(args)
     output_dir = Path(args.output_dir).expanduser().resolve()
     samples_dir = output_dir / "samples"
     manifest_path = output_dir / "manifest.jsonl"
@@ -210,6 +243,10 @@ def main() -> None:
         unprocessing_preset=args.vkitti_unprocessing_preset,
         unprocessing_mix_weights=args.vkitti_unprocessing_mix_weights,
         hflip_prob=args.hflip_prob,
+        raw_storage_format=args.raw_storage_format,
+        fullres_even_policy=args.fullres_even_policy,
+        rgb_input_space=args.rgb_input_space,
+        depth_target_space=args.depth_target_space,
     )
     num_samples = len(dataset) if args.max_samples is None else min(len(dataset), int(args.max_samples))
     capacity_report = check_capacity_or_raise(args, output_dir, num_samples)
@@ -252,6 +289,8 @@ def main() -> None:
                 "sample_name": sample["sample_name"],
                 "image_path": sample["image_path"],
                 "depth_path": sample["depth_path"],
+                "geometry_params": to_jsonable(sample["geometry_params"]),
+                "isp_params": to_jsonable(sample["isp_params"]),
             }
             torch.save(payload, cache_path)
 

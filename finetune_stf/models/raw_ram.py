@@ -172,7 +172,8 @@ class FFM(nn.Module):
 # ---------------------------------------------------------------------------
 
 FUNCTION_ORDER = ["wb", "ccm", "gamma", "brightness"]
-RAW_RAM_INPUT_TYPES = ("raw_ram", "raw_ram_residual")
+RAW_RAM_LORA_INPUT_TYPES = ("raw_ram_lora",)
+RAW_RAM_INPUT_TYPES = ("raw_ram", *RAW_RAM_LORA_INPUT_TYPES, "raw_ram_residual")
 RAW_RAM_BRIDGE_FEATURE_CHANNELS = {
     "x_cat": 16,
     "ffm_mid": 64,
@@ -498,11 +499,11 @@ class RawRamDepthModel(nn.Module):
         """
         super().__init__()
         self.front_end = "raw_ram4"
-        self.ram_core_type = "raw_ram4"
+        self.ram_core_type = "RawRamCore"
         self.imagenet_norm_enabled = True
-        self.uses_base_rgb = False
-        self.uses_clamp = False
-        self.raw_ram_rgb_tail = None
+        self.uses_base_rgb = True
+        self.uses_clamp = rgb_interface_mode in {"residual_tanh", "residual_linear", "linear_clamp"}
+        self.raw_ram_rgb_tail = "n_a"
         self.ram_core = RawRamCore()
         self.rgb_head = RGBInterfaceHead(
             mode=rgb_interface_mode,
@@ -542,7 +543,7 @@ class RawRamDepthModel(nn.Module):
         ]
         if missing or status.unexpected_keys:
             raise RuntimeError(
-                "Failed to load compatible DAv2 base weights for raw_ram_rgb model: "
+                "Failed to load compatible DAv2 base weights for raw_ram4 model: "
                 f"missing_non_lora={missing}, unexpected={status.unexpected_keys}"
             )
         return status
@@ -571,13 +572,13 @@ class RawToBaseRgbRam3DepthModel(nn.Module):
                 f"expected one of {RAW_RAM_RGB_TAIL_CHOICES}"
             )
         self.front_end = "raw_to_base_rgb_ram3"
-        self.ram_core_type = "ram3"
+        self.ram_core_type = "RamCore3"
         self.imagenet_norm_enabled = False
         self.uses_base_rgb = True
         self.uses_clamp = False
-        self.raw_ram_rgb_tail = raw_ram_rgb_tail
         self.ram_core = RamCore3()
         self.dav2 = dav2_model
+        self.raw_ram_rgb_tail = raw_ram_rgb_tail
         _register_imagenet_stats(self)
         self.spatial_adapter = CenterPadCropAdapter(sensor_hw=sensor_hw, backbone_hw=backbone_hw)
 
@@ -608,10 +609,14 @@ class RawToBaseRgbRam3DepthModel(nn.Module):
         ]
         if missing or status.unexpected_keys:
             raise RuntimeError(
-                "Failed to load compatible DAv2 base weights for raw_ram_rgb model: "
+                "Failed to load compatible DAv2 base weights for raw_to_base_rgb_ram3 model: "
                 f"missing_non_lora={missing}, unexpected={status.unexpected_keys}"
             )
         return status
+
+
+class RawRamRgbDepthModel(RawToBaseRgbRam3DepthModel):
+    """Backward-compatible alias. Prefer RawToBaseRgbRam3DepthModel."""
 
 
 class RawRamResidualDepthModel(nn.Module):
@@ -633,11 +638,10 @@ class RawRamResidualDepthModel(nn.Module):
     ):
         super().__init__()
         self.front_end = "raw_ram4"
-        self.ram_core_type = "raw_ram4"
+        self.ram_core_type = "RawRamCore"
         self.imagenet_norm_enabled = True
         self.uses_base_rgb = True
         self.uses_clamp = True
-        self.raw_ram_rgb_tail = None
         self.ram_core = RawRamCore()
         self.residual_head = ResidualRGBHead()
         self.residual_scale = float(residual_scale)
@@ -675,18 +679,9 @@ def build_raw_ram_depth_model(
     sensor_hw=SENSOR_INPUT_HW,
     backbone_hw=BACKBONE_INPUT_HW,
 ):
-    if input_type is None:
-        input_type = "raw_ram"
     front_end = str(front_end)
     if front_end == "raw_ram4":
-        if input_type == "raw_ram_residual":
-            return RawRamResidualDepthModel(
-                dav2_model,
-                residual_scale=residual_scale,
-                sensor_hw=sensor_hw,
-                backbone_hw=backbone_hw,
-            )
-        if input_type in RAW_RAM_INPUT_TYPES:
+        if input_type in ("raw_ram", *RAW_RAM_LORA_INPUT_TYPES):
             return RawRamDepthModel(
                 dav2_model,
                 rgb_interface_mode=rgb_interface_mode,
@@ -694,20 +689,34 @@ def build_raw_ram_depth_model(
                 sensor_hw=sensor_hw,
                 backbone_hw=backbone_hw,
             )
-    elif front_end == "raw_to_base_rgb_ram3":
-        if input_type in RAW_RAM_RGB_INPUT_TYPES:
-            return RawToBaseRgbRam3DepthModel(
+        if input_type == "raw_ram_residual":
+            return RawRamResidualDepthModel(
                 dav2_model,
+                residual_scale=residual_scale,
                 sensor_hw=sensor_hw,
                 backbone_hw=backbone_hw,
-                raw_ram_rgb_tail=raw_ram_rgb_tail,
             )
         raise ValueError(
-            f"front_end={front_end!r} does not support input_type={input_type!r}; "
-            f"expected one of {RAW_RAM_RGB_INPUT_TYPES}."
+            f"front_end={front_end} is only compatible with input_type in {{raw_ram, raw_ram_residual}}; "
+            f"got input_type={input_type}"
         )
 
-    raise ValueError(f"Unsupported front_end for raw RAM build: {front_end!r}")
+    if front_end == "raw_to_base_rgb_ram3":
+        if input_type not in RAW_RAM_RGB_INPUT_TYPES:
+            raise ValueError(
+                f"front_end={front_end} requires input_type in {RAW_RAM_RGB_INPUT_TYPES}; "
+                f"got input_type={input_type}"
+            )
+        return RawToBaseRgbRam3DepthModel(
+            dav2_model,
+            sensor_hw=sensor_hw,
+            backbone_hw=backbone_hw,
+            raw_ram_rgb_tail=raw_ram_rgb_tail,
+        )
 
-
-RawRamRgbDepthModel = RawToBaseRgbRam3DepthModel
+    if front_end == "raw_to_rgb_head":
+        raise ValueError(
+            f"Cannot use build_raw_ram_depth_model for front_end={front_end}; "
+            "use build_dav2_raw_naive_depth_model instead"
+        )
+    raise ValueError(f"Unsupported front_end={front_end} for raw RAM depth model")

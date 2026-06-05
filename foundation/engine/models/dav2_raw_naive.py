@@ -65,11 +65,6 @@ class DAV2RawNaiveDepthModel(nn.Module):
         backbone_hw=BACKBONE_INPUT_HW,
     ) -> None:
         super().__init__()
-        self.front_end = "raw_to_rgb_head"
-        self.ram_core_type = "raw_to_rgb_head"
-        self.imagenet_norm_enabled = True
-        self.uses_base_rgb = True
-        self.uses_clamp = bool(clip_rgb)
         self.input_stem = PackedBayerInputStem()
         self.dav2 = dav2_model
         self.clip_rgb = bool(clip_rgb)

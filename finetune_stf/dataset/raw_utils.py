@@ -1,8 +1,11 @@
 from pathlib import Path
 
+from finetune_stf.dataset.raw_storage import (
+    RawStorageSpec,
+    STF_LUT_TO_0_1_DECOMPAND,
+    get_raw_storage_spec,
+)
 import numpy as np
-
-from finetune_stf.dataset.raw_storage import RawStorageSpec, get_raw_storage_spec
 
 
 DEFAULT_RAW_NPZ_ROOT = "/mnt/drive/3333_raw/seeing_through_fog/cam_stereo_left_bayer_rect/npz"
@@ -71,74 +74,6 @@ def get_stf_decompanding_lut():
     return _STF_DECOMPANDING_LUT
 
 
-def decode_stf_raw_4ch(bayer_4ch, decode_mode="legacy_companded"):
-    bayer_4ch = np.asarray(bayer_4ch)
-    if bayer_4ch.ndim != 3 or bayer_4ch.shape[-1] != 4:
-        raise ValueError(f"Expected STF Bayer input with shape (H, W, 4), got {bayer_4ch.shape}")
-    if decode_mode not in STF_RAW_DECODE_MODES:
-        raise ValueError(f"Unsupported STF RAW decode mode: {decode_mode}")
-
-    if decode_mode == "legacy_companded":
-        return bayer_4ch
-
-    if decode_mode == "legacy_online_decomp16":
-        # Old rectified STF NPZ files are stored as [B, G, G, R].
-        bayer_4ch = bayer_4ch[..., [3, 1, 2, 0]]
-    elif decode_mode == "canonical_decomp16":
-        # Future canonical roots are expected to already be [R, Gr, Gb, B].
-        bayer_4ch = bayer_4ch
-
-    lut = get_stf_decompanding_lut()
-    raw_codes = np.clip(bayer_4ch, 0, len(lut) - 1).astype(np.uint16, copy=False)
-    return lut[raw_codes].astype(np.float32) / DECOMPANDED_MAX
-
-
-def _apply_post_decode_norm(decoded_bayer, *, mode):
-    if mode == "passthrough":
-        return np.clip(decoded_bayer, 0.0, 1.0)
-    if mode == "companded":
-        return np.clip(decoded_bayer / COMPANDED_MAX, 0.0, 1.0)
-    if mode == "sensor_linear":
-        return np.clip(decoded_bayer / SENSOR_LINEAR_MAX, 0.0, 1.0)
-    raise ValueError(f"Unsupported post-decode norm mode: {mode}")
-
-
-def decode_stf_raw_by_storage_format(bayer_4ch, spec):
-    """Decode STF raw packed Bayer with a storage-format spec.
-
-    Output is in model channel order and normalized to [0, 1].
-    """
-
-    bayer_4ch = np.asarray(bayer_4ch)
-    if bayer_4ch.ndim != 3 or bayer_4ch.shape[-1] != 4:
-        raise ValueError(f"Expected STF Bayer input with shape (H, W, 4), got {bayer_4ch.shape}")
-
-    if not isinstance(spec, RawStorageSpec):
-        spec = get_raw_storage_spec(spec)
-
-    if spec.name == "raw_future":
-        raise ValueError(
-            "raw_storage_format=raw_future is not implemented. Choose legacy_bggR_decomp16 for now."
-        )
-
-    decoded = bayer_4ch[..., spec.channel_reorder]
-
-    if spec.decompand == "stf_lut_to_0_1":
-        lut = get_stf_decompanding_lut()
-        raw_codes = np.clip(decoded, 0, len(lut) - 1).astype(np.uint16, copy=False)
-        decoded = lut[raw_codes].astype(np.float32) / DECOMPANDED_MAX
-    elif spec.decompand == "passthrough":
-        decoded = decoded.astype(np.float32)
-    elif spec.decompand == "companded":
-        decoded = decoded.astype(np.float32) / COMPANDED_MAX
-    elif spec.decompand == "sensor_linear":
-        decoded = decoded.astype(np.float32) / SENSOR_LINEAR_MAX
-    else:
-        raise ValueError(f"Unsupported stf_decompand mode: {spec.decompand}")
-
-    return _apply_post_decode_norm(decoded, mode=spec.post_decode_norm).astype(np.float32)
-
-
 def normalize_raw(image_3ch, norm_mode="companded"):
     image_3ch = np.asarray(image_3ch, dtype=np.float32)
 
@@ -171,3 +106,64 @@ def normalize_raw_4ch(bayer_4ch, norm_mode="companded"):
 def pseudo_rgb_to_bgr(image_rgb):
     image_rgb = np.asarray(image_rgb, dtype=np.float32)
     return np.clip(image_rgb[..., ::-1] * 255.0, 0.0, 255.0).astype(np.uint8)
+
+
+def decode_stf_raw_by_storage_format(bayer_4ch, spec):
+    bayer_4ch = np.asarray(bayer_4ch)
+    if bayer_4ch.ndim != 3 or bayer_4ch.shape[-1] != 4:
+        raise ValueError(f"Expected STF Bayer input with shape (H, W, 4), got {bayer_4ch.shape}")
+
+    if isinstance(spec, str):
+        if spec == "raw_future":
+            raise ValueError("raw_storage_format=raw_future is reserved and not implemented yet")
+        storage_spec = get_raw_storage_spec(spec)
+    elif isinstance(spec, RawStorageSpec):
+        storage_spec = spec
+    elif hasattr(spec, "name") and hasattr(spec, "channel_reorder"):
+        storage_spec = spec
+    else:
+        raise TypeError(f"Unsupported raw storage spec type: {type(spec)!r}")
+
+    if storage_spec.name == "raw_future":
+        raise ValueError("raw_storage_format=raw_future is reserved and not implemented yet")
+    try:
+        raw_reordered = np.take(bayer_4ch, indices=storage_spec.channel_reorder, axis=-1)
+    except Exception as exc:
+        raise ValueError(f"Invalid channel_reorder for raw storage spec {storage_spec.name!r}: {storage_spec.channel_reorder}") from exc
+
+    if storage_spec.decompand != STF_LUT_TO_0_1_DECOMPAND:
+        raise ValueError(f"Unsupported decompand method: {storage_spec.decompand!r}")
+
+    lut = get_stf_decompanding_lut()
+    lut_input = np.clip(raw_reordered, 0, len(lut) - 1).astype(np.uint16, copy=False)
+    raw_model = lut[lut_input].astype(np.float32) / DECOMPANDED_MAX
+
+    if storage_spec.post_decode_norm == "passthrough":
+        return raw_model
+    if storage_spec.post_decode_norm == "companded":
+        return np.clip(raw_model / COMPANDED_MAX, 0.0, 1.0)
+    if storage_spec.post_decode_norm == "sensor_linear":
+        return np.clip(raw_model / SENSOR_LINEAR_MAX, 0.0, 1.0)
+    raise ValueError(f"Unsupported post_decode_norm: {storage_spec.post_decode_norm!r}")
+
+
+def decode_stf_raw_4ch(bayer_4ch, decode_mode="legacy_companded"):
+    bayer_4ch = np.asarray(bayer_4ch)
+    if bayer_4ch.ndim != 3 or bayer_4ch.shape[-1] != 4:
+        raise ValueError(f"Expected STF Bayer input with shape (H, W, 4), got {bayer_4ch.shape}")
+    if decode_mode not in STF_RAW_DECODE_MODES:
+        raise ValueError(f"Unsupported STF RAW decode mode: {decode_mode}")
+
+    if decode_mode == "legacy_companded":
+        return bayer_4ch
+    if decode_mode == "legacy_online_decomp16":
+        return decode_stf_raw_by_storage_format(bayer_4ch, "legacy_bggR_decomp16")
+    if decode_mode == "canonical_decomp16":
+        # Legacy compatibility: canonical format is already model-order in this project
+        # variant and still requires STF decompanding.
+        raw_reordered = bayer_4ch
+        lut = get_stf_decompanding_lut()
+        raw_codes = np.clip(raw_reordered, 0, len(lut) - 1).astype(np.uint16, copy=False)
+        return lut[raw_codes].astype(np.float32) / DECOMPANDED_MAX
+
+    raise ValueError(f"Unsupported STF RAW decode mode: {decode_mode}")

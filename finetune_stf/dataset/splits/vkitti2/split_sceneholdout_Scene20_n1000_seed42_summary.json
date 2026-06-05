@@ -1,0 +1,471 @@
+{
+  "available_scenes": [
+    "Scene01",
+    "Scene02",
+    "Scene06",
+    "Scene18",
+    "Scene20"
+  ],
+  "holdout_scenes": [
+    "Scene20"
+  ],
+  "input": "finetune_stf/dataset/splits/vkitti2/train.txt",
+  "missing_depth": 0,
+  "missing_rgb": 0,
+  "overlap_count": 0,
+  "scene_overlap": [],
+  "split_type": "scene_holdout",
+  "total": 19559,
+  "train": 11870,
+  "train_counts": {
+    "by_camera": {
+      "Camera_0": 11870
+    },
+    "by_condition": {
+      "15-deg-left": 1188,
+      "15-deg-right": 1184,
+      "30-deg-left": 1187,
+      "30-deg-right": 1184,
+      "clone": 1174,
+      "fog": 1182,
+      "morning": 1180,
+      "overcast": 1189,
+      "rain": 1198,
+      "sunset": 1204
+    },
+    "by_scene": {
+      "Scene01": 4113,
+      "Scene02": 2148,
+      "Scene06": 2470,
+      "Scene18": 3139
+    },
+    "per_scene_condition_camera": [
+      {
+        "camera": "Camera_0",
+        "condition": "15-deg-left",
+        "count": 410,
+        "scene": "Scene01"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "15-deg-right",
+        "count": 413,
+        "scene": "Scene01"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "30-deg-left",
+        "count": 415,
+        "scene": "Scene01"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "30-deg-right",
+        "count": 402,
+        "scene": "Scene01"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "clone",
+        "count": 407,
+        "scene": "Scene01"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "fog",
+        "count": 415,
+        "scene": "Scene01"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "morning",
+        "count": 406,
+        "scene": "Scene01"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "overcast",
+        "count": 412,
+        "scene": "Scene01"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "rain",
+        "count": 414,
+        "scene": "Scene01"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "sunset",
+        "count": 419,
+        "scene": "Scene01"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "15-deg-left",
+        "count": 211,
+        "scene": "Scene02"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "15-deg-right",
+        "count": 211,
+        "scene": "Scene02"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "30-deg-left",
+        "count": 216,
+        "scene": "Scene02"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "30-deg-right",
+        "count": 214,
+        "scene": "Scene02"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "clone",
+        "count": 215,
+        "scene": "Scene02"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "fog",
+        "count": 219,
+        "scene": "Scene02"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "morning",
+        "count": 211,
+        "scene": "Scene02"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "overcast",
+        "count": 214,
+        "scene": "Scene02"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "rain",
+        "count": 219,
+        "scene": "Scene02"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "sunset",
+        "count": 218,
+        "scene": "Scene02"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "15-deg-left",
+        "count": 253,
+        "scene": "Scene06"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "15-deg-right",
+        "count": 247,
+        "scene": "Scene06"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "30-deg-left",
+        "count": 247,
+        "scene": "Scene06"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "30-deg-right",
+        "count": 247,
+        "scene": "Scene06"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "clone",
+        "count": 238,
+        "scene": "Scene06"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "fog",
+        "count": 240,
+        "scene": "Scene06"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "morning",
+        "count": 247,
+        "scene": "Scene06"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "overcast",
+        "count": 253,
+        "scene": "Scene06"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "rain",
+        "count": 247,
+        "scene": "Scene06"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "sunset",
+        "count": 251,
+        "scene": "Scene06"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "15-deg-left",
+        "count": 314,
+        "scene": "Scene18"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "15-deg-right",
+        "count": 313,
+        "scene": "Scene18"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "30-deg-left",
+        "count": 309,
+        "scene": "Scene18"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "30-deg-right",
+        "count": 321,
+        "scene": "Scene18"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "clone",
+        "count": 314,
+        "scene": "Scene18"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "fog",
+        "count": 308,
+        "scene": "Scene18"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "morning",
+        "count": 316,
+        "scene": "Scene18"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "overcast",
+        "count": 310,
+        "scene": "Scene18"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "rain",
+        "count": 318,
+        "scene": "Scene18"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "sunset",
+        "count": 316,
+        "scene": "Scene18"
+      }
+    ]
+  },
+  "train_fraction": 0.6068817424203692,
+  "train_output": "finetune_stf/dataset/splits/vkitti2/train_sceneholdout_Scene20.txt",
+  "train_scenes": [
+    "Scene01",
+    "Scene02",
+    "Scene06",
+    "Scene18"
+  ],
+  "unused_holdout": 6689,
+  "unused_holdout_counts": {
+    "by_camera": {
+      "Camera_0": 6689
+    },
+    "by_condition": {
+      "15-deg-left": 677,
+      "15-deg-right": 680,
+      "30-deg-left": 664,
+      "30-deg-right": 647,
+      "clone": 666,
+      "fog": 687,
+      "morning": 666,
+      "overcast": 668,
+      "rain": 663,
+      "sunset": 671
+    },
+    "by_scene": {
+      "Scene20": 6689
+    },
+    "per_scene_condition_camera": [
+      {
+        "camera": "Camera_0",
+        "condition": "15-deg-left",
+        "count": 677,
+        "scene": "Scene20"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "15-deg-right",
+        "count": 680,
+        "scene": "Scene20"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "30-deg-left",
+        "count": 664,
+        "scene": "Scene20"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "30-deg-right",
+        "count": 647,
+        "scene": "Scene20"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "clone",
+        "count": 666,
+        "scene": "Scene20"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "fog",
+        "count": 687,
+        "scene": "Scene20"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "morning",
+        "count": 666,
+        "scene": "Scene20"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "overcast",
+        "count": 668,
+        "scene": "Scene20"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "rain",
+        "count": 663,
+        "scene": "Scene20"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "sunset",
+        "count": 671,
+        "scene": "Scene20"
+      }
+    ]
+  },
+  "val": 1000,
+  "val_counts": {
+    "by_camera": {
+      "Camera_0": 1000
+    },
+    "by_condition": {
+      "15-deg-left": 91,
+      "15-deg-right": 100,
+      "30-deg-left": 100,
+      "30-deg-right": 118,
+      "clone": 106,
+      "fog": 78,
+      "morning": 94,
+      "overcast": 110,
+      "rain": 111,
+      "sunset": 92
+    },
+    "by_scene": {
+      "Scene20": 1000
+    },
+    "per_scene_condition_camera": [
+      {
+        "camera": "Camera_0",
+        "condition": "15-deg-left",
+        "count": 91,
+        "scene": "Scene20"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "15-deg-right",
+        "count": 100,
+        "scene": "Scene20"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "30-deg-left",
+        "count": 100,
+        "scene": "Scene20"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "30-deg-right",
+        "count": 118,
+        "scene": "Scene20"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "clone",
+        "count": 106,
+        "scene": "Scene20"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "fog",
+        "count": 78,
+        "scene": "Scene20"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "morning",
+        "count": 94,
+        "scene": "Scene20"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "overcast",
+        "count": 110,
+        "scene": "Scene20"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "rain",
+        "count": 111,
+        "scene": "Scene20"
+      },
+      {
+        "camera": "Camera_0",
+        "condition": "sunset",
+        "count": 92,
+        "scene": "Scene20"
+      }
+    ]
+  },
+  "val_fraction": 0.051127358249399256,
+  "val_output": "finetune_stf/dataset/splits/vkitti2/val_sceneholdout_Scene20_n1000_seed42.txt",
+  "val_sampling": {
+    "holdout_total": 7689,
+    "requested_val_samples": 1000,
+    "sampled_from_holdout": true,
+    "seed": 42,
+    "unused_holdout": 6689
+  },
+  "val_scenes": [
+    "Scene20"
+  ]
+}

@@ -12,9 +12,13 @@ from torch.utils.data import Dataset
 
 from .vkitti2_raw import (
     _crop_hwew,
+    _downsample_rgb_2x2_area_from_even_fullres,
     _imagenet_normalize_rgb_tensor,
+    _imagenet_normalize_rgb_tensor_from_array,
     _resize_rgb_short_edge,
     _rgb_preview_tensor,
+    _rgb_preview_tensor_from_array,
+    validate_vkitti_raw_semantics,
 )
 
 
@@ -101,6 +105,7 @@ class CachedVKITTI2Raw(Dataset):
         size: Optional[Tuple[int, int]] = None,
         expected_num_samples: Optional[int] = None,
         expected_preset_hash: Optional[str] = None,
+        raw_storage_format: Optional[str] = None,
         allow_partial: Optional[bool] = None,
     ) -> None:
         self.cache_root = Path(cache_root).expanduser().resolve()
@@ -118,6 +123,27 @@ class CachedVKITTI2Raw(Dataset):
         self.size = tuple(int(v) for v in self.config.get("size", ()))
         if size is not None and self.size != tuple(int(v) for v in size):
             raise ValueError(f"Cache size mismatch: cache={self.size}, expected={tuple(size)}")
+
+        if not self.config.get("raw_storage_format"):
+            raise ValueError(
+                "Cached VKITTI config is missing raw_storage_format; rebuild the cache with explicit "
+                "raw_storage_format/fullres_even_policy/rgb_input_space/depth_target_space."
+            )
+        self.raw_storage_format = str(self.config["raw_storage_format"])
+        self.fullres_even_policy = str(self.config.get("fullres_even_policy", ""))
+        self.rgb_input_space = str(self.config.get("rgb_input_space", ""))
+        self.depth_target_space = str(self.config.get("depth_target_space", ""))
+        validate_vkitti_raw_semantics(
+            raw_storage_format=self.raw_storage_format,
+            fullres_even_policy=self.fullres_even_policy,
+            rgb_input_space=self.rgb_input_space,
+            depth_target_space=self.depth_target_space,
+        )
+        if raw_storage_format is not None and self.raw_storage_format != str(raw_storage_format):
+            raise ValueError(
+                f"Cache raw_storage_format mismatch: cache={self.raw_storage_format}, "
+                f"expected={raw_storage_format}"
+            )
 
         config_num_samples = int(self.config.get("num_samples", len(self.records)))
         if config_num_samples != len(self.records):
@@ -266,6 +292,28 @@ class CachedVKITTI2Raw(Dataset):
         if image is None:
             raise ValueError(f"Failed to read cached VKITTI source RGB for baseline: {img_path}")
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
+        if self.raw_storage_format == "synthetic_packed_bayer_4ch_halfres":
+            if geometry.get("crop_box_semantics") not in (None, "source_fullres_to_even_fullres"):
+                raise ValueError(
+                    "Unexpected cached VKITTI halfres crop_box semantics: "
+                    f"{geometry.get('crop_box_semantics')!r}"
+                )
+            image = _crop_hwew(image, tuple(geometry["crop_box"]))
+            expected_even_hw = (int(target_hw[0]) * 2, int(target_hw[1]) * 2)
+            if tuple(image.shape[:2]) != expected_even_hw:
+                raise ValueError(
+                    "Cached VKITTI halfres RGB baseline geometry mismatch: "
+                    f"cropped={tuple(image.shape[:2])} expected_even={expected_even_hw} idx={idx}"
+                )
+            if bool(geometry.get("hflip_applied", False)):
+                image = np.ascontiguousarray(image[:, ::-1])
+            rgb_half = _downsample_rgb_2x2_area_from_even_fullres(image)
+            if tuple(rgb_half.shape[:2]) != tuple(int(v) for v in target_hw):
+                raise ValueError(
+                    f"Cached VKITTI halfres baseline output mismatch: got={rgb_half.shape[:2]} target={target_hw}"
+                )
+            return _imagenet_normalize_rgb_tensor_from_array(rgb_half), _rgb_preview_tensor_from_array(rgb_half)
+
         fullres_size = (int(self.size[0]) * 2, int(self.size[1]) * 2)
         image = _resize_rgb_short_edge(image, short_edge=fullres_size[0])
         image = _crop_hwew(image, tuple(geometry["crop_box"]))

@@ -24,8 +24,14 @@ from finetune_stf.models.spatial_adapter import BACKBONE_INPUT_HW, SENSOR_INPUT_
 
 
 RAW_RAM_FEATURE_ADAPTER_ONLY_INPUT_TYPES = ("raw_ram_feature_adapter",)
+RAW_RAM_FEATURE_ADAPTER_LORA_INPUT_TYPES = ("raw_ram_feature_adapter_lora",)
+RAW_RAM_RGB_FEATURE_ADAPTER_ONLY_INPUT_TYPES = ("raw_ram_rgb_feature_adapter",)
+RAW_RAM_RGB_FEATURE_ADAPTER_LORA_INPUT_TYPES = ("raw_ram_rgb_feature_adapter_lora",)
 RAW_RAM_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES = ("raw_ram_bridge_feature_adapter",)
-RAW_RAM_BRIDGE_FEATURE_ADAPTER_LORA_INPUT_TYPES = ("raw_ram_bridge_feature_adapter_lora",)
+RAW_RAM_BRIDGE_FEATURE_ADAPTER_LORA_INPUT_TYPES = (
+    "raw_ram_bridge_feature_adapter_lora",
+    "raw_ram_rgb_bridge_feature_adapter_lora",
+)
 RAW_RAM_RGB_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES = ("raw_ram_rgb_bridge_feature_adapter",)
 RAW_RAM_BRIDGE_FEATURE_ADAPTER_INPUT_TYPES = (
     RAW_RAM_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES
@@ -33,6 +39,9 @@ RAW_RAM_BRIDGE_FEATURE_ADAPTER_INPUT_TYPES = (
 )
 RAW_RAM_FEATURE_ADAPTER_INPUT_TYPES = (
     RAW_RAM_FEATURE_ADAPTER_ONLY_INPUT_TYPES
+    + RAW_RAM_FEATURE_ADAPTER_LORA_INPUT_TYPES
+    + RAW_RAM_RGB_FEATURE_ADAPTER_ONLY_INPUT_TYPES
+    + RAW_RAM_RGB_FEATURE_ADAPTER_LORA_INPUT_TYPES
     + RAW_RAM_BRIDGE_FEATURE_ADAPTER_INPUT_TYPES
     + RAW_RAM_RGB_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES
 )
@@ -326,6 +335,7 @@ class RawRamBridgeFeatureAdapterDepthModel(RawRamFeatureAdapterDepthModel):
         dav2_model,
         *,
         feature_keys=DEFAULT_FEATURE_ADAPTER_KEYS,
+        bridge_feature_keys=None,
         bridge_layers=None,
         bridge_source="ram_core",
         adapter_dim=64,
@@ -347,8 +357,13 @@ class RawRamBridgeFeatureAdapterDepthModel(RawRamFeatureAdapterDepthModel):
         )
         if bridge_layers is None:
             bridge_layers = dav2_model.intermediate_layer_idx[dav2_model.encoder]
+        if bridge_feature_keys is None:
+            bridge_feature_keys = feature_keys
+        unknown_bridge_keys = [key for key in bridge_feature_keys if key not in RAW_RAM_BRIDGE_FEATURE_CHANNELS]
+        if unknown_bridge_keys:
+            raise ValueError(f"Unsupported bridge_feature_keys: {unknown_bridge_keys}")
         self.bridge_source = bridge_source
-        self.bridge_feature_keys = tuple(feature_keys)
+        self.bridge_feature_keys = tuple(bridge_feature_keys)
         self.bridge_layers = tuple(int(layer) for layer in bridge_layers)
         self.bridge_adapter = RawFeatureBridgeAdapter(
             feature_channels=RAW_RAM_BRIDGE_FEATURE_CHANNELS,
@@ -361,10 +376,10 @@ class RawRamBridgeFeatureAdapterDepthModel(RawRamFeatureAdapterDepthModel):
         return self.bridge_adapter(feature_dict, patch_hw=patch_hw)
 
 
-class RawRamRgbBridgeFeatureAdapterDepthModel(RawRamFeatureAdapterDepthModel):
+class RawRamRgbFeatureAdapterDepthModel(RawRamFeatureAdapterDepthModel):
     """
-    raw4 -> [R,(Gr+Gb)/2,B] -> RamCore3 BN output -> DAv2 backbone with bridge
-        plus decoder-side feature adapters from the same x_cat / ffm_mid / x3 features.
+    raw4 -> [R,(Gr+Gb)/2,B] -> RamCore3 BN output -> DAv2 backbone
+        plus decoder-side feature adapters from x_cat / ffm_mid / x3 features.
     """
 
     def __init__(
@@ -372,15 +387,15 @@ class RawRamRgbBridgeFeatureAdapterDepthModel(RawRamFeatureAdapterDepthModel):
         dav2_model,
         *,
         feature_keys=DEFAULT_RGB_BRIDGE_FEATURE_KEYS,
-        bridge_layers=None,
-        bridge_source="ram_core",
         adapter_dim=64,
+        raw_ram_rgb_tail="tanh2p5",
         sensor_hw=SENSOR_INPUT_HW,
         backbone_hw=BACKBONE_INPUT_HW,
     ):
         nn.Module.__init__(self)
-        if bridge_source != "ram_core":
-            raise ValueError(f"Unsupported bridge_source for now: {bridge_source}")
+        raw_ram_rgb_tail = str(raw_ram_rgb_tail)
+        if raw_ram_rgb_tail not in ("identity", "tanh2p5"):
+            raise ValueError(f"Unsupported raw_ram_rgb_tail={raw_ram_rgb_tail!r}")
         unknown_keys = [key for key in feature_keys if key not in RAW_RAM_RGB_BRIDGE_FEATURE_CHANNELS]
         if unknown_keys:
             raise ValueError(f"Unsupported feature adapter keys: {unknown_keys}")
@@ -388,6 +403,7 @@ class RawRamRgbBridgeFeatureAdapterDepthModel(RawRamFeatureAdapterDepthModel):
         self.ram_core = RamCore3()
         self.feature_adapter_keys = tuple(feature_keys)
         self.dav2 = dav2_model
+        self.raw_ram_rgb_tail = raw_ram_rgb_tail
         self.feature_projector = RAWFeatureProjector(
             feature_channels=RAW_RAM_RGB_BRIDGE_FEATURE_CHANNELS,
             feature_keys=self.feature_adapter_keys,
@@ -397,27 +413,14 @@ class RawRamRgbBridgeFeatureAdapterDepthModel(RawRamFeatureAdapterDepthModel):
         self.merge3 = DepthMergeBlock(decoder_feat_dim, adapter_dim)
         self.merge2 = DepthMergeBlock(decoder_feat_dim, adapter_dim)
         self.merge1 = DepthMergeBlock(decoder_feat_dim, adapter_dim)
-        if bridge_layers is None:
-            bridge_layers = dav2_model.intermediate_layer_idx[dav2_model.encoder]
-        self.bridge_source = bridge_source
-        self.bridge_feature_keys = self.feature_adapter_keys
-        self.bridge_layers = tuple(int(layer) for layer in bridge_layers)
-        self.bridge_adapter = RawFeatureBridgeAdapter(
-            feature_channels=RAW_RAM_RGB_BRIDGE_FEATURE_CHANNELS,
-            feature_keys=self.bridge_feature_keys,
-            target_layers=self.bridge_layers,
-            embed_dim=self.dav2.pretrained.embed_dim,
-        )
         self.spatial_adapter = CenterPadCropAdapter(sensor_hw=sensor_hw, backbone_hw=backbone_hw)
         _register_imagenet_stats(self)
-
-    def _build_bridge_injections(self, feature_dict, *, patch_hw):
-        return self.bridge_adapter(feature_dict, patch_hw=patch_hw)
 
     def forward_features(self, x_raw):
         x3_in = packed_bayer_to_base_rgb(x_raw)
         x3, feature_dict = self.ram_core.forward_with_features(x3_in)
-        x3 = phase1b_tanh_tail_squash(x3)
+        if self.raw_ram_rgb_tail == "tanh2p5":
+            x3 = phase1b_tanh_tail_squash(x3)
         feature_dict = {**feature_dict, "x3": x3}
         x_norm = self.spatial_adapter.pad_rgb(x3)
         patch_hw = (
@@ -443,18 +446,70 @@ class RawRamRgbBridgeFeatureAdapterDepthModel(RawRamFeatureAdapterDepthModel):
         return {"rgb": x3, "depth": depth}
 
 
+class RawRamRgbBridgeFeatureAdapterDepthModel(RawRamRgbFeatureAdapterDepthModel):
+    """
+    raw4 -> [R,(Gr+Gb)/2,B] -> RamCore3 BN output -> DAv2 backbone with bridge
+        plus decoder-side feature adapters from independently configured x3 features.
+    """
+
+    def __init__(
+        self,
+        dav2_model,
+        *,
+        feature_keys=DEFAULT_RGB_BRIDGE_FEATURE_KEYS,
+        bridge_feature_keys=None,
+        bridge_layers=None,
+        bridge_source="ram_core",
+        adapter_dim=64,
+        raw_ram_rgb_tail="tanh2p5",
+        sensor_hw=SENSOR_INPUT_HW,
+        backbone_hw=BACKBONE_INPUT_HW,
+    ):
+        if bridge_source != "ram_core":
+            raise ValueError(f"Unsupported bridge_source for now: {bridge_source}")
+        super().__init__(
+            dav2_model,
+            feature_keys=feature_keys,
+            adapter_dim=adapter_dim,
+            raw_ram_rgb_tail=raw_ram_rgb_tail,
+            sensor_hw=sensor_hw,
+            backbone_hw=backbone_hw,
+        )
+        if bridge_layers is None:
+            bridge_layers = dav2_model.intermediate_layer_idx[dav2_model.encoder]
+        if bridge_feature_keys is None:
+            bridge_feature_keys = feature_keys
+        unknown_bridge_keys = [key for key in bridge_feature_keys if key not in RAW_RAM_RGB_BRIDGE_FEATURE_CHANNELS]
+        if unknown_bridge_keys:
+            raise ValueError(f"Unsupported bridge_feature_keys: {unknown_bridge_keys}")
+        self.bridge_source = bridge_source
+        self.bridge_feature_keys = tuple(bridge_feature_keys)
+        self.bridge_layers = tuple(int(layer) for layer in bridge_layers)
+        self.bridge_adapter = RawFeatureBridgeAdapter(
+            feature_channels=RAW_RAM_RGB_BRIDGE_FEATURE_CHANNELS,
+            feature_keys=self.bridge_feature_keys,
+            target_layers=self.bridge_layers,
+            embed_dim=self.dav2.pretrained.embed_dim,
+        )
+
+    def _build_bridge_injections(self, feature_dict, *, patch_hw):
+        return self.bridge_adapter(feature_dict, patch_hw=patch_hw)
+
+
 class RawRamBridgeFeatureAdapterLoRADepthModel(RawRamBridgeFeatureAdapterDepthModel):
     def __init__(
         self,
         dav2_model,
         *,
         feature_keys=DEFAULT_FEATURE_ADAPTER_KEYS,
+        bridge_feature_keys=None,
         bridge_layers=None,
         bridge_source="ram_core",
         adapter_dim=64,
         rgb_interface_mode="residual_tanh",
         rgb_residual_scale=0.1,
         lora_block_mode=DEFAULT_LORA_BLOCK_MODE,
+        lora_tap_layers=None,
         lora_rank=8,
         lora_alpha=16.0,
         sensor_hw=SENSOR_INPUT_HW,
@@ -465,6 +520,7 @@ class RawRamBridgeFeatureAdapterLoRADepthModel(RawRamBridgeFeatureAdapterDepthMo
         super().__init__(
             dav2_model,
             feature_keys=feature_keys,
+            bridge_feature_keys=bridge_feature_keys,
             bridge_layers=bridge_layers,
             bridge_source=bridge_source,
             adapter_dim=adapter_dim,
@@ -479,7 +535,7 @@ class RawRamBridgeFeatureAdapterLoRADepthModel(RawRamBridgeFeatureAdapterDepthMo
         self.lora_block_indices = apply_lora_to_vit(
             self.dav2.pretrained,
             block_mode=self.lora_block_mode,
-            tap_layers=self.bridge_layers,
+            tap_layers=() if lora_tap_layers is None else tuple(int(layer) for layer in lora_tap_layers),
             rank=self.lora_rank,
             alpha=self.lora_alpha,
         )
@@ -490,12 +546,15 @@ def build_raw_ram_feature_adapter_depth_model(
     *,
     input_type="raw_ram_feature_adapter",
     feature_keys=DEFAULT_FEATURE_ADAPTER_KEYS,
+    bridge_feature_keys=None,
     bridge_source="ram_core",
     bridge_layers=None,
     adapter_dim=64,
     rgb_interface_mode="residual_tanh",
     rgb_residual_scale=0.1,
+    raw_ram_rgb_tail="tanh2p5",
     lora_block_mode=DEFAULT_LORA_BLOCK_MODE,
+    lora_tap_layers=None,
     lora_rank=8,
     lora_alpha=16.0,
     sensor_hw=SENSOR_INPUT_HW,
@@ -507,6 +566,7 @@ def build_raw_ram_feature_adapter_depth_model(
         return RawRamBridgeFeatureAdapterDepthModel(
             dav2_model,
             feature_keys=feature_keys,
+            bridge_feature_keys=bridge_feature_keys,
             bridge_layers=bridge_layers,
             bridge_source=bridge_source,
             adapter_dim=adapter_dim,
@@ -519,9 +579,20 @@ def build_raw_ram_feature_adapter_depth_model(
         return RawRamRgbBridgeFeatureAdapterDepthModel(
             dav2_model,
             feature_keys=feature_keys,
+            bridge_feature_keys=bridge_feature_keys,
             bridge_layers=bridge_layers,
             bridge_source=bridge_source,
             adapter_dim=adapter_dim,
+            raw_ram_rgb_tail=raw_ram_rgb_tail,
+            sensor_hw=sensor_hw,
+            backbone_hw=backbone_hw,
+        )
+    if input_type == "raw_ram_rgb_feature_adapter":
+        return RawRamRgbFeatureAdapterDepthModel(
+            dav2_model,
+            feature_keys=feature_keys,
+            adapter_dim=adapter_dim,
+            raw_ram_rgb_tail=raw_ram_rgb_tail,
             sensor_hw=sensor_hw,
             backbone_hw=backbone_hw,
         )
@@ -529,17 +600,73 @@ def build_raw_ram_feature_adapter_depth_model(
         return RawRamBridgeFeatureAdapterLoRADepthModel(
             dav2_model,
             feature_keys=feature_keys,
+            bridge_feature_keys=bridge_feature_keys,
             bridge_layers=bridge_layers,
             bridge_source=bridge_source,
             adapter_dim=adapter_dim,
             rgb_interface_mode=rgb_interface_mode,
             rgb_residual_scale=rgb_residual_scale,
             lora_block_mode=lora_block_mode,
+            lora_tap_layers=lora_tap_layers,
             lora_rank=lora_rank,
             lora_alpha=lora_alpha,
             sensor_hw=sensor_hw,
             backbone_hw=backbone_hw,
         )
+    if input_type in {"raw_ram_feature_adapter_lora", "raw_ram_rgb_feature_adapter_lora"}:
+        if input_type == "raw_ram_rgb_feature_adapter_lora":
+            model = RawRamRgbFeatureAdapterDepthModel(
+                dav2_model,
+                feature_keys=feature_keys,
+                adapter_dim=adapter_dim,
+                raw_ram_rgb_tail=raw_ram_rgb_tail,
+                sensor_hw=sensor_hw,
+                backbone_hw=backbone_hw,
+            )
+        else:
+            model = RawRamFeatureAdapterDepthModel(
+                dav2_model,
+                feature_keys=feature_keys,
+                adapter_dim=adapter_dim,
+                rgb_interface_mode=rgb_interface_mode,
+                rgb_residual_scale=rgb_residual_scale,
+                sensor_hw=sensor_hw,
+                backbone_hw=backbone_hw,
+            )
+        model.lora_block_mode = str(lora_block_mode)
+        model.lora_rank = int(lora_rank)
+        model.lora_alpha = float(lora_alpha)
+        model.lora_block_indices = apply_lora_to_vit(
+            model.dav2.pretrained,
+            block_mode=model.lora_block_mode,
+            tap_layers=() if lora_tap_layers is None else tuple(int(layer) for layer in lora_tap_layers),
+            rank=model.lora_rank,
+            alpha=model.lora_alpha,
+        )
+        return model
+    if input_type == "raw_ram_rgb_bridge_feature_adapter_lora":
+        model = RawRamRgbBridgeFeatureAdapterDepthModel(
+            dav2_model,
+            feature_keys=feature_keys,
+            bridge_feature_keys=bridge_feature_keys,
+            bridge_layers=bridge_layers,
+            bridge_source=bridge_source,
+            adapter_dim=adapter_dim,
+            raw_ram_rgb_tail=raw_ram_rgb_tail,
+            sensor_hw=sensor_hw,
+            backbone_hw=backbone_hw,
+        )
+        model.lora_block_mode = str(lora_block_mode)
+        model.lora_rank = int(lora_rank)
+        model.lora_alpha = float(lora_alpha)
+        model.lora_block_indices = apply_lora_to_vit(
+            model.dav2.pretrained,
+            block_mode=model.lora_block_mode,
+            tap_layers=() if lora_tap_layers is None else tuple(int(layer) for layer in lora_tap_layers),
+            rank=model.lora_rank,
+            alpha=model.lora_alpha,
+        )
+        return model
     return RawRamFeatureAdapterDepthModel(
         dav2_model,
         feature_keys=feature_keys,

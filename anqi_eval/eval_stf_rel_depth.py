@@ -101,8 +101,8 @@ def parse_args():
     parser.add_argument("--input-width", type=int, default=None)
     parser.add_argument("--min-depth", type=float, default=DEFAULT_MIN_DEPTH)
     parser.add_argument("--max-depth", type=float, default=DEFAULT_MAX_DEPTH)
-    parser.add_argument("--norm-mode", default="companded")
-    parser.add_argument("--stf-raw-decode-mode", default="legacy_companded", choices=STF_RAW_DECODE_MODES)
+    parser.add_argument("--norm-mode", default="passthrough")
+    parser.add_argument("--stf-raw-decode-mode", default="legacy_online_decomp16", choices=STF_RAW_DECODE_MODES)
     parser.add_argument("--channel-mode", default="rgb_avg_g")
     parser.add_argument("--bridge-source", default="ram_core", choices=["ram_core"])
     parser.add_argument(
