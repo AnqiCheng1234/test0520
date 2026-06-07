@@ -1,8 +1,8 @@
 # ROD Night RGB / RAW baseline 公平性汇总
 
-日期：2026-06-06
+日期：2026-06-07
 
-本文记录 `/home/caq/6666_raw/dav2_raw_0603` 当前 ROD-night formal validation 结果。当前主表覆盖 2026-06-04 / 2026-06-05 启动的 6 个 run；`0605_2346...` 仍在运行，结果栏暂留空。
+本文记录 `/home/caq/6666_raw/dav2_raw_0603` 当前 ROD-night formal validation 结果。当前主表覆盖 2026-06-04 / 2026-06-05 / 2026-06-06 启动的 8 个 run，均已完成。
 
 写作规约：指标表只放 formal eval log / json 中的数字；仍在运行的 run 不把 partial epoch 指标混入主指标表。
 
@@ -76,7 +76,7 @@
   - source log：`/home/caq/6666_raw/dav2_raw_0603/finetune_stf/exp/0605_2346_rod_night_studentrgb_dav2s_backbone_lowlr_ld09_e5/train.log`
   - tmux log：`/home/caq/6666_raw/dav2_raw_0603/finetune_stf/logs/0605_2346_rod_night_studentrgb_dav2s_backbone_lowlr_ld09_e5.tmux.log`
   - queue log：`/home/caq/6666_raw/dav2_raw_0603/finetune_stf/logs/0605_1332_rod_night_raw_ram_v1_e5.queue.log`
-  - running tmux session：`0605_1332_rod_night_raw_ram_v1_e5`
+  - queue status：`[END] 2026-06-06T02:50:27+08:00 status=0`
   - label：RGB-ref student RGB low-lr backbone LLRD 0.9
   - stage：`rod_only`
   - input：`rgb`，`dataset_family=rod_raw_student_rgb`，`dataset_input_mode=raw24_student_rgb`，`front_end=dav2_rgb`，`model_input_tensor=image`，`raw_storage_format=none`
@@ -84,7 +84,33 @@
   - trainable：DAv2-S full backbone + decoder，`backbone_layer_decay=0.9`，`lr=1e-6`，无 LoRA，epochs=5
   - train/eval split：ROD train `12036` samples，ROD night val `2000` samples
   - eval protocol：`rod_night_val` inverse-relative pseudo label protocol
-  - checkpoint：仍在运行；主表结果暂留空
+  - checkpoint：`best_model.pth` 按 `rod` abs_rel 保存，best epoch 为 epoch 1；`last_epoch_model.pth` 为 epoch 4
+- `0606_0330_rod_night_rawram3_identity_dav2s_ram_backbone_ld09_decoder_e10`
+  - source log：`/home/caq/6666_raw/dav2_raw_0603/finetune_stf/exp/0606_0330_rod_night_rawram3_identity_dav2s_ram_backbone_ld09_decoder_e10/train.log`
+  - tmux log：`/home/caq/6666_raw/dav2_raw_0603/finetune_stf/logs/0606_0330_rod_night_rawram3_identity_dav2s_ram_backbone_ld09_decoder_e10.tmux.log`
+  - queue log：`/home/caq/6666_raw/dav2_raw_0603/finetune_stf/logs/0606_0230_rod_night_rawram3_backbone_e10.queue.log`
+  - queue status：`[END] 2026-06-06T14:31:54+08:00 status=0`
+  - label：R3 raw RAM identity + full backbone LLRD 0.9 + decoder
+  - stage：`rod_only`
+  - input：`raw4`，`dataset_family=rod_raw`，`dataset_input_mode=raw_ram`，`front_end=raw_to_base_rgb_ram3`，`model_input_tensor=raw`，`raw_storage_format=none`
+  - path：同 `0605_1332`，ROD raw24 -> packed RGGB RAW4 -> RamCore3 -> `raw_ram_rgb_tail=identity` -> DAv2-S
+  - trainable：raw front-end + DAv2-S full backbone + decoder，`backbone_layer_decay=0.9`，`lr=1e-5`，`raw_front_end_lr=5e-5`，无 LoRA，epochs=10
+  - train/eval split：ROD train `12036` samples，ROD night val `2000` samples
+  - eval protocol：`rod_night_val` inverse-relative pseudo label protocol
+  - checkpoint：`best_model.pth` 按 `rod` abs_rel 保存，best epoch 为 epoch 3；`last_epoch_model.pth` 为 epoch 9
+- `0606_1431_rod_night_rawram3_identity_dav2s_ram_backbone_lowlr_ld09_e10`
+  - source log：`/home/caq/6666_raw/dav2_raw_0603/finetune_stf/exp/0606_1431_rod_night_rawram3_identity_dav2s_ram_backbone_lowlr_ld09_e10/train.log`
+  - tmux log：`/home/caq/6666_raw/dav2_raw_0603/finetune_stf/logs/0606_1431_rod_night_rawram3_identity_dav2s_ram_backbone_lowlr_ld09_e10.tmux.log`
+  - queue log：`/home/caq/6666_raw/dav2_raw_0603/finetune_stf/logs/0606_0230_rod_night_rawram3_backbone_e10.queue.log`
+  - queue status：`[END] 2026-06-07T01:17:46+08:00 status=0`
+  - label：R4 raw RAM identity + low-lr full backbone LLRD 0.9 + decoder
+  - stage：`rod_only`
+  - input：`raw4`，`dataset_family=rod_raw`，`dataset_input_mode=raw_ram`，`front_end=raw_to_base_rgb_ram3`，`model_input_tensor=raw`，`raw_storage_format=none`
+  - path：同 `0605_1332`，ROD raw24 -> packed RGGB RAW4 -> RamCore3 -> `raw_ram_rgb_tail=identity` -> DAv2-S
+  - trainable：raw front-end + DAv2-S full backbone + decoder，`backbone_layer_decay=0.9`，backbone / decoder `lr=1e-6`，`raw_front_end_lr=5e-5`，无 LoRA，epochs=10
+  - train/eval split：ROD train `12036` samples，ROD night val `2000` samples
+  - eval protocol：`rod_night_val` inverse-relative pseudo label protocol
+  - checkpoint：`best_model.pth` 按 `rod` abs_rel 保存，best epoch 为 epoch 7；`last_epoch_model.pth` 为 epoch 9
 
 baseline/control 行：
 
@@ -106,22 +132,23 @@ run-row 数据源优先级：
 |---|---|---:|---:|---:|---:|---:|---:|---|
 | `0604_0752...studentrgb...decoder_e10` | Student RGB；DAv2-S decoder-only baseline | 13.5764 / 0.7617 | 9.1288 (e2) | 10.3904 | 0.8015 (e7) | 0.7995 | -4.4476 | 0604 baseline；decoder-only 可以优于 init，但弱于后续 LoRA / full-backbone 设置。 |
 | `0605_0139...lora_tap...decoder_e10` | Student RGB；DAv2-S decoder + LoRA tap r8/a16 | 13.5764 / 0.7617 | 8.3252 (e2) | 10.7638 | 0.8251 (e7) | 0.8216 | -5.2512 | RGB LoRA 明显优于 init，但 abs_rel best 出现在早期；last 已回退。 |
-| `0605_0730...backbone_ld09_decoder_e10` | Student RGB；full backbone LLRD 0.9 + decoder | 13.5786 / 0.7617 | **5.8880 (e3)** | **8.0998** | **0.8483 (e8)** | **0.8471** | **-7.6906** | 当前已完成 run 中 abs_rel / d1 最强；best abs_rel 与 best d1 不在同一 epoch。 |
+| `0605_0730...backbone_ld09_decoder_e10` | Student RGB；full backbone LLRD 0.9 + decoder | 13.5786 / 0.7617 | 5.8880 (e3) | 8.0998 | 0.8483 (e8) | 0.8471 | -7.6906 | RGB-path 中 abs_rel / d1 最强；best abs_rel 与 best d1 不在同一 epoch。 |
+| `0605_2346...studentrgb...backbone_lowlr_ld09_e5` | Student RGB；full backbone LLRD 0.9 + decoder，`lr=1e-6` | 13.5739 / 0.7617 | 8.4721 (e1) | 9.9882 | 0.8274 (e1) | 0.8231 | -5.1018 | low-lr full-backbone 优于 decoder-only baseline，但 abs_rel 略弱于 RGB LoRA，明显弱于 `0605_0730`。 |
 | `0605_1332...rawram3_identity...decoder_e5` | RAW4 -> RamCore3 identity；raw front-end + decoder | 130.3805 / 0.2722 | 5.9413 (e2) | 6.7567 | 0.8303 (e4) | 0.8303 | -124.4392 | abs_rel 接近 `0605_0730`，但 init 不是公共 RGB D0；last 优于 R2 raw LoRA。 |
 | `0605_1844...rawram3_identity...lora_tap...decoder_e5` | RAW4 -> RamCore3 identity；raw front-end + decoder + LoRA tap | 130.3823 / 0.2722 | 7.3929 (e1) | 9.4693 | 0.8362 (e3) | 0.8287 | -122.9894 | raw-RAM + LoRA 的 abs_rel 弱于 raw-RAM decoder-only；d1 best 略高于 R1，但 last 回退。 |
-| `0605_2346...studentrgb...backbone_lowlr_ld09_e5` | Student RGB；full backbone LLRD 0.9 + decoder，`lr=1e-6` | 13.5739 / 0.7617 | pending | pending | pending | pending | pending | 仍在运行；partial epoch 指标不进入主表。 |
+| `0606_0330...rawram3_identity...backbone_ld09_decoder_e10` | RAW4 -> RamCore3 identity；raw front-end + full backbone LLRD 0.9 + decoder | 130.3823 / 0.2722 | **4.2575 (e3)** | **5.5728** | **0.8700 (e9)** | **0.8700** | -126.1248 | 当前 ROD-night best；best abs_rel 在 e3，d1 / last 在 e9，raw init 仍不等同 RGB D0。 |
+| `0606_1431...rawram3_identity...backbone_lowlr_ld09_e10` | RAW4 -> RamCore3 identity；raw front-end + low-lr full backbone LLRD 0.9 + decoder | 130.3823 / 0.2722 | 6.4195 (e7) | 6.4649 | 0.8574 (e6) | 0.8562 | -123.9628 | backbone/decoder `lr=1e-6`，raw front-end 仍为 `5e-5`；弱于 `0606_0330`，last 接近 best。 |
 
-注：epoch 为训练代码的 0-based epoch 号。`0605_2346` 在 2026-06-06 00:40 CST 仍由 tmux session `0605_1332_rod_night_raw_ram_v1_e5` 持续运行；表内未使用其 epoch 0 partial result。
+注：epoch 为训练代码的 0-based epoch 号。`0605_2346` 已在 2026-06-06 02:50:27 CST 正常结束；`0606_0330` 已在 2026-06-06 14:31:54 CST 正常结束；`0606_1431` 已在 2026-06-07 01:17:46 CST 正常结束。
 
 ### 1.2 其他 eval / region metrics
 
-当前 6 个 run 未启用 KITTI / NYU / STF cross-dataset eval，也没有对应 region metric 重算表。本文暂不新增空的跨域指标表，避免把不同协议的后续结果误读为已完成 formal eval。
+当前 8 个 run 未启用 KITTI / NYU / STF cross-dataset eval，也没有对应 region metric 重算表。本文暂不新增空的跨域指标表，避免把不同协议的后续结果误读为已完成 formal eval。
 
 ## 2. 当前结论
 
-- 当前已完成 run 中，`0605_0730` Student RGB full-backbone LLRD 0.9 + decoder 是 ROD-night inverse-relative val 最强项：`abs_rel=5.8880`，`d1=0.8483`。
-- `0604_0752` Student RGB decoder-only baseline 的 best abs_rel 为 `9.1288`；`0605_0139` RGB LoRA 将 best abs_rel 推到 `8.3252`，但仍明显弱于 `0605_0730` full-backbone。
-- `0605_1332` RAW-RAM identity decoder-only 的 best abs_rel 为 `5.9413`，非常接近 `0605_0730`，但其 init baseline 与 RGB-path init 不同，不能用 raw init 的巨大 delta 直接证明 RAW cue 优于 RGB cue。
+- 当前 8 个 run 中，`0606_0330` RAW-RAM identity + full-backbone LLRD 0.9 + decoder 是 ROD-night inverse-relative val 最强项：`abs_rel=4.2575`，`d1=0.8700`；但它的 init baseline 仍是 RAW-RAM-path init，不能和 RGB-path DAv2-S init 的 delta 直接比较。
+- RGB 路径上，`0604_0752` decoder-only baseline 的 best abs_rel 为 `9.1288`；`0605_0139` RGB LoRA 为 `8.3252`；`0605_2346` low-lr full-backbone 为 `8.4721`。低学习率 full-backbone 优于 decoder-only，但未复现 `0605_0730` 的 full-backbone 收益。
+- RAW-RAM 路径上，`0605_1332` decoder-only 的 best abs_rel 为 `5.9413`；`0606_0330` full-backbone 进一步降到 `4.2575`；`0606_1431` low-lr full-backbone 为 `6.4195`，弱于正常 lr full-backbone，也略弱于 RAW-RAM decoder-only。
 - LoRA 在这批设置里没有成为更强项：RGB LoRA `0605_0139` 弱于 RGB full-backbone `0605_0730`；RAW-RAM LoRA `0605_1844` 的 abs_rel 弱于 RAW-RAM decoder-only `0605_1332`。
-- 已完成 run 的 best abs_rel 多数早于 last epoch；比较时应优先使用 `best_model.pth` 对应 epoch，而不是 `last_epoch_model.pth`。
-- `0605_2346` 是低学习率 RGB-ref，仍在运行；等其 queue log 出现 `[END] ... status=0` 后再补主表结果和结论。
+- 已完成 run 的 best abs_rel 多数早于 last epoch；`0606_0330` best abs_rel 在 epoch 3，但 last epoch 仍保持当前最强的 last 指标。比较时应优先使用 `best_model.pth` 对应 epoch，同时保留 last epoch 作为稳定性参考。
