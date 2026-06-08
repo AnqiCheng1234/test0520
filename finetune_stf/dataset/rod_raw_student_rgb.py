@@ -34,9 +34,9 @@ from finetune_stf.dataset.rod_raw_rgb import (
 from finetune_stf.dataset.transform import NormalizeImage, PrepareForNet
 
 
-DEFAULT_ROD_ROOT = "/mnt/drive/3333_raw/ROD"
+DEFAULT_ROD_ROOT = "/home/caq/6666_raw/0000_dataset/ROD"
 DEFAULT_ROD_NIGHT_TEACHER_MANIFEST = (
-    "/mnt/drive/3333_raw/ROD/pseudo_depth_dav2l_night_teacherbright_rel_1440x928/"
+    "/home/caq/6666_raw/0000_dataset/ROD/pseudo_depth_dav2l_night_teacherbright_rel_1440x928/"
     "rod_night_dav2_rel_manifest.csv"
 )
 ROD_REQUIRED_COLUMNS = (

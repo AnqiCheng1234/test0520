@@ -1,0 +1,1168 @@
+{
+  "distance_definition": "nearest_pair_distance = abs(val.normal_id - train.normal_id) / 2",
+  "manifest_path": "/home/caq/6666_raw/0000_dataset/LOD/pseudo_depth_dav2l_rgb_normal_rel_1200x800/lod_true_rgb_normal_dav2l_rel_manifest.csv",
+  "nearest_id_distance_summary": {
+    "max": 2.0,
+    "mean": 2.0,
+    "min": 2.0,
+    "p1": 2.0,
+    "p10": 2.0,
+    "p5": 2.0,
+    "p50": 2.0,
+    "p90": 2.0,
+    "p95": 2.0,
+    "p99": 2.0
+  },
+  "nearest_pair_distance_summary": {
+    "max": 1.0,
+    "mean": 1.0,
+    "min": 1.0,
+    "p1": 1.0,
+    "p10": 1.0,
+    "p5": 1.0,
+    "p50": 1.0,
+    "p90": 1.0,
+    "p95": 1.0,
+    "p99": 1.0
+  },
+  "records": [
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 52,
+      "nearest_train_normal_id": 51,
+      "nearest_train_pair_id": "lod-0051-0052",
+      "val_dark_id": 54,
+      "val_normal_id": 53,
+      "val_pair_id": "lod-0053-0054"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 94,
+      "nearest_train_normal_id": 93,
+      "nearest_train_pair_id": "lod-0093-0094",
+      "val_dark_id": 96,
+      "val_normal_id": 95,
+      "val_pair_id": "lod-0095-0096"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 204,
+      "nearest_train_normal_id": 203,
+      "nearest_train_pair_id": "lod-0203-0204",
+      "val_dark_id": 206,
+      "val_normal_id": 205,
+      "val_pair_id": "lod-0205-0206"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 216,
+      "nearest_train_normal_id": 215,
+      "nearest_train_pair_id": "lod-0215-0216",
+      "val_dark_id": 218,
+      "val_normal_id": 217,
+      "val_pair_id": "lod-0217-0218"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 244,
+      "nearest_train_normal_id": 243,
+      "nearest_train_pair_id": "lod-0243-0244",
+      "val_dark_id": 246,
+      "val_normal_id": 245,
+      "val_pair_id": "lod-0245-0246"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 260,
+      "nearest_train_normal_id": 259,
+      "nearest_train_pair_id": "lod-0259-0260",
+      "val_dark_id": 262,
+      "val_normal_id": 261,
+      "val_pair_id": "lod-0261-0262"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 266,
+      "nearest_train_normal_id": 265,
+      "nearest_train_pair_id": "lod-0265-0266",
+      "val_dark_id": 264,
+      "val_normal_id": 263,
+      "val_pair_id": "lod-0263-0264"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 354,
+      "nearest_train_normal_id": 353,
+      "nearest_train_pair_id": "lod-0353-0354",
+      "val_dark_id": 356,
+      "val_normal_id": 355,
+      "val_pair_id": "lod-0355-0356"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 374,
+      "nearest_train_normal_id": 373,
+      "nearest_train_pair_id": "lod-0373-0374",
+      "val_dark_id": 376,
+      "val_normal_id": 375,
+      "val_pair_id": "lod-0375-0376"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 384,
+      "nearest_train_normal_id": 383,
+      "nearest_train_pair_id": "lod-0383-0384",
+      "val_dark_id": 386,
+      "val_normal_id": 385,
+      "val_pair_id": "lod-0385-0386"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 458,
+      "nearest_train_normal_id": 457,
+      "nearest_train_pair_id": "lod-0457-0458",
+      "val_dark_id": 460,
+      "val_normal_id": 459,
+      "val_pair_id": "lod-0459-0460"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 520,
+      "nearest_train_normal_id": 519,
+      "nearest_train_pair_id": "lod-0519-0520",
+      "val_dark_id": 522,
+      "val_normal_id": 521,
+      "val_pair_id": "lod-0521-0522"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 542,
+      "nearest_train_normal_id": 541,
+      "nearest_train_pair_id": "lod-0541-0542",
+      "val_dark_id": 544,
+      "val_normal_id": 543,
+      "val_pair_id": "lod-0543-0544"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 568,
+      "nearest_train_normal_id": 567,
+      "nearest_train_pair_id": "lod-0567-0568",
+      "val_dark_id": 570,
+      "val_normal_id": 569,
+      "val_pair_id": "lod-0569-0570"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 584,
+      "nearest_train_normal_id": 583,
+      "nearest_train_pair_id": "lod-0583-0584",
+      "val_dark_id": 586,
+      "val_normal_id": 585,
+      "val_pair_id": "lod-0585-0586"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 644,
+      "nearest_train_normal_id": 643,
+      "nearest_train_pair_id": "lod-0643-0644",
+      "val_dark_id": 646,
+      "val_normal_id": 645,
+      "val_pair_id": "lod-0645-0646"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 652,
+      "nearest_train_normal_id": 651,
+      "nearest_train_pair_id": "lod-0651-0652",
+      "val_dark_id": 654,
+      "val_normal_id": 653,
+      "val_pair_id": "lod-0653-0654"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 712,
+      "nearest_train_normal_id": 711,
+      "nearest_train_pair_id": "lod-0711-0712",
+      "val_dark_id": 714,
+      "val_normal_id": 713,
+      "val_pair_id": "lod-0713-0714"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 744,
+      "nearest_train_normal_id": 743,
+      "nearest_train_pair_id": "lod-0743-0744",
+      "val_dark_id": 746,
+      "val_normal_id": 745,
+      "val_pair_id": "lod-0745-0746"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 758,
+      "nearest_train_normal_id": 757,
+      "nearest_train_pair_id": "lod-0757-0758",
+      "val_dark_id": 760,
+      "val_normal_id": 759,
+      "val_pair_id": "lod-0759-0760"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 766,
+      "nearest_train_normal_id": 765,
+      "nearest_train_pair_id": "lod-0765-0766",
+      "val_dark_id": 768,
+      "val_normal_id": 767,
+      "val_pair_id": "lod-0767-0768"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 792,
+      "nearest_train_normal_id": 791,
+      "nearest_train_pair_id": "lod-0791-0792",
+      "val_dark_id": 794,
+      "val_normal_id": 793,
+      "val_pair_id": "lod-0793-0794"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 826,
+      "nearest_train_normal_id": 825,
+      "nearest_train_pair_id": "lod-0825-0826",
+      "val_dark_id": 828,
+      "val_normal_id": 827,
+      "val_pair_id": "lod-0827-0828"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 836,
+      "nearest_train_normal_id": 835,
+      "nearest_train_pair_id": "lod-0835-0836",
+      "val_dark_id": 838,
+      "val_normal_id": 837,
+      "val_pair_id": "lod-0837-0838"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 842,
+      "nearest_train_normal_id": 841,
+      "nearest_train_pair_id": "lod-0841-0842",
+      "val_dark_id": 840,
+      "val_normal_id": 839,
+      "val_pair_id": "lod-0839-0840"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 898,
+      "nearest_train_normal_id": 897,
+      "nearest_train_pair_id": "lod-0897-0898",
+      "val_dark_id": 900,
+      "val_normal_id": 899,
+      "val_pair_id": "lod-0899-0900"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 912,
+      "nearest_train_normal_id": 911,
+      "nearest_train_pair_id": "lod-0911-0912",
+      "val_dark_id": 914,
+      "val_normal_id": 913,
+      "val_pair_id": "lod-0913-0914"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 938,
+      "nearest_train_normal_id": 937,
+      "nearest_train_pair_id": "lod-0937-0938",
+      "val_dark_id": 940,
+      "val_normal_id": 939,
+      "val_pair_id": "lod-0939-0940"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 1022,
+      "nearest_train_normal_id": 1021,
+      "nearest_train_pair_id": "lod-1021-1022",
+      "val_dark_id": 1024,
+      "val_normal_id": 1023,
+      "val_pair_id": "lod-1023-1024"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 1132,
+      "nearest_train_normal_id": 1131,
+      "nearest_train_pair_id": "lod-1131-1132",
+      "val_dark_id": 1134,
+      "val_normal_id": 1133,
+      "val_pair_id": "lod-1133-1134"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 1142,
+      "nearest_train_normal_id": 1141,
+      "nearest_train_pair_id": "lod-1141-1142",
+      "val_dark_id": 1144,
+      "val_normal_id": 1143,
+      "val_pair_id": "lod-1143-1144"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 1170,
+      "nearest_train_normal_id": 1169,
+      "nearest_train_pair_id": "lod-1169-1170",
+      "val_dark_id": 1172,
+      "val_normal_id": 1171,
+      "val_pair_id": "lod-1171-1172"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 1252,
+      "nearest_train_normal_id": 1251,
+      "nearest_train_pair_id": "lod-1251-1252",
+      "val_dark_id": 1254,
+      "val_normal_id": 1253,
+      "val_pair_id": "lod-1253-1254"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 1272,
+      "nearest_train_normal_id": 1271,
+      "nearest_train_pair_id": "lod-1271-1272",
+      "val_dark_id": 1274,
+      "val_normal_id": 1273,
+      "val_pair_id": "lod-1273-1274"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 1306,
+      "nearest_train_normal_id": 1305,
+      "nearest_train_pair_id": "lod-1305-1306",
+      "val_dark_id": 1308,
+      "val_normal_id": 1307,
+      "val_pair_id": "lod-1307-1308"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 1310,
+      "nearest_train_normal_id": 1309,
+      "nearest_train_pair_id": "lod-1309-1310",
+      "val_dark_id": 1312,
+      "val_normal_id": 1311,
+      "val_pair_id": "lod-1311-1312"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 1332,
+      "nearest_train_normal_id": 1331,
+      "nearest_train_pair_id": "lod-1331-1332",
+      "val_dark_id": 1334,
+      "val_normal_id": 1333,
+      "val_pair_id": "lod-1333-1334"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 1338,
+      "nearest_train_normal_id": 1337,
+      "nearest_train_pair_id": "lod-1337-1338",
+      "val_dark_id": 1340,
+      "val_normal_id": 1339,
+      "val_pair_id": "lod-1339-1340"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 1400,
+      "nearest_train_normal_id": 1399,
+      "nearest_train_pair_id": "lod-1399-1400",
+      "val_dark_id": 1402,
+      "val_normal_id": 1401,
+      "val_pair_id": "lod-1401-1402"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 1574,
+      "nearest_train_normal_id": 1573,
+      "nearest_train_pair_id": "lod-1573-1574",
+      "val_dark_id": 1576,
+      "val_normal_id": 1575,
+      "val_pair_id": "lod-1575-1576"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 1628,
+      "nearest_train_normal_id": 1627,
+      "nearest_train_pair_id": "lod-1627-1628",
+      "val_dark_id": 1630,
+      "val_normal_id": 1629,
+      "val_pair_id": "lod-1629-1630"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 1716,
+      "nearest_train_normal_id": 1715,
+      "nearest_train_pair_id": "lod-1715-1716",
+      "val_dark_id": 1718,
+      "val_normal_id": 1717,
+      "val_pair_id": "lod-1717-1718"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 1728,
+      "nearest_train_normal_id": 1727,
+      "nearest_train_pair_id": "lod-1727-1728",
+      "val_dark_id": 1730,
+      "val_normal_id": 1729,
+      "val_pair_id": "lod-1729-1730"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 1740,
+      "nearest_train_normal_id": 1739,
+      "nearest_train_pair_id": "lod-1739-1740",
+      "val_dark_id": 1742,
+      "val_normal_id": 1741,
+      "val_pair_id": "lod-1741-1742"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 1762,
+      "nearest_train_normal_id": 1761,
+      "nearest_train_pair_id": "lod-1761-1762",
+      "val_dark_id": 1764,
+      "val_normal_id": 1763,
+      "val_pair_id": "lod-1763-1764"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 1790,
+      "nearest_train_normal_id": 1789,
+      "nearest_train_pair_id": "lod-1789-1790",
+      "val_dark_id": 1792,
+      "val_normal_id": 1791,
+      "val_pair_id": "lod-1791-1792"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 1796,
+      "nearest_train_normal_id": 1795,
+      "nearest_train_pair_id": "lod-1795-1796",
+      "val_dark_id": 1798,
+      "val_normal_id": 1797,
+      "val_pair_id": "lod-1797-1798"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 1802,
+      "nearest_train_normal_id": 1801,
+      "nearest_train_pair_id": "lod-1801-1802",
+      "val_dark_id": 1800,
+      "val_normal_id": 1799,
+      "val_pair_id": "lod-1799-1800"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 1804,
+      "nearest_train_normal_id": 1803,
+      "nearest_train_pair_id": "lod-1803-1804",
+      "val_dark_id": 1806,
+      "val_normal_id": 1805,
+      "val_pair_id": "lod-1805-1806"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 1828,
+      "nearest_train_normal_id": 1827,
+      "nearest_train_pair_id": "lod-1827-1828",
+      "val_dark_id": 1830,
+      "val_normal_id": 1829,
+      "val_pair_id": "lod-1829-1830"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 1866,
+      "nearest_train_normal_id": 1865,
+      "nearest_train_pair_id": "lod-1865-1866",
+      "val_dark_id": 1868,
+      "val_normal_id": 1867,
+      "val_pair_id": "lod-1867-1868"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 1876,
+      "nearest_train_normal_id": 1875,
+      "nearest_train_pair_id": "lod-1875-1876",
+      "val_dark_id": 1878,
+      "val_normal_id": 1877,
+      "val_pair_id": "lod-1877-1878"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 1904,
+      "nearest_train_normal_id": 1903,
+      "nearest_train_pair_id": "lod-1903-1904",
+      "val_dark_id": 1906,
+      "val_normal_id": 1905,
+      "val_pair_id": "lod-1905-1906"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 1910,
+      "nearest_train_normal_id": 1909,
+      "nearest_train_pair_id": "lod-1909-1910",
+      "val_dark_id": 1908,
+      "val_normal_id": 1907,
+      "val_pair_id": "lod-1907-1908"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 2004,
+      "nearest_train_normal_id": 2003,
+      "nearest_train_pair_id": "lod-2003-2004",
+      "val_dark_id": 2006,
+      "val_normal_id": 2005,
+      "val_pair_id": "lod-2005-2006"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 2010,
+      "nearest_train_normal_id": 2009,
+      "nearest_train_pair_id": "lod-2009-2010",
+      "val_dark_id": 2008,
+      "val_normal_id": 2007,
+      "val_pair_id": "lod-2007-2008"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 2020,
+      "nearest_train_normal_id": 2019,
+      "nearest_train_pair_id": "lod-2019-2020",
+      "val_dark_id": 2022,
+      "val_normal_id": 2021,
+      "val_pair_id": "lod-2021-2022"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 2058,
+      "nearest_train_normal_id": 2057,
+      "nearest_train_pair_id": "lod-2057-2058",
+      "val_dark_id": 2060,
+      "val_normal_id": 2059,
+      "val_pair_id": "lod-2059-2060"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 2152,
+      "nearest_train_normal_id": 2151,
+      "nearest_train_pair_id": "lod-2151-2152",
+      "val_dark_id": 2154,
+      "val_normal_id": 2153,
+      "val_pair_id": "lod-2153-2154"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 2166,
+      "nearest_train_normal_id": 2165,
+      "nearest_train_pair_id": "lod-2165-2166",
+      "val_dark_id": 2168,
+      "val_normal_id": 2167,
+      "val_pair_id": "lod-2167-2168"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 2172,
+      "nearest_train_normal_id": 2171,
+      "nearest_train_pair_id": "lod-2171-2172",
+      "val_dark_id": 2170,
+      "val_normal_id": 2169,
+      "val_pair_id": "lod-2169-2170"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 2184,
+      "nearest_train_normal_id": 2183,
+      "nearest_train_pair_id": "lod-2183-2184",
+      "val_dark_id": 2186,
+      "val_normal_id": 2185,
+      "val_pair_id": "lod-2185-2186"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 2190,
+      "nearest_train_normal_id": 2189,
+      "nearest_train_pair_id": "lod-2189-2190",
+      "val_dark_id": 2188,
+      "val_normal_id": 2187,
+      "val_pair_id": "lod-2187-2188"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 2192,
+      "nearest_train_normal_id": 2191,
+      "nearest_train_pair_id": "lod-2191-2192",
+      "val_dark_id": 2194,
+      "val_normal_id": 2193,
+      "val_pair_id": "lod-2193-2194"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 2210,
+      "nearest_train_normal_id": 2209,
+      "nearest_train_pair_id": "lod-2209-2210",
+      "val_dark_id": 2212,
+      "val_normal_id": 2211,
+      "val_pair_id": "lod-2211-2212"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 2252,
+      "nearest_train_normal_id": 2251,
+      "nearest_train_pair_id": "lod-2251-2252",
+      "val_dark_id": 2254,
+      "val_normal_id": 2253,
+      "val_pair_id": "lod-2253-2254"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 2276,
+      "nearest_train_normal_id": 2275,
+      "nearest_train_pair_id": "lod-2275-2276",
+      "val_dark_id": 2278,
+      "val_normal_id": 2277,
+      "val_pair_id": "lod-2277-2278"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 2282,
+      "nearest_train_normal_id": 2281,
+      "nearest_train_pair_id": "lod-2281-2282",
+      "val_dark_id": 2280,
+      "val_normal_id": 2279,
+      "val_pair_id": "lod-2279-2280"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 2370,
+      "nearest_train_normal_id": 2369,
+      "nearest_train_pair_id": "lod-2369-2370",
+      "val_dark_id": 2372,
+      "val_normal_id": 2371,
+      "val_pair_id": "lod-2371-2372"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 2400,
+      "nearest_train_normal_id": 2399,
+      "nearest_train_pair_id": "lod-2399-2400",
+      "val_dark_id": 2402,
+      "val_normal_id": 2401,
+      "val_pair_id": "lod-2401-2402"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 2404,
+      "nearest_train_normal_id": 2403,
+      "nearest_train_pair_id": "lod-2403-2404",
+      "val_dark_id": 2406,
+      "val_normal_id": 2405,
+      "val_pair_id": "lod-2405-2406"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 2576,
+      "nearest_train_normal_id": 2575,
+      "nearest_train_pair_id": "lod-2575-2576",
+      "val_dark_id": 2578,
+      "val_normal_id": 2577,
+      "val_pair_id": "lod-2577-2578"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 2584,
+      "nearest_train_normal_id": 2583,
+      "nearest_train_pair_id": "lod-2583-2584",
+      "val_dark_id": 2586,
+      "val_normal_id": 2585,
+      "val_pair_id": "lod-2585-2586"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 2656,
+      "nearest_train_normal_id": 2655,
+      "nearest_train_pair_id": "lod-2655-2656",
+      "val_dark_id": 2658,
+      "val_normal_id": 2657,
+      "val_pair_id": "lod-2657-2658"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 2756,
+      "nearest_train_normal_id": 2755,
+      "nearest_train_pair_id": "lod-2755-2756",
+      "val_dark_id": 2758,
+      "val_normal_id": 2757,
+      "val_pair_id": "lod-2757-2758"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 2786,
+      "nearest_train_normal_id": 2785,
+      "nearest_train_pair_id": "lod-2785-2786",
+      "val_dark_id": 2788,
+      "val_normal_id": 2787,
+      "val_pair_id": "lod-2787-2788"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 2816,
+      "nearest_train_normal_id": 2815,
+      "nearest_train_pair_id": "lod-2815-2816",
+      "val_dark_id": 2818,
+      "val_normal_id": 2817,
+      "val_pair_id": "lod-2817-2818"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 2910,
+      "nearest_train_normal_id": 2909,
+      "nearest_train_pair_id": "lod-2909-2910",
+      "val_dark_id": 2912,
+      "val_normal_id": 2911,
+      "val_pair_id": "lod-2911-2912"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 2940,
+      "nearest_train_normal_id": 2939,
+      "nearest_train_pair_id": "lod-2939-2940",
+      "val_dark_id": 2942,
+      "val_normal_id": 2941,
+      "val_pair_id": "lod-2941-2942"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 2962,
+      "nearest_train_normal_id": 2961,
+      "nearest_train_pair_id": "lod-2961-2962",
+      "val_dark_id": 2964,
+      "val_normal_id": 2963,
+      "val_pair_id": "lod-2963-2964"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 2968,
+      "nearest_train_normal_id": 2967,
+      "nearest_train_pair_id": "lod-2967-2968",
+      "val_dark_id": 2966,
+      "val_normal_id": 2965,
+      "val_pair_id": "lod-2965-2966"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 2988,
+      "nearest_train_normal_id": 2987,
+      "nearest_train_pair_id": "lod-2987-2988",
+      "val_dark_id": 2990,
+      "val_normal_id": 2989,
+      "val_pair_id": "lod-2989-2990"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 3032,
+      "nearest_train_normal_id": 3031,
+      "nearest_train_pair_id": "lod-3031-3032",
+      "val_dark_id": 3034,
+      "val_normal_id": 3033,
+      "val_pair_id": "lod-3033-3034"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 3100,
+      "nearest_train_normal_id": 3099,
+      "nearest_train_pair_id": "lod-3099-3100",
+      "val_dark_id": 3102,
+      "val_normal_id": 3101,
+      "val_pair_id": "lod-3101-3102"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 3108,
+      "nearest_train_normal_id": 3107,
+      "nearest_train_pair_id": "lod-3107-3108",
+      "val_dark_id": 3110,
+      "val_normal_id": 3109,
+      "val_pair_id": "lod-3109-3110"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 3112,
+      "nearest_train_normal_id": 3111,
+      "nearest_train_pair_id": "lod-3111-3112",
+      "val_dark_id": 3114,
+      "val_normal_id": 3113,
+      "val_pair_id": "lod-3113-3114"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 3126,
+      "nearest_train_normal_id": 3125,
+      "nearest_train_pair_id": "lod-3125-3126",
+      "val_dark_id": 3128,
+      "val_normal_id": 3127,
+      "val_pair_id": "lod-3127-3128"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 3152,
+      "nearest_train_normal_id": 3151,
+      "nearest_train_pair_id": "lod-3151-3152",
+      "val_dark_id": 3154,
+      "val_normal_id": 3153,
+      "val_pair_id": "lod-3153-3154"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 3240,
+      "nearest_train_normal_id": 3239,
+      "nearest_train_pair_id": "lod-3239-3240",
+      "val_dark_id": 3242,
+      "val_normal_id": 3241,
+      "val_pair_id": "lod-3241-3242"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 3270,
+      "nearest_train_normal_id": 3269,
+      "nearest_train_pair_id": "lod-3269-3270",
+      "val_dark_id": 3272,
+      "val_normal_id": 3271,
+      "val_pair_id": "lod-3271-3272"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 3286,
+      "nearest_train_normal_id": 3285,
+      "nearest_train_pair_id": "lod-3285-3286",
+      "val_dark_id": 3288,
+      "val_normal_id": 3287,
+      "val_pair_id": "lod-3287-3288"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 3436,
+      "nearest_train_normal_id": 3435,
+      "nearest_train_pair_id": "lod-3435-3436",
+      "val_dark_id": 3438,
+      "val_normal_id": 3437,
+      "val_pair_id": "lod-3437-3438"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 3456,
+      "nearest_train_normal_id": 3455,
+      "nearest_train_pair_id": "lod-3455-3456",
+      "val_dark_id": 3458,
+      "val_normal_id": 3457,
+      "val_pair_id": "lod-3457-3458"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 3462,
+      "nearest_train_normal_id": 3461,
+      "nearest_train_pair_id": "lod-3461-3462",
+      "val_dark_id": 3460,
+      "val_normal_id": 3459,
+      "val_pair_id": "lod-3459-3460"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 3462,
+      "nearest_train_normal_id": 3461,
+      "nearest_train_pair_id": "lod-3461-3462",
+      "val_dark_id": 3464,
+      "val_normal_id": 3463,
+      "val_pair_id": "lod-3463-3464"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 3508,
+      "nearest_train_normal_id": 3507,
+      "nearest_train_pair_id": "lod-3507-3508",
+      "val_dark_id": 3510,
+      "val_normal_id": 3509,
+      "val_pair_id": "lod-3509-3510"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 3560,
+      "nearest_train_normal_id": 3559,
+      "nearest_train_pair_id": "lod-3559-3560",
+      "val_dark_id": 3562,
+      "val_normal_id": 3561,
+      "val_pair_id": "lod-3561-3562"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 3678,
+      "nearest_train_normal_id": 3677,
+      "nearest_train_pair_id": "lod-3677-3678",
+      "val_dark_id": 3680,
+      "val_normal_id": 3679,
+      "val_pair_id": "lod-3679-3680"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 3714,
+      "nearest_train_normal_id": 3713,
+      "nearest_train_pair_id": "lod-3713-3714",
+      "val_dark_id": 3716,
+      "val_normal_id": 3715,
+      "val_pair_id": "lod-3715-3716"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 3758,
+      "nearest_train_normal_id": 3757,
+      "nearest_train_pair_id": "lod-3757-3758",
+      "val_dark_id": 3760,
+      "val_normal_id": 3759,
+      "val_pair_id": "lod-3759-3760"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 3762,
+      "nearest_train_normal_id": 3761,
+      "nearest_train_pair_id": "lod-3761-3762",
+      "val_dark_id": 3764,
+      "val_normal_id": 3763,
+      "val_pair_id": "lod-3763-3764"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 3786,
+      "nearest_train_normal_id": 3785,
+      "nearest_train_pair_id": "lod-3785-3786",
+      "val_dark_id": 3788,
+      "val_normal_id": 3787,
+      "val_pair_id": "lod-3787-3788"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 3834,
+      "nearest_train_normal_id": 3833,
+      "nearest_train_pair_id": "lod-3833-3834",
+      "val_dark_id": 3836,
+      "val_normal_id": 3835,
+      "val_pair_id": "lod-3835-3836"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 4042,
+      "nearest_train_normal_id": 4041,
+      "nearest_train_pair_id": "lod-4041-4042",
+      "val_dark_id": 4044,
+      "val_normal_id": 4043,
+      "val_pair_id": "lod-4043-4044"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 4088,
+      "nearest_train_normal_id": 4087,
+      "nearest_train_pair_id": "lod-4087-4088",
+      "val_dark_id": 4090,
+      "val_normal_id": 4089,
+      "val_pair_id": "lod-4089-4090"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 4138,
+      "nearest_train_normal_id": 4137,
+      "nearest_train_pair_id": "lod-4137-4138",
+      "val_dark_id": 4140,
+      "val_normal_id": 4139,
+      "val_pair_id": "lod-4139-4140"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 4174,
+      "nearest_train_normal_id": 4173,
+      "nearest_train_pair_id": "lod-4173-4174",
+      "val_dark_id": 4176,
+      "val_normal_id": 4175,
+      "val_pair_id": "lod-4175-4176"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 4396,
+      "nearest_train_normal_id": 4395,
+      "nearest_train_pair_id": "lod-4395-4396",
+      "val_dark_id": 4398,
+      "val_normal_id": 4397,
+      "val_pair_id": "lod-4397-4398"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 4408,
+      "nearest_train_normal_id": 4407,
+      "nearest_train_pair_id": "lod-4407-4408",
+      "val_dark_id": 4410,
+      "val_normal_id": 4409,
+      "val_pair_id": "lod-4409-4410"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 4414,
+      "nearest_train_normal_id": 4413,
+      "nearest_train_pair_id": "lod-4413-4414",
+      "val_dark_id": 4412,
+      "val_normal_id": 4411,
+      "val_pair_id": "lod-4411-4412"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 4448,
+      "nearest_train_normal_id": 4447,
+      "nearest_train_pair_id": "lod-4447-4448",
+      "val_dark_id": 4450,
+      "val_normal_id": 4449,
+      "val_pair_id": "lod-4449-4450"
+    },
+    {
+      "nearest_id_distance": 2,
+      "nearest_pair_distance": 1.0,
+      "nearest_train_dark_id": 4458,
+      "nearest_train_normal_id": 4457,
+      "nearest_train_pair_id": "lod-4457-4458",
+      "val_dark_id": 4460,
+      "val_normal_id": 4459,
+      "val_pair_id": "lod-4459-4460"
+    }
+  ],
+  "train_count": 2118,
+  "val_count": 112,
+  "val_within_k_pairs": {
+    "1": 112,
+    "10": 112,
+    "2": 112,
+    "20": 112,
+    "5": 112,
+    "50": 112
+  },
+  "val_within_k_pairs_fraction": {
+    "1": 1.0,
+    "10": 1.0,
+    "2": 1.0,
+    "20": 1.0,
+    "5": 1.0,
+    "50": 1.0
+  }
+}

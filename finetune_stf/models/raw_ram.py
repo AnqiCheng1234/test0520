@@ -181,6 +181,7 @@ RAW_RAM_BRIDGE_FEATURE_CHANNELS = {
 }
 RAW_RAM_RGB_LORA_INPUT_TYPES = ("raw_ram_rgb_lora",)
 RAW_RAM_RGB_INPUT_TYPES = ("raw_ram_rgb", *RAW_RAM_RGB_LORA_INPUT_TYPES)
+RAW_RGB16_RAM3_INPUT_TYPES = ("raw_rgb16_ram3", "lod_true_raw_dark_rgb16")
 RAW_RAM_RGB_BRIDGE_FEATURE_CHANNELS = {
     "x_cat": 12,
     "ffm_mid": 64,
@@ -615,6 +616,71 @@ class RawToBaseRgbRam3DepthModel(nn.Module):
         return status
 
 
+class RawRgb16Ram3DepthModel(nn.Module):
+    """
+    True-LOD 3-channel uint16 RAW front-end:
+        raw_rgb16_3ch -> RamCore3 BN output
+        -> optional tail -> center pad -> frozen DAv2 -> center crop depth
+
+    Unlike RawToBaseRgbRam3DepthModel, this wrapper does not project Bayer
+    channels. The dataset has already reordered OpenCV BGR PNG input to model
+    RGB channel order.
+    """
+
+    def __init__(
+        self,
+        dav2_model,
+        *,
+        sensor_hw=SENSOR_INPUT_HW,
+        backbone_hw=BACKBONE_INPUT_HW,
+        raw_ram_rgb_tail="identity",
+    ):
+        super().__init__()
+        raw_ram_rgb_tail = str(raw_ram_rgb_tail)
+        if raw_ram_rgb_tail not in RAW_RAM_RGB_TAIL_CHOICES:
+            raise ValueError(
+                f"Unsupported raw_ram_rgb_tail={raw_ram_rgb_tail!r}; "
+                f"expected one of {RAW_RAM_RGB_TAIL_CHOICES}"
+            )
+        self.front_end = "raw_rgb16_ram3"
+        self.ram_core_type = "RamCore3"
+        self.imagenet_norm_enabled = False
+        self.uses_base_rgb = False
+        self.uses_clamp = False
+        self.ram_core = RamCore3()
+        self.dav2 = dav2_model
+        self.raw_ram_rgb_tail = raw_ram_rgb_tail
+        _register_imagenet_stats(self)
+        self.spatial_adapter = CenterPadCropAdapter(sensor_hw=sensor_hw, backbone_hw=backbone_hw)
+
+    def forward(self, x_raw):
+        if x_raw.shape[1] != 3:
+            raise ValueError(f"RawRgb16Ram3DepthModel expects 3 input channels, got {x_raw.shape[1]}")
+        x3 = self.ram_core(x_raw)
+        if self.raw_ram_rgb_tail == "tanh2p5":
+            x3 = phase1b_tanh_tail_squash(x3)
+        x_norm = self.spatial_adapter.pad_rgb(x3)
+        depth = self.dav2(x_norm)
+        return self.spatial_adapter.crop_depth(depth)
+
+    def load_base_dav2_state_dict(self, state_dict):
+        from finetune_stf.models.lora_bridge import _remap_state_dict_for_lora_modules
+
+        compatible = _remap_state_dict_for_lora_modules(self.dav2, state_dict)
+        status = self.dav2.load_state_dict(compatible, strict=False)
+        missing = [
+            key
+            for key in status.missing_keys
+            if ".lora_A." not in key and ".lora_B." not in key
+        ]
+        if missing or status.unexpected_keys:
+            raise RuntimeError(
+                "Failed to load compatible DAv2 base weights for raw_rgb16_ram3 model: "
+                f"missing_non_lora={missing}, unexpected={status.unexpected_keys}"
+            )
+        return status
+
+
 class RawRamRgbDepthModel(RawToBaseRgbRam3DepthModel):
     """Backward-compatible alias. Prefer RawToBaseRgbRam3DepthModel."""
 
@@ -708,6 +774,19 @@ def build_raw_ram_depth_model(
                 f"got input_type={input_type}"
             )
         return RawToBaseRgbRam3DepthModel(
+            dav2_model,
+            sensor_hw=sensor_hw,
+            backbone_hw=backbone_hw,
+            raw_ram_rgb_tail=raw_ram_rgb_tail,
+        )
+
+    if front_end == "raw_rgb16_ram3":
+        if input_type not in RAW_RGB16_RAM3_INPUT_TYPES:
+            raise ValueError(
+                f"front_end={front_end} requires input_type in {RAW_RGB16_RAM3_INPUT_TYPES}; "
+                f"got input_type={input_type}"
+            )
+        return RawRgb16Ram3DepthModel(
             dav2_model,
             sensor_hw=sensor_hw,
             backbone_hw=backbone_hw,

@@ -18,7 +18,7 @@ import torch.backends.cudnn as cudnn
 import torch.distributed as dist
 import torch.nn.functional as F
 from torch.optim import AdamW
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset
 from torch.utils.data.distributed import DistributedSampler
 from torch.utils.tensorboard import SummaryWriter
 
@@ -54,6 +54,15 @@ from finetune_stf.dataset.lod_raw import (
     DEFAULT_LOD_DAY_MANIFEST,
     DEFAULT_LOD_NIGHT_MANIFEST,
     DEFAULT_LOD_ROOT,
+)
+from finetune_stf.dataset.lod_aug import LODAugConfig, LODAUG_PRESETS
+from finetune_stf.dataset.lod_true import (
+    DEFAULT_LOD_TRUE_MANIFEST,
+    DEFAULT_LOD_TRUE_ROOT,
+    LOD_RAW_RGB16_NORM_MODE,
+    LOD_RAW_RGB16_STORAGE_FORMAT,
+    LODTrueRGBDark,
+    LODTrueRawDarkRGB16,
 )
 from finetune_stf.dataset.nyu_eval import DEFAULT_NYU_DIR, NYUv2Eval
 from finetune_stf.dataset.rod_raw_rgb import DEGREEN_GAINS, STUDENT_GAMMA, STUDENT_WHITE_PERCENTILE
@@ -119,6 +128,7 @@ from finetune_stf.models.raw_ram import (
     RAW_RAM_RGB_INPUT_TYPES,
     RAW_RAM_RGB_LORA_INPUT_TYPES,
     RAW_RAM_RGB_TAIL_CHOICES,
+    RAW_RGB16_RAM3_INPUT_TYPES,
     RGB_INTERFACE_HEAD_MODE_CHOICES,
     build_raw_ram_depth_model,
 )
@@ -194,7 +204,18 @@ ROBOTCAR_FAST_EVAL_BACKEND_CHOICES = ROBOTCAR_FAST_EVAL_BACKENDS
 DEFAULT_ROBOTCAR_NIGHT_ROOT = "/mnt/drive/3333_raw/robotcar_raw_depth_lms_front_480640_night_2runs_vo"
 DEFAULT_ROBOTCAR_NIGHT_MANIFEST_NAME = "robotcar_raw_depth_v1_val_balanced250_scene_interleaved.csv"
 KITTI_EVAL_PROTOCOL_CHOICES = ("rgb_pretrained_ref", "rgb_checkpoint_decoder", "live_raw_model")
-BEST_METRIC_CHOICES = ("stf", "rod", "kitti", "eth3d", "robotcar", "robotcar_day", "robotcar_night", "avg4")
+BEST_METRIC_CHOICES = ("stf", "rod", "lod_d1", "kitti", "eth3d", "robotcar", "robotcar_day", "robotcar_night", "avg4")
+BEST_METRIC_DIRECTIONS = {
+    "stf": "min",
+    "rod": "min",
+    "lod_d1": "max",
+    "kitti": "min",
+    "eth3d": "min",
+    "robotcar": "min",
+    "robotcar_day": "min",
+    "robotcar_night": "min",
+    "avg4": "min",
+}
 DEFAULT_HEAVY_SAVE_ROOT = "/mnt/drive/3333_raw/0000_exp_ckpt"
 FIXED_VIZ_RGB_BASELINE_SPLITS = ("stf", "eth3d", "robotcar", "robotcar_night")
 FIXED_VIZ_SPLIT_CHOICES = (
@@ -260,6 +281,40 @@ def supports_rgb_eval_inputs(args):
     return cfg.dataset_family in {"stf_rgb", "rod_raw_student_rgb"} or cfg.dataset_input_mode == "raw_ram"
 
 
+def uses_lod_dataset(args):
+    return resolved_config(args).dataset_family in {"lod_true_rgb_dark", "lod_true_raw_dark_rgb16"}
+
+
+def uses_lod_rgb_dark_dataset(args):
+    return resolved_config(args).dataset_family == "lod_true_rgb_dark"
+
+
+def uses_lod_raw_dark_rgb16_dataset(args):
+    return resolved_config(args).dataset_family == "lod_true_raw_dark_rgb16"
+
+
+def resolve_lod_aug_config(args):
+    cfg = resolved_config(args)
+    if cfg.dataset_family not in {"lod_true_rgb_dark", "lod_true_raw_dark_rgb16"}:
+        return LODAugConfig.from_preset("off", domain="rgb", seed=getattr(args, "seed", 42))
+    return LODAugConfig.from_args(args, domain=cfg.input_domain)
+
+
+def select_lod_train_proxy_indices(length, count, seed):
+    count = min(int(count), int(length))
+    if count <= 0:
+        raise ValueError("--lod-train-proxy-count must be positive")
+    rng = np.random.default_rng(int(seed))
+    return sorted(int(idx) for idx in rng.choice(int(length), size=count, replace=False).tolist())
+
+
+def set_dataset_epoch(datasets, epoch):
+    for dataset in datasets.values():
+        target = dataset.dataset if isinstance(dataset, Subset) else dataset
+        if hasattr(target, "set_epoch"):
+            target.set_epoch(epoch)
+
+
 def resolve_heavy_save_path(save_path, heavy_save_root):
     if not heavy_save_root:
         return save_path
@@ -310,7 +365,7 @@ def parse_args():
     parser.add_argument(
         "--stage",
         default="stf_only",
-        choices=["stf_only", "rod_only", "eval_only"],
+        choices=["stf_only", "rod_only", "lod_only", "eval_only"],
     )
     parser.add_argument(
         "--input-type",
@@ -321,6 +376,7 @@ def parse_args():
             *RAW_PACKED_INPUT_TYPES,
             *RAW_RAM_INPUT_TYPES,
             *RAW_RAM_RGB_INPUT_TYPES,
+            *RAW_RGB16_RAM3_INPUT_TYPES,
             *RAW_RAM_BRIDGE_INPUT_TYPES,
             *RAW_RAM_RGB_BRIDGE_INPUT_TYPES,
             *RAW_RAM_FEATURE_ADAPTER_INPUT_TYPES,
@@ -351,7 +407,28 @@ def parse_args():
     parser.add_argument("--raw-npz-root", default=DEFAULT_RAW_NPZ_ROOT)
     parser.add_argument("--stf-train-target-mode", default="gt_sparse", choices=STF_TRAIN_TARGET_MODES)
     parser.add_argument("--stf-pseudo-manifest", default=DEFAULT_STF_PSEUDO_MANIFEST)
-    parser.add_argument("--lod-root", default=DEFAULT_LOD_ROOT)
+    parser.add_argument("--lod-root", default=DEFAULT_LOD_TRUE_ROOT)
+    parser.add_argument("--lod-manifest", default=DEFAULT_LOD_TRUE_MANIFEST)
+    parser.add_argument("--lod-label-space", default="inverse_relative", choices=["inverse_relative"])
+    parser.add_argument("--lod-train-crop-mode", default="random", choices=["random", "center"])
+    parser.add_argument("--lod-val-crop-mode", default="center", choices=["center", "random"])
+    parser.add_argument("--lod-raw-norm-mode", default=None, choices=[LOD_RAW_RGB16_NORM_MODE])
+    parser.add_argument("--eval-lod-train-proxy", action="store_true")
+    parser.add_argument("--lod-train-proxy-count", default=112, type=int)
+    parser.add_argument("--aug-preset", default="off", choices=LODAUG_PRESETS)
+    parser.add_argument("--aug-hflip-prob", default=0.0, type=float)
+    parser.add_argument("--aug-scale-jitter", nargs=2, type=float, default=None, metavar=("MIN", "MAX"))
+    parser.add_argument("--aug-rotate-deg", default=0.0, type=float)
+    parser.add_argument("--aug-rgb-brightness", default=0.0, type=float)
+    parser.add_argument("--aug-rgb-contrast", default=0.0, type=float)
+    parser.add_argument("--aug-rgb-gamma", nargs=2, type=float, default=None, metavar=("MIN", "MAX"))
+    parser.add_argument("--aug-rgb-color", default=0.0, type=float)
+    parser.add_argument("--aug-rgb-noise-std", default=0.0, type=float)
+    parser.add_argument("--aug-rgb-blur-prob", default=0.0, type=float)
+    parser.add_argument("--aug-raw-gain", nargs=2, type=float, default=None, metavar=("MIN", "MAX"))
+    parser.add_argument("--aug-raw-per-channel-gain", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--aug-raw-black-offset", default=0.0, type=float)
+    parser.add_argument("--aug-raw-noise", nargs=2, type=float, default=None, metavar=("SHOT", "READ"))
     parser.add_argument("--lod-day-manifest", default=DEFAULT_LOD_DAY_MANIFEST)
     parser.add_argument(
         "--lod-night-manifest",
@@ -404,6 +481,8 @@ def parse_args():
     parser.add_argument("--bs", default=4, type=int)
     parser.add_argument("--accum-steps", default=1, type=int, help="Gradient accumulation steps; effective bs = bs * accum_steps")
     parser.add_argument("--lr", default=1e-5, type=float)
+    parser.add_argument("--lr-schedule", default="poly", choices=["poly", "constant", "cosine"])
+    parser.add_argument("--warmup-steps", default=0, type=int)
     parser.add_argument(
         "--raw-front-end-lr",
         default=5e-5,
@@ -545,6 +624,7 @@ def parse_args():
         default=True,
     )
     parser.add_argument("--eval-rod", action="store_true")
+    parser.add_argument("--eval-lod", action="store_true")
     parser.add_argument("--eth3d-root", default=DEFAULT_ETH3D_ROOT)
     parser.add_argument("--eth3d-eval-mode", default="fast", choices=ETH3D_EVAL_MODE_CHOICES)
     parser.add_argument("--eth3d-min-depth", default=0.1, type=float)
@@ -616,6 +696,8 @@ def parse_args():
         parser.error(str(exc))
     if args.accum_steps < 1:
         parser.error("--accum-steps must be >= 1")
+    if args.warmup_steps < 0:
+        parser.error("--warmup-steps must be >= 0")
     if args.loss_type == "ssi_grad":
         if args.loss_lambda_grad is None:
             parser.error("--loss-lambda-grad is required when --loss-type ssi_grad")
@@ -628,6 +710,10 @@ def parse_args():
         args.eval_only = True
     if args.stage == "rod_only":
         args.eval_rod = True
+        if "eval_stf" not in explicit_cli_args:
+            args.eval_stf = False
+    if args.stage == "lod_only":
+        args.eval_lod = True
         if "eval_stf" not in explicit_cli_args:
             args.eval_stf = False
     try:
@@ -646,8 +732,14 @@ def parse_args():
         list(args.resolved_config.lora_tap_layers) if args.resolved_config.lora_tap_layers else None
     )
     args.raw_storage_format = args.resolved_config.raw_storage_format
+    try:
+        resolve_lod_aug_config(args)
+    except ValueError as exc:
+        parser.error(str(exc))
     if args.stage == "rod_only" and not uses_rod_dataset(args):
         parser.error("--stage rod_only requires --dataset-family rod_raw_student_rgb or rod_raw")
+    if args.stage == "lod_only" and not uses_lod_dataset(args):
+        parser.error("--stage lod_only requires --dataset-family lod_true_rgb_dark or lod_true_raw_dark_rgb16")
     if uses_rod_dataset(args):
         if args.stage not in {"rod_only", "eval_only"}:
             parser.error("ROD dataset families require --stage rod_only or --eval-only")
@@ -672,6 +764,35 @@ def parse_args():
             parser.error(f"--rod-night-manifest does not exist: {rod_manifest}")
         args.rod_root = str(rod_root.resolve())
         args.rod_night_manifest = str(rod_manifest.resolve())
+    if uses_lod_dataset(args):
+        if args.stage not in {"lod_only", "eval_only"}:
+            parser.error("LOD true dataset families require --stage lod_only or --eval-only")
+        if args.lod_label_space != "inverse_relative":
+            parser.error("LOD true requires --lod-label-space inverse_relative")
+        if uses_lod_raw_dark_rgb16_dataset(args):
+            if args.raw_storage_format != LOD_RAW_RGB16_STORAGE_FORMAT:
+                parser.error(
+                    f"LOD true RAW requires --raw-storage-format {LOD_RAW_RGB16_STORAGE_FORMAT}"
+                )
+            if args.lod_raw_norm_mode != LOD_RAW_RGB16_NORM_MODE:
+                parser.error(
+                    f"LOD true RAW requires explicit --lod-raw-norm-mode {LOD_RAW_RGB16_NORM_MODE}"
+                )
+            if args.raw_ram_rgb_tail != "identity":
+                parser.error("LOD true RAW first formal requires --raw-ram-rgb-tail identity")
+        else:
+            if args.raw_storage_format != "none":
+                parser.error("LOD true RGB requires --raw-storage-format n_a/none")
+            if args.lod_raw_norm_mode is not None:
+                parser.error("--lod-raw-norm-mode is only applicable for lod_true_raw_dark_rgb16")
+        lod_root = Path(args.lod_root).expanduser()
+        lod_manifest = Path(args.lod_manifest).expanduser()
+        if not lod_root.is_dir():
+            parser.error(f"--lod-root does not exist or is not a directory: {lod_root}")
+        if not lod_manifest.is_file():
+            parser.error(f"--lod-manifest does not exist: {lod_manifest}")
+        args.lod_root = str(lod_root.resolve())
+        args.lod_manifest = str(lod_manifest.resolve())
     if args.stf_train_target_mode in STF_PSEUDO_TRAIN_TARGET_MODES:
         pseudo_manifest = Path(args.stf_pseudo_manifest).expanduser()
         if not pseudo_manifest.is_file():
@@ -780,6 +901,8 @@ def parse_args():
             parser.error("--best-metric stf requires --eval-stf when --save-best-checkpoint is enabled")
         if args.best_metric == "rod" and not args.eval_rod:
             parser.error("--best-metric rod requires --eval-rod when --save-best-checkpoint is enabled")
+        if args.best_metric == "lod_d1" and not args.eval_lod:
+            parser.error("--best-metric lod_d1 requires --eval-lod when --save-best-checkpoint is enabled")
     if args.eval_nyu and args.eval_kitti and args.kitti_eval_protocol != "rgb_checkpoint_decoder":
         parser.error("--eval-nyu with --eval-kitti requires --kitti-eval-protocol rgb_checkpoint_decoder")
     args.heavy_save_path = resolve_heavy_save_path(args.save_path, args.heavy_save_root)
@@ -807,6 +930,37 @@ def resolve_model_state(ckpt_obj):
     return ckpt_obj
 
 
+def metric_direction(metric_name):
+    return BEST_METRIC_DIRECTIONS.get(str(metric_name), "min")
+
+
+def metric_identity_value(metric_name):
+    return float("-inf") if metric_direction(metric_name) == "max" else float("inf")
+
+
+def initial_best_metrics():
+    return {name: metric_identity_value(name) for name in BEST_METRIC_CHOICES}
+
+
+def metric_improved(metric_name, new_value, old_value):
+    if not math.isfinite(float(new_value)):
+        return False
+    if metric_direction(metric_name) == "max":
+        return float(new_value) > float(old_value)
+    return float(new_value) < float(old_value)
+
+
+def metric_direction_label(metric_name):
+    return "higher better" if metric_direction(metric_name) == "max" else "lower better"
+
+
+def format_best_metric_value(value):
+    value = float(value)
+    if math.isinf(value):
+        return "-inf" if value < 0 else "inf"
+    return f"{value:.4f}"
+
+
 def build_checkpoint_payload(model, optimizer, epoch, best_metrics, best_metric):
     model_state = model.module.state_dict() if hasattr(model, "module") else model.state_dict()
     return {
@@ -816,13 +970,16 @@ def build_checkpoint_payload(model, optimizer, epoch, best_metrics, best_metric)
         "best_metric": str(best_metric),
         "best_metrics": {name: float(value) for name, value in best_metrics.items()},
         "best_abs_rel": float(best_metrics.get("stf", float("inf"))),
-        "best_rod_abs_rel": float(best_metrics.get("rod", float("inf"))),
+        "best_rod_metric": "d1",
+        "best_rod_d1": float(best_metrics.get("rod", float("-inf"))),
+        "best_rod_abs_rel": float("inf"),
         "best_kitti_abs_rel": float(best_metrics.get("kitti", float("inf"))),
         "best_eth3d_abs_rel": float(best_metrics.get("eth3d", float("inf"))),
         "best_robotcar_abs_rel": float(best_metrics.get("robotcar", float("inf"))),
         "best_robotcar_day_abs_rel": float(best_metrics.get("robotcar_day", best_metrics.get("robotcar", float("inf")))),
         "best_robotcar_night_abs_rel": float(best_metrics.get("robotcar_night", float("inf"))),
         "best_avg4_abs_rel": float(best_metrics.get("avg4", float("inf"))),
+        "best_lod_d1": float(best_metrics.get("lod_d1", float("-inf"))),
     }
 
 
@@ -831,20 +988,28 @@ def save_checkpoint(path, model, optimizer, epoch, best_metrics, best_metric):
 
 
 def get_best_metrics_from_resume(resume):
-    best_metrics = {name: float("inf") for name in BEST_METRIC_CHOICES}
+    best_metrics = initial_best_metrics()
     if not isinstance(resume, dict):
         return best_metrics
 
     resume_best_metrics = resume.get("best_metrics")
     if isinstance(resume_best_metrics, dict):
         for name in BEST_METRIC_CHOICES:
+            if name == "rod":
+                continue
             if name in resume_best_metrics:
                 best_metrics[name] = float(resume_best_metrics[name])
 
     if "best_abs_rel" in resume:
         best_metrics["stf"] = min(best_metrics["stf"], float(resume["best_abs_rel"]))
-    if "best_rod_abs_rel" in resume:
-        best_metrics["rod"] = min(best_metrics["rod"], float(resume["best_rod_abs_rel"]))
+    if "best_rod_d1" in resume:
+        best_metrics["rod"] = max(best_metrics["rod"], float(resume["best_rod_d1"]))
+    elif resume.get("best_rod_metric") == "d1" and isinstance(resume_best_metrics, dict) and "rod" in resume_best_metrics:
+        best_metrics["rod"] = max(best_metrics["rod"], float(resume_best_metrics["rod"]))
+    elif isinstance(resume_best_metrics, dict) and "rod" in resume_best_metrics:
+        legacy_rod_value = float(resume_best_metrics["rod"])
+        if 0.0 <= legacy_rod_value <= 1.0:
+            best_metrics["rod"] = max(best_metrics["rod"], legacy_rod_value)
     if "best_kitti_abs_rel" in resume:
         best_metrics["kitti"] = min(best_metrics["kitti"], float(resume["best_kitti_abs_rel"]))
     if "best_eth3d_abs_rel" in resume:
@@ -859,6 +1024,8 @@ def get_best_metrics_from_resume(resume):
         best_metrics["robotcar_night"] = min(best_metrics["robotcar_night"], float(resume["best_robotcar_night_abs_rel"]))
     if "best_avg4_abs_rel" in resume:
         best_metrics["avg4"] = min(best_metrics["avg4"], float(resume["best_avg4_abs_rel"]))
+    if "best_lod_d1" in resume:
+        best_metrics["lod_d1"] = max(best_metrics["lod_d1"], float(resume["best_lod_d1"]))
     return best_metrics
 
 
@@ -892,6 +1059,8 @@ def _raw_ram_base_input_type(cfg):
         return "raw_ram"
     if cfg.front_end == "raw_to_base_rgb_ram3":
         return "raw_ram_rgb"
+    if cfg.front_end == "raw_rgb16_ram3":
+        return "raw_rgb16_ram3"
     raise ValueError(f"front_end={cfg.front_end!r} has no RAW-RAM base input type")
 
 
@@ -1189,11 +1358,26 @@ def save_args(args):
     os.makedirs(args.save_path, exist_ok=True)
     payload = dict(vars(args))
     resolved = resolved_config(args)
+    experiment_semantics = resolved_experiment_semantics(args)
     payload["resolved_config"] = resolved.to_dict()
+    payload["resolved_augmentation"] = experiment_semantics["augmentation"]
+    payload["resolved_lr_schedule"] = experiment_semantics["lr_schedule"]
     with open(os.path.join(args.save_path, "config.json"), "w", encoding="utf-8") as f:
         json.dump(payload, f, indent=2, sort_keys=True)
+    resolved_payload = resolved.to_dict()
+    resolved_payload.update(experiment_semantics)
     with open(os.path.join(args.save_path, "resolved_config.json"), "w", encoding="utf-8") as f:
-        json.dump(resolved.to_dict(), f, indent=2, sort_keys=True)
+        json.dump(resolved_payload, f, indent=2, sort_keys=True)
+
+
+def resolved_experiment_semantics(args):
+    return {
+        "augmentation": resolve_lod_aug_config(args).to_dict(),
+        "lr_schedule": {
+            "lr_schedule": str(getattr(args, "lr_schedule", "poly")),
+            "warmup_steps": int(getattr(args, "warmup_steps", 0)),
+        },
+    }
 
 
 def log_resolved_summary(logger, args):
@@ -1267,6 +1451,56 @@ def build_datasets(args):
     cfg = resolved_config(args)
     size = (args.input_height, args.input_width)
     datasets = {}
+    if cfg.dataset_family in {"lod_true_rgb_dark", "lod_true_raw_dark_rgb16"}:
+        lod_common = {
+            "lod_root": args.lod_root,
+            "manifest_path": args.lod_manifest,
+            "size": size,
+            "label_space": args.lod_label_space,
+        }
+        if cfg.dataset_family == "lod_true_rgb_dark":
+            lod_dataset_cls = LODTrueRGBDark
+            lod_extra = {}
+        else:
+            lod_dataset_cls = LODTrueRawDarkRGB16
+            lod_extra = {
+                "raw_storage_format": args.raw_storage_format,
+                "lod_raw_norm_mode": args.lod_raw_norm_mode,
+            }
+        lod_aug_config = resolve_lod_aug_config(args)
+        if args.eval_lod:
+            datasets["val"] = lod_dataset_cls(
+                split="01Valid",
+                mode="val",
+                crop_mode=args.lod_val_crop_mode,
+                **lod_common,
+                **lod_extra,
+            )
+        if args.eval_lod_train_proxy:
+            train_proxy_full = lod_dataset_cls(
+                split="00Train",
+                mode="val",
+                crop_mode="center",
+                **lod_common,
+                **lod_extra,
+            )
+            train_proxy_indices = select_lod_train_proxy_indices(
+                len(train_proxy_full),
+                args.lod_train_proxy_count,
+                args.seed,
+            )
+            datasets["lod_train_proxy"] = Subset(train_proxy_full, train_proxy_indices)
+        if not args.eval_only:
+            datasets["lod_train"] = lod_dataset_cls(
+                split="00Train",
+                mode="train",
+                crop_mode=args.lod_train_crop_mode,
+                aug_config=lod_aug_config,
+                **lod_common,
+                **lod_extra,
+            )
+        return datasets
+
     if cfg.dataset_family in {"rod_raw_student_rgb", "rod_raw"}:
         rod_common = {
             "rod_root": args.rod_root,
@@ -1446,7 +1680,8 @@ def build_loader(dataset, sampler, batch_size, num_workers, loader_kwargs, *, dr
 def build_dataloaders(args, datasets):
     loader_kwargs = {}
     if args.num_workers > 0:
-        loader_kwargs["persistent_workers"] = True
+        if not (uses_lod_dataset(args) and resolve_lod_aug_config(args).enabled):
+            loader_kwargs["persistent_workers"] = True
         loader_kwargs["prefetch_factor"] = 4
 
     state = {"samplers": {}}
@@ -1458,6 +1693,9 @@ def build_dataloaders(args, datasets):
         if "rod_train" in datasets:
             train_key = "rod_train"
             source_name = "rod"
+        elif "lod_train" in datasets:
+            train_key = "lod_train"
+            source_name = "lod"
         else:
             train_key = "stf_train"
             source_name = "stf"
@@ -1488,6 +1726,17 @@ def build_dataloaders(args, datasets):
             drop_last=False,
         )
         state["samplers"]["val"] = valsampler
+    if "lod_train_proxy" in datasets:
+        lod_train_proxy_sampler = DistributedSampler(datasets["lod_train_proxy"], shuffle=False)
+        state["lod_train_proxy_loader"] = build_loader(
+            datasets["lod_train_proxy"],
+            lod_train_proxy_sampler,
+            1,
+            args.num_workers,
+            loader_kwargs,
+            drop_last=False,
+        )
+        state["samplers"]["lod_train_proxy"] = lod_train_proxy_sampler
     if "kitti_val" in datasets:
         kitti_valsampler = DistributedSampler(datasets["kitti_val"], shuffle=False)
         state["kitti_val_loader"] = build_loader(
@@ -1847,6 +2096,28 @@ def log_setup(logger, args, datasets, train_state, model):
         optimizer_steps_per_epoch,
         train_state["steps_per_epoch"],
     )
+    aug_cfg = resolve_lod_aug_config(args)
+    logger.info(
+        "[AUG] domain=%s preset=%s enabled=%s hflip=%.3f scale=%s rgb_brightness=%.3f rgb_contrast=%.3f "
+        "rgb_gamma=%s rgb_color=%.3f rgb_noise_std=%.3f rgb_blur_prob=%.3f raw_gain=%s "
+        "raw_per_channel_gain=%s raw_black_offset=%.6f raw_noise=%s",
+        aug_cfg.domain,
+        aug_cfg.preset_name,
+        aug_cfg.enabled,
+        aug_cfg.hflip_prob,
+        aug_cfg.scale_jitter,
+        aug_cfg.rgb_brightness,
+        aug_cfg.rgb_contrast,
+        aug_cfg.rgb_gamma,
+        aug_cfg.rgb_color,
+        aug_cfg.rgb_noise_std,
+        aug_cfg.rgb_blur_prob,
+        aug_cfg.raw_gain,
+        aug_cfg.raw_per_channel_gain,
+        aug_cfg.raw_black_offset,
+        aug_cfg.raw_noise,
+    )
+    logger.info("[LR] schedule=%s warmup_steps=%d", args.lr_schedule, args.warmup_steps)
     spatial_adapter = getattr(model_ref, "spatial_adapter", None)
     if spatial_adapter is not None:
         logger.info(
@@ -1921,6 +2192,26 @@ def log_setup(logger, args, datasets, train_state, model):
             args.rod_train_crop_mode,
             args.rod_val_crop_mode,
         )
+    elif cfg.dataset_family == "lod_true_rgb_dark":
+        logger.info(
+            "[LOD_TRUE_RGB] root=%s manifest=%s label_space=%s train_crop=%s val_crop=%s student_input=RGB_Dark teacher_source=RGB_normal_DAv2L",
+            args.lod_root,
+            args.lod_manifest,
+            args.lod_label_space,
+            args.lod_train_crop_mode,
+            args.lod_val_crop_mode,
+        )
+    elif cfg.dataset_family == "lod_true_raw_dark_rgb16":
+        logger.info(
+            "[LOD_TRUE_RAW_RGB16] root=%s manifest=%s raw_storage_format=%s lod_raw_norm_mode=%s label_space=%s train_crop=%s val_crop=%s student_input=RAW_Dark_RGB16 teacher_source=RGB_normal_DAv2L",
+            args.lod_root,
+            args.lod_manifest,
+            args.raw_storage_format,
+            args.lod_raw_norm_mode,
+            args.lod_label_space,
+            args.lod_train_crop_mode,
+            args.lod_val_crop_mode,
+        )
     if "stf_train" in datasets:
         if "val" in datasets:
             logger.info(
@@ -1951,6 +2242,22 @@ def log_setup(logger, args, datasets, train_state, model):
             )
         else:
             logger.info("[DATASET] rod_train=%d", len(datasets["rod_train"]))
+    if "lod_train" in datasets:
+        if "val" in datasets:
+            logger.info(
+                "[DATASET] lod_train=%d lod_val=%d",
+                len(datasets["lod_train"]),
+                len(datasets["val"]),
+            )
+        else:
+            logger.info("[DATASET] lod_train=%d", len(datasets["lod_train"]))
+    if "lod_train_proxy" in datasets:
+        logger.info(
+            "[DATASET] lod_train_proxy=%d seed=%d requested=%d crop=center aug=off",
+            len(datasets["lod_train_proxy"]),
+            args.seed,
+            args.lod_train_proxy_count,
+        )
     if "kitti_val" in datasets:
         logger.info(
             "[DATASET] kitti_val=%d min_depth=%.1f max_depth=%.1f protocol=%s model_source=%s eval_input_domain=%s model_input_tensor=image",
@@ -2076,6 +2383,22 @@ def log_setup(logger, args, datasets, train_state, model):
             args.input_type,
             FUNCTION_ORDER,
             raw_rgb_tail_desc,
+        )
+        logger.info(
+            "[MODEL] %s dav2_train_mode=%s raw_front_end_lr=%.2e",
+            args.input_type,
+            args.dav2_train_mode,
+            args.raw_front_end_lr,
+        )
+    if cfg.front_end == "raw_rgb16_ram3" and not uses_bridge(args) and not uses_decoder_feature_adapter(args):
+        logger.info(
+            "[MODEL] raw_rgb16_png_3ch -> RamCore3 -> %s -> DAv2",
+            args.raw_ram_rgb_tail,
+        )
+        logger.info(
+            "[MODEL] %s functions=%s ram_core_out_channels=3 dav2_input=ramcore_bn_no_clamp_no_imagenet_norm",
+            args.input_type,
+            FUNCTION_ORDER,
         )
         logger.info(
             "[MODEL] %s dav2_train_mode=%s raw_front_end_lr=%.2e",
@@ -2694,7 +3017,7 @@ def _build_named_param_groups(args, model):
 def _required_optimizer_groups(args):
     cfg = resolved_config(args)
     required = []
-    if cfg.front_end in {"raw_to_rgb_head", "raw_ram4", "raw_to_base_rgb_ram3"}:
+    if cfg.front_end in {"raw_to_rgb_head", "raw_ram4", "raw_to_base_rgb_ram3", "raw_rgb16_ram3"}:
         required.append("raw_front_end")
     if cfg.bridge != "none":
         required.append("bridge")
@@ -2794,6 +3117,26 @@ def update_optimizer_lrs(optimizer, scale):
         group["lr"] = group["initial_lr"] * scale
 
 
+def compute_lr_scale(args, current_iter, total_iters):
+    current_iter = int(max(current_iter, 0))
+    total_iters = int(max(total_iters, 1))
+    warmup_steps = int(getattr(args, "warmup_steps", 0))
+    if warmup_steps > 0 and current_iter < warmup_steps:
+        return float((current_iter + 1) / max(warmup_steps, 1))
+
+    schedule = str(getattr(args, "lr_schedule", "poly"))
+    decay_iter = current_iter - warmup_steps if warmup_steps > 0 else current_iter
+    decay_total = max(total_iters - warmup_steps, 1) if warmup_steps > 0 else total_iters
+    progress = min(decay_iter, decay_total - 1) / float(decay_total)
+    if schedule == "poly":
+        return float((1.0 - progress) ** 0.9)
+    if schedule == "constant":
+        return 1.0
+    if schedule == "cosine":
+        return float(0.5 * (1.0 + math.cos(math.pi * progress)))
+    raise ValueError(f"Unsupported lr_schedule={schedule!r}")
+
+
 def set_dav2_train_eval_from_requires_grad(dav2_module):
     dav2_module.eval()
     if any(param.requires_grad for param in dav2_module.depth_head.parameters()):
@@ -2862,11 +3205,21 @@ def main():
     else:
         train_state["train_source_viz_samples"] = {}
     valloader = train_state.get("val_loader")
+    lod_train_proxy_loader = train_state.get("lod_train_proxy_loader")
     kitti_valloader = train_state.get("kitti_val_loader")
     nyu_valloader = train_state.get("nyu_val_loader")
-    primary_eval_name = "rod_night_val" if uses_rod_dataset(args) else "stf"
-    primary_eval_split = "rod_night_val" if uses_rod_dataset(args) else "stf_val"
-    primary_eval_writer_prefix = "eval_rod" if uses_rod_dataset(args) else "eval"
+    if uses_rod_dataset(args):
+        primary_eval_name = "rod_night_val"
+        primary_eval_split = "rod_night_val"
+        primary_eval_writer_prefix = "eval_rod"
+    elif uses_lod_dataset(args):
+        primary_eval_name = "lod_val"
+        primary_eval_split = "lod_val"
+        primary_eval_writer_prefix = "eval_lod"
+    else:
+        primary_eval_name = "stf"
+        primary_eval_split = "stf_val"
+        primary_eval_writer_prefix = "eval"
 
     model = build_model(args)
     rgb_decoder_eval_model = None
@@ -2877,7 +3230,7 @@ def main():
     fixed_viz_rgb_baseline_source = "pretrained_from_rgb_reference"
     train_viz_rgb_baseline_source = "pretrained_from_rgb_reference"
     start_epoch = 0
-    best_metrics = {name: float("inf") for name in BEST_METRIC_CHOICES}
+    best_metrics = initial_best_metrics()
     bridge_init_status = None
 
     if args.resume_from:
@@ -3014,6 +3367,26 @@ def main():
             summary = evaluate(model, valloader, args, rank, writer=None, epoch=None, logger=logger, tag=eval_only_tag)
             if rank == 0:
                 logger.info("[EVAL][%s] summary=%s", eval_only_tag, summary)
+            if lod_train_proxy_loader is not None:
+                train_proxy_summary = evaluate(
+                    model,
+                    lod_train_proxy_loader,
+                    args,
+                    rank,
+                    writer=None,
+                    epoch=None,
+                    logger=logger,
+                    tag="eval_only_lod_train_proxy",
+                    writer_prefix="eval_lod_train",
+                )
+                if rank == 0:
+                    gap = train_proxy_summary["d1"] - summary["d1"]
+                    logger.info(
+                        "[EVAL][eval_only_lod_gap] train_proxy_d1=%.4f val_d1=%.4f gap=%.4f",
+                        train_proxy_summary["d1"],
+                        summary["d1"],
+                        gap,
+                    )
         if rgb_decoder_eval_model is not None:
             sync_rgb_decoder_eval_model(
                 rgb_decoder_eval_model, model, logger=logger, rank=rank, sync_tag="eval_only"
@@ -3152,6 +3525,19 @@ def main():
             tag=f"pretrain_{primary_eval_name}",
             writer_prefix=primary_eval_writer_prefix,
         )
+    pretrain_lod_train_proxy_summary = None
+    if lod_train_proxy_loader is not None:
+        pretrain_lod_train_proxy_summary = evaluate(
+            model,
+            lod_train_proxy_loader,
+            args,
+            rank,
+            writer=None,
+            epoch=None,
+            logger=logger,
+            tag="pretrain_lod_train_proxy",
+            writer_prefix="eval_lod_train",
+        )
     pretrain_kitti_summary = None
     pretrain_nyu_summary = None
     pretrain_eth3d_summaries = {}
@@ -3262,6 +3648,33 @@ def main():
             if writer is not None:
                 for key, value in pretrain_summary.items():
                     writer.add_scalar(f"{primary_eval_writer_prefix}_init/{key}", value, start_epoch)
+        if pretrain_lod_train_proxy_summary is not None:
+            log_eval_summary(logger, "pretrain_lod_train_proxy", pretrain_lod_train_proxy_summary)
+            gap = (
+                pretrain_lod_train_proxy_summary["d1"] - pretrain_summary["d1"]
+                if pretrain_summary is not None
+                else float("nan")
+            )
+            logger.info(
+                "[EVAL][pretrain_lod_gap] train_proxy_d1=%.4f val_d1=%.4f gap=%.4f",
+                pretrain_lod_train_proxy_summary["d1"],
+                pretrain_summary["d1"] if pretrain_summary is not None else float("nan"),
+                gap,
+            )
+            save_json(
+                os.path.join(args.save_path, "pretrain_eval_lod_train_proxy.json"),
+                {
+                    "checkpoint_source": args.resume_from or args.pretrained_from,
+                    "stage": args.stage,
+                    "split": "lod_train_proxy",
+                    "metrics": pretrain_lod_train_proxy_summary,
+                    "gap_vs_lod_val_d1": gap,
+                },
+            )
+            if writer is not None:
+                for key, value in pretrain_lod_train_proxy_summary.items():
+                    writer.add_scalar(f"eval_lod_train_init/{key}", value, start_epoch)
+                writer.add_scalar("eval_lod_gap_init/d1_train_minus_val", gap, start_epoch)
         if pretrain_kitti_summary is not None:
             log_eval_summary(logger, pretrain_kitti_tag, pretrain_kitti_summary)
             kitti_checkpoint_source = (
@@ -3341,9 +3754,10 @@ def main():
 
     for epoch in range(start_epoch, args.epochs):
         for sampler_name, sampler in train_state["samplers"].items():
-            if sampler_name in {"val", "kitti_val", "nyu_val"}:
+            if sampler_name in {"val", "lod_train_proxy", "kitti_val", "nyu_val"}:
                 continue
             sampler.set_epoch(epoch + 1)
+        set_dataset_epoch(datasets, epoch)
         train_state["train_iter"] = iter(train_state["train_loader"])
         model.train()
         dav2_ref = model.module.dav2 if hasattr(model.module, "dav2") else model.module
@@ -3354,11 +3768,12 @@ def main():
 
         if rank == 0:
             logger.info(
-                "[EPOCH] start epoch=%d/%d best_%s_abs_rel=%.4f",
+                "[EPOCH] start epoch=%d/%d best_%s=%s (%s)",
                 epoch,
                 args.epochs,
                 args.best_metric,
-                best_metrics[args.best_metric],
+                format_best_metric_value(best_metrics[args.best_metric]),
+                metric_direction_label(args.best_metric),
             )
 
         running_loss = 0.0
@@ -3393,7 +3808,7 @@ def main():
                     tuple(valid_mask.shape),
                     preview_batch_ids(sample),
                 )
-                if source in {"stf", "rod"}:
+                if source in {"stf", "rod", "lod"}:
                     source_tag = source.upper()
                     raw_stats = summarize_tensor(img)
                     valid_count = int(valid_mask.sum().item())
@@ -3418,7 +3833,7 @@ def main():
                     )
                 logged_source_stats.add(source)
 
-            apply_runtime_hflip = not uses_stf_raw_dataset(args)
+            apply_runtime_hflip = not uses_stf_raw_dataset(args) and not uses_lod_dataset(args)
             if apply_runtime_hflip and random.random() < 0.5:
                 img = img.flip(-1)
                 depth = depth.flip(-1)
@@ -3455,15 +3870,19 @@ def main():
 
             # Step optimizer and update LR at accumulation boundary
             if is_accum_boundary and pending_gradients:
+                legacy_poly_schedule = args.lr_schedule == "poly" and args.warmup_steps == 0
+                if not legacy_poly_schedule:
+                    current_iter = epoch * optimizer_steps_per_epoch + optimizer_steps_done
+                    update_optimizer_lrs(optimizer, compute_lr_scale(args, current_iter, total_iters))
                 if scaler.is_enabled():
                     scaler.step(optimizer)
                     scaler.update()
                 else:
                     optimizer.step()
                 optimizer_steps_done += 1
-                current_iter = epoch * optimizer_steps_per_epoch + optimizer_steps_done - 1
-                scale = (1 - min(current_iter, total_iters - 1) / total_iters) ** 0.9
-                update_optimizer_lrs(optimizer, scale)
+                if legacy_poly_schedule:
+                    current_iter = epoch * optimizer_steps_per_epoch + optimizer_steps_done - 1
+                    update_optimizer_lrs(optimizer, compute_lr_scale(args, current_iter, total_iters))
                 optimizer.zero_grad(set_to_none=True)
                 pending_gradients = False
             elif is_accum_boundary:
@@ -3533,6 +3952,24 @@ def main():
                 tag=primary_eval_name,
                 writer_prefix=primary_eval_writer_prefix,
             )
+        lod_train_proxy_summary = None
+        lod_train_val_d1_gap = None
+        if lod_train_proxy_loader is not None:
+            lod_train_proxy_summary = evaluate(
+                model,
+                lod_train_proxy_loader,
+                args,
+                rank,
+                writer=writer,
+                epoch=epoch,
+                logger=logger,
+                tag="lod_train_proxy",
+                writer_prefix="eval_lod_train",
+            )
+            if summary is not None:
+                lod_train_val_d1_gap = lod_train_proxy_summary["d1"] - summary["d1"]
+                if rank == 0 and writer is not None:
+                    writer.add_scalar("eval_lod_gap/d1_train_minus_val", lod_train_val_d1_gap, epoch)
         kitti_summary = None
         nyu_summary = None
         eth3d_summaries = {}
@@ -3658,6 +4095,15 @@ def main():
                     writer.add_scalar(f"train_epoch/raw_pred_max/{source_name}", pred_max, epoch)
             if summary is not None:
                 log_eval_summary(logger, primary_eval_name, summary)
+            if lod_train_proxy_summary is not None:
+                log_eval_summary(logger, "lod_train_proxy", lod_train_proxy_summary)
+                logger.info(
+                    "[EVAL][lod_gap] epoch=%d train_proxy_d1=%.4f val_d1=%.4f gap=%.4f",
+                    epoch,
+                    lod_train_proxy_summary["d1"],
+                    summary["d1"] if summary is not None else float("nan"),
+                    lod_train_val_d1_gap if lod_train_val_d1_gap is not None else float("nan"),
+                )
             if kitti_summary is not None:
                 log_eval_summary(logger, f"kitti_val_{args.kitti_eval_protocol}", kitti_summary)
                 write_summary_scalars(writer, "eval_kitti", kitti_summary, epoch)
@@ -3679,8 +4125,9 @@ def main():
             fast_robotcar_summary = robotcar_summaries.get("fast")
             fast_robotcar_night_summary = robotcar_night_summaries.get("fast")
             metric_values = {
-                "stf": summary["abs_rel"] if (summary is not None and not uses_rod_dataset(args)) else float("inf"),
-                "rod": summary["abs_rel"] if (summary is not None and uses_rod_dataset(args)) else float("inf"),
+                "stf": summary["abs_rel"] if (summary is not None and not uses_rod_dataset(args) and not uses_lod_dataset(args)) else metric_identity_value("stf"),
+                "rod": summary["d1"] if (summary is not None and uses_rod_dataset(args)) else metric_identity_value("rod"),
+                "lod_d1": summary["d1"] if (summary is not None and uses_lod_dataset(args)) else metric_identity_value("lod_d1"),
                 "kitti": kitti_summary["abs_rel"] if kitti_summary is not None else float("inf"),
                 "eth3d": fast_eth3d_summary["abs_rel"] if fast_eth3d_summary is not None else float("inf"),
                 "robotcar": fast_robotcar_summary["abs_rel"] if fast_robotcar_summary is not None else float("inf"),
@@ -3694,18 +4141,19 @@ def main():
             metric_values["avg4"] = compute_avg4_abs_rel(metric_values)
             updated_metrics = dict(prev_best_metrics)
             best_metric_improved = False
-            best_metric_value = float("inf")
+            best_metric_value = metric_identity_value(args.best_metric)
             for metric_name in BEST_METRIC_CHOICES:
-                metric_value = metric_values.get(metric_name, float("inf"))
-                if metric_value < prev_best_metrics[metric_name]:
+                metric_value = metric_values.get(metric_name, metric_identity_value(metric_name))
+                if metric_improved(metric_name, metric_value, prev_best_metrics[metric_name]):
                     updated_metrics[metric_name] = metric_value
                     if metric_name == args.best_metric:
                         best_metric_improved = True
                         best_metric_value = metric_value
                     logger.info(
-                        "[CHECKPOINT] best_%s improved to %.4f",
+                        "[CHECKPOINT] best_%s improved to %.4f (%s)",
                         metric_name,
                         metric_value,
+                        metric_direction_label(metric_name),
                     )
             best_metrics = dict(updated_metrics)
             if args.save_best_checkpoint and best_metric_improved:

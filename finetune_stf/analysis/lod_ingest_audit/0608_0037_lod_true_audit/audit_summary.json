@@ -1,0 +1,361 @@
+{
+  "alignment": {
+    "alignment_gate": {
+      "reason": "Paired RGB NCC is clearly above unrelated dark frames and downsample phase shifts are small.",
+      "status": "pass"
+    },
+    "examples": [
+      {
+        "dark_id": "914",
+        "normal_id": "913",
+        "pair_id": "lod-0913-0914",
+        "phase_response": 0.8903217354187897,
+        "phase_shift_downsample_xy": [
+          0.03734993739995218,
+          0.07222529810815814
+        ],
+        "raw_dark_vs_rgb_normal_ncc": 0.9496683158381306,
+        "rgb_pair_ncc": 0.9389745152822587,
+        "rgb_unrelated_ncc": -0.020971321280339593
+      },
+      {
+        "dark_id": "206",
+        "normal_id": "205",
+        "pair_id": "lod-0205-0206",
+        "phase_response": 0.8615055768750608,
+        "phase_shift_downsample_xy": [
+          -0.04420677094850589,
+          -0.013655033281793294
+        ],
+        "raw_dark_vs_rgb_normal_ncc": 0.9665770672346531,
+        "rgb_pair_ncc": 0.935518667635885,
+        "rgb_unrelated_ncc": 0.08424450173017689
+      },
+      {
+        "dark_id": "2254",
+        "normal_id": "2253",
+        "pair_id": "lod-2253-2254",
+        "phase_response": 0.9091073982150798,
+        "phase_shift_downsample_xy": [
+          0.02960619353319771,
+          0.07790288916955745
+        ],
+        "raw_dark_vs_rgb_normal_ncc": 0.8805822670324366,
+        "rgb_pair_ncc": 0.9622008213894999,
+        "rgb_unrelated_ncc": 0.0003550764928546257
+      },
+      {
+        "dark_id": "2008",
+        "normal_id": "2007",
+        "pair_id": "lod-2007-2008",
+        "phase_response": 0.5388601071511706,
+        "phase_shift_downsample_xy": [
+          0.06778793161927865,
+          -0.14677186683692867
+        ],
+        "raw_dark_vs_rgb_normal_ncc": 0.8003350374106022,
+        "rgb_pair_ncc": 0.6417825513657935,
+        "rgb_unrelated_ncc": 0.20168280791980595
+      },
+      {
+        "dark_id": "1830",
+        "normal_id": "1829",
+        "pair_id": "lod-1829-1830",
+        "phase_response": 0.8937268235798305,
+        "phase_shift_downsample_xy": [
+          0.04765073829533151,
+          0.15764788702704635
+        ],
+        "raw_dark_vs_rgb_normal_ncc": 0.9499503681069107,
+        "rgb_pair_ncc": 0.9600222144754378,
+        "rgb_unrelated_ncc": -0.151064035546289
+      },
+      {
+        "dark_id": "1144",
+        "normal_id": "1143",
+        "pair_id": "lod-1143-1144",
+        "phase_response": 0.5616908064112067,
+        "phase_shift_downsample_xy": [
+          -0.027531065232764718,
+          -0.06612028032104433
+        ],
+        "raw_dark_vs_rgb_normal_ncc": 0.8089169257043298,
+        "rgb_pair_ncc": 0.6168510342417739,
+        "rgb_unrelated_ncc": -0.16780633065790412
+      },
+      {
+        "dark_id": "840",
+        "normal_id": "839",
+        "pair_id": "lod-0839-0840",
+        "phase_response": 0.8480622082327803,
+        "phase_shift_downsample_xy": [
+          -0.04060574704230646,
+          -0.08659141830011663
+        ],
+        "raw_dark_vs_rgb_normal_ncc": 0.9359459900913946,
+        "rgb_pair_ncc": 0.9042558720663804,
+        "rgb_unrelated_ncc": -0.17610982918965964
+      },
+      {
+        "dark_id": "714",
+        "normal_id": "713",
+        "pair_id": "lod-0713-0714",
+        "phase_response": 0.7012466235707203,
+        "phase_shift_downsample_xy": [
+          0.05379958561344722,
+          -0.05971717532479204
+        ],
+        "raw_dark_vs_rgb_normal_ncc": 0.9443779700491429,
+        "rgb_pair_ncc": 0.9018162945430732,
+        "rgb_unrelated_ncc": 0.03508495349952797
+      }
+    ],
+    "phase_response": {
+      "count": 100,
+      "max": 0.9630209585496535,
+      "mean": 0.6798402581296736,
+      "min": 0.10579844703897834,
+      "p10": 0.39075475030016,
+      "p50": 0.7430023200577125,
+      "p90": 0.8991492321617747
+    },
+    "phase_shift_downsample_abs": {
+      "count": 100,
+      "max": 83.66071769990327,
+      "mean": 0.9666564280210834,
+      "min": 0.009201937085453386,
+      "p10": 0.0383717815664842,
+      "p50": 0.09087422574725121,
+      "p90": 0.3236284605636698
+    },
+    "phase_shift_downsample_x": {
+      "count": 100,
+      "max": 83.13561269369929,
+      "mean": 0.840935254848019,
+      "min": -0.5641525710394575,
+      "p10": -0.10742624040021269,
+      "p50": 0.015716498199843443,
+      "p90": 0.13259949794258297
+    },
+    "phase_shift_downsample_y": {
+      "count": 100,
+      "max": 9.358717225460708,
+      "mean": 0.04567843303771475,
+      "min": -0.5910696094262278,
+      "p10": -0.17103923633461732,
+      "p50": -0.02933912899540303,
+      "p90": 0.07279305721429812
+    },
+    "rgb_normal_vs_raw_dark_rgb_reordered_ncc": {
+      "count": 100,
+      "max": 0.9934324562225176,
+      "mean": 0.8821649586530418,
+      "min": 0.11367198712951937,
+      "p10": 0.7681686918606023,
+      "p50": 0.9153702493337339,
+      "p90": 0.9741042903625731
+    },
+    "rgb_normal_vs_rgb_dark_ncc": {
+      "count": 100,
+      "max": 0.9860115800792526,
+      "mean": 0.784785882252507,
+      "min": 0.12142946122041712,
+      "p10": 0.5017015379515343,
+      "p50": 0.8764762529498851,
+      "p90": 0.9627754282393958
+    },
+    "rgb_normal_vs_unrelated_rgb_dark_ncc": {
+      "count": 100,
+      "max": 0.7517718418084985,
+      "mean": 0.03678142067432341,
+      "min": -0.35696681748865644,
+      "p10": -0.1752840838763129,
+      "p50": 0.0425563317482201,
+      "p90": 0.21537145351510037
+    },
+    "sampled_pairs": 100
+  },
+  "args": {
+    "alignment_samples": 100,
+    "channel_samples": 100,
+    "raw_max_images": null,
+    "seed": 42
+  },
+  "channel_order": {
+    "best_cv2_to_rgb_mapping": {
+      "cv2_channel_0": "B",
+      "cv2_channel_1": "G",
+      "cv2_channel_2": "R"
+    },
+    "channel_order_gate": {
+      "reason": "Correlation best mapping is OpenCV BGR read order: cv2_channel_0->B, 1->G, 2->R. Use channel_reorder=(2,1,0) to feed model RGB.",
+      "status": "pass"
+    },
+    "mean_corr_raw_dark_cv2_vs_rgb_dark_rgb": [
+      [
+        0.7313868736997218,
+        0.7834803583309466,
+        0.8175964267481659
+      ],
+      [
+        0.8162707342213367,
+        0.842767297424966,
+        0.7963246788656194
+      ],
+      [
+        0.37347194351808477,
+        0.27654454746736484,
+        0.1933011860753398
+      ]
+    ],
+    "mean_corr_raw_normal_cv2_vs_rgb_normal_rgb": [
+      [
+        0.750720245335591,
+        0.8140791553905906,
+        0.868424240105653
+      ],
+      [
+        0.9011935007055368,
+        0.932794295937906,
+        0.9036344259045334
+      ],
+      [
+        0.3167967278845478,
+        0.1829674504537391,
+        0.11976941656833263
+      ]
+    ],
+    "raw_cv2_channel_labels": [
+      "cv2_channel_0",
+      "cv2_channel_1",
+      "cv2_channel_2"
+    ],
+    "recommended_channel_reorder_to_model_rgb": [
+      2,
+      1,
+      0
+    ],
+    "rgb_reference_channel_labels": [
+      "R",
+      "G",
+      "B"
+    ],
+    "sampled_pairs": 100
+  },
+  "created_at_local": "2026-06-08T00:37:51",
+  "lod_root": "/home/caq/6666_raw/0000_dataset/LOD",
+  "manifest": "/home/caq/6666_raw/0000_dataset/LOD/manifests/lod_true_pairs_2118_112_seed42.csv",
+  "output_dir": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_ingest_audit/0608_0037_lod_true_audit",
+  "raw_stats": {
+    "dark": {
+      "channels_cv2_order": [
+        {
+          "channel_index_cv2": 0,
+          "clip_65535_fraction": 0.001870411528400598,
+          "count": 2140800000,
+          "max": 65535,
+          "mean": 11143.049181340153,
+          "p0": 0,
+          "p1": 16,
+          "p50": 8561,
+          "p99": 48597
+        },
+        {
+          "channel_index_cv2": 1,
+          "clip_65535_fraction": 0.006194411902092675,
+          "count": 2140800000,
+          "max": 65535,
+          "mean": 17286.650429346508,
+          "p0": 0,
+          "p1": 134,
+          "p50": 14961,
+          "p99": 63803
+        },
+        {
+          "channel_index_cv2": 2,
+          "clip_65535_fraction": 0.0005253321188340807,
+          "count": 2140800000,
+          "max": 65535,
+          "mean": 6809.791777976924,
+          "p0": 0,
+          "p1": 0,
+          "p50": 3685,
+          "p99": 39808
+        }
+      ],
+      "global": {
+        "clip_65535_fraction": 0.002863385183109118,
+        "count": 6422400000,
+        "max": 65535,
+        "mean": 11746.497129554527,
+        "p0": 0,
+        "p1": 0,
+        "p50": 8491,
+        "p99": 54250
+      }
+    },
+    "dark_minus_normal_mean": 2463.938896756041,
+    "dark_over_normal_mean_ratio": 1.26543748339225,
+    "dark_p99_gt_normal_p99": true,
+    "normal": {
+      "channels_cv2_order": [
+        {
+          "channel_index_cv2": 0,
+          "clip_65535_fraction": 0.0020801686285500747,
+          "count": 2140800000,
+          "max": 65535,
+          "mean": 8247.324136490097,
+          "p0": 0,
+          "p1": 0,
+          "p50": 5656,
+          "p99": 42304
+        },
+        {
+          "channel_index_cv2": 1,
+          "clip_65535_fraction": 0.006708593516442452,
+          "count": 2140800000,
+          "max": 65535,
+          "mean": 17130.78492952868,
+          "p0": 0,
+          "p1": 857,
+          "p50": 15067,
+          "p99": 62419
+        },
+        {
+          "channel_index_cv2": 2,
+          "clip_65535_fraction": 0.0007365003736920777,
+          "count": 2140800000,
+          "max": 65535,
+          "mean": 2469.5656323766816,
+          "p0": 0,
+          "p1": 0,
+          "p50": 274,
+          "p99": 24582
+        }
+      ],
+      "global": {
+        "clip_65535_fraction": 0.0031750875062282013,
+        "count": 6422400000,
+        "max": 65535,
+        "mean": 9282.558232798487,
+        "p0": 0,
+        "p1": 0,
+        "p50": 5386,
+        "p99": 50532
+      }
+    },
+    "normalization_gate": {
+      "reason": "RAW values are uint16 with low clipping; RAW_Dark is brighter than RAW_normal, so this remains an explicit uint16_div_65535 semantic choice rather than inferred exposure linearization.",
+      "status": "pass"
+    },
+    "normalization_recommendation": "uint16_div_65535",
+    "raw_max_images": null,
+    "sampled_pairs": 2230
+  },
+  "row_count": 2230,
+  "run_name": "0608_0037_lod_true_audit",
+  "split_counts": {
+    "00Train": 2118,
+    "01Valid": 112
+  }
+}

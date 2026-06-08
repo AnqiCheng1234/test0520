@@ -1,0 +1,80 @@
+{
+  "d1_colormap": "RdYlGn",
+  "d1_definition": "per-pixel delta1 pass after affine alignment, threshold < 1.25",
+  "error_colormap": "magma",
+  "error_definition": "abs(aligned inverse-relative prediction - pseudo inverse-relative label) / pseudo inverse-relative label",
+  "error_vmax": 1.4156826519966104,
+  "panel_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_true_rgb_raw_panel/0608_133403_random10_seed42_flatpanels/sample_panels/lod_true_rgb_raw_panel_idx0009_lod-0385-0386.png",
+  "pred_vmax": 476.41165435791004,
+  "pred_vmin": 9.999999974752427e-07,
+  "prediction_colormap": "Spectral_r",
+  "pseudo_depth_path": "/home/caq/6666_raw/0000_dataset/LOD/pseudo_depth_dav2l_rgb_normal_rel_1200x800/01Valid/0385_0386.npy",
+  "raw_dark_path": "/home/caq/6666_raw/0000_dataset/LOD/RAW_Dark/386.png",
+  "raw_line": {
+    "align_stats": {
+      "scale": 78.06281847231617,
+      "shift": -64.6372366915485,
+      "valid_pixels": 491520.0
+    },
+    "backbone_input_stats": {
+      "max": 5.6875,
+      "mean": -0.009852051734924316,
+      "min": -1.875,
+      "p01": -1.390625,
+      "p50": -0.359375,
+      "p99": 2.96875
+    },
+    "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0608_0113_lod_true_raw_rgb16_ram3_dav2s_decoder_e10/last_epoch_model.pth",
+    "experiment": "0608_0113_lod_true_raw_rgb16_ram3_dav2s_decoder_e10",
+    "metrics": {
+      "abs_rel": 0.10882231632557789,
+      "d1": 0.8917256673177083,
+      "d2": 0.9216471354166667,
+      "d3": 0.937567138671875,
+      "log10": 0.28810837447154464,
+      "rmse": 12.014713586533155,
+      "rmse_log": 3.042694645138892,
+      "silog": 3.0125436364228855,
+      "silog_x100": 301.2543636422885,
+      "sq_rel": 1.5007889267157448
+    }
+  },
+  "rgb_dark_path": "/home/caq/6666_raw/0000_dataset/LOD/RGB_Dark/386.JPG",
+  "rgb_line": {
+    "align_stats": {
+      "scale": 82.22549826499049,
+      "shift": -49.91246989966365,
+      "valid_pixels": 491520.0
+    },
+    "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0608_0109_lod_true_rgb_dark_dav2s_decoder_e10/last_epoch_model.pth",
+    "experiment": "0608_0109_lod_true_rgb_dark_dav2s_decoder_e10",
+    "metrics": {
+      "abs_rel": 0.1247299183928151,
+      "d1": 0.9136800130208333,
+      "d2": 0.9527201334635417,
+      "d3": 0.9722676595052083,
+      "log10": 0.042130923272837816,
+      "rmse": 14.517450448321926,
+      "rmse_log": 0.23243685255232074,
+      "silog": 0.23207214473857254,
+      "silog_x100": 23.207214473857256,
+      "sq_rel": 3.034812985492208
+    },
+    "rgb_dark_input_stats": {
+      "max": 0.42352941632270813,
+      "mean": 0.015323667787015438,
+      "min": 0.0,
+      "p01": 0.0,
+      "p50": 0.007843137718737125,
+      "p99": 0.07058823853731155
+    }
+  },
+  "rgb_normal_path": "/home/caq/6666_raw/0000_dataset/LOD/RGB_normal/385.JPG",
+  "sample_index": 9,
+  "sample_name": "lod-0385-0386",
+  "semantics": {
+    "raw_dark_rgb16": "RAW line student input; visualized after RamCore3 as backbone x3",
+    "rgb_dark": "RGB line student input",
+    "rgb_normal": "teacher source for pseudo label"
+  }
+}

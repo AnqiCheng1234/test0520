@@ -1,0 +1,866 @@
+{
+  "checkpoint_name": "last_epoch_model.pth",
+  "combined_csv_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_true_rgb_raw_panel/0608_133403_random10_seed42_flatpanels/metrics_by_sample_row.csv",
+  "contact_sheet_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_true_rgb_raw_panel/0608_133403_random10_seed42_flatpanels/lod_true_rgb_raw_panel_10samples_contact_sheet.png",
+  "metadata_dir": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_true_rgb_raw_panel/0608_133403_random10_seed42_flatpanels/metadata",
+  "num_samples": 10,
+  "output_root": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_true_rgb_raw_panel/0608_133403_random10_seed42_flatpanels",
+  "panels_dir": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_true_rgb_raw_panel/0608_133403_random10_seed42_flatpanels/sample_panels",
+  "raw_checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0608_0113_lod_true_raw_rgb16_ram3_dav2s_decoder_e10/last_epoch_model.pth",
+  "raw_checkpoint_meta": {
+    "best_metric": "lod_d1",
+    "best_metrics": {
+      "avg4": Infinity,
+      "eth3d": Infinity,
+      "kitti": Infinity,
+      "lod_d1": 0.8205301150698615,
+      "robotcar": Infinity,
+      "robotcar_day": Infinity,
+      "robotcar_night": Infinity,
+      "rod": Infinity,
+      "stf": Infinity
+    },
+    "epoch": 9,
+    "path": "/mnt/drive/3333_raw/0000_exp_ckpt/0608_0113_lod_true_raw_rgb16_ram3_dav2s_decoder_e10/last_epoch_model.pth"
+  },
+  "raw_experiment": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/exp/0608_0113_lod_true_raw_rgb16_ram3_dav2s_decoder_e10",
+  "rgb_checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0608_0109_lod_true_rgb_dark_dav2s_decoder_e10/last_epoch_model.pth",
+  "rgb_checkpoint_meta": {
+    "best_metric": "lod_d1",
+    "best_metrics": {
+      "avg4": Infinity,
+      "eth3d": Infinity,
+      "kitti": Infinity,
+      "lod_d1": 0.8210272816301467,
+      "robotcar": Infinity,
+      "robotcar_day": Infinity,
+      "robotcar_night": Infinity,
+      "rod": Infinity,
+      "stf": Infinity
+    },
+    "epoch": 9,
+    "path": "/mnt/drive/3333_raw/0000_exp_ckpt/0608_0109_lod_true_rgb_dark_dav2s_decoder_e10/last_epoch_model.pth"
+  },
+  "rgb_experiment": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/exp/0608_0109_lod_true_rgb_dark_dav2s_decoder_e10",
+  "sample_indices": [
+    108,
+    80,
+    9,
+    68,
+    46,
+    106,
+    76,
+    10,
+    22,
+    92
+  ],
+  "sample_seed": 42,
+  "sample_selection": "random",
+  "sample_summaries": [
+    {
+      "d1_colormap": "RdYlGn",
+      "d1_definition": "per-pixel delta1 pass after affine alignment, threshold < 1.25",
+      "error_colormap": "magma",
+      "error_definition": "abs(aligned inverse-relative prediction - pseudo inverse-relative label) / pseudo inverse-relative label",
+      "error_vmax": 0.9755573070049285,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_true_rgb_raw_panel/0608_133403_random10_seed42_flatpanels/sample_panels/lod_true_rgb_raw_panel_idx0108_lod-4409-4410.png",
+      "pred_vmax": 430.1410217285156,
+      "pred_vmin": 23.981429920196533,
+      "prediction_colormap": "Spectral_r",
+      "pseudo_depth_path": "/home/caq/6666_raw/0000_dataset/LOD/pseudo_depth_dav2l_rgb_normal_rel_1200x800/01Valid/4409_4410.npy",
+      "raw_dark_path": "/home/caq/6666_raw/0000_dataset/LOD/RAW_Dark/4410.png",
+      "raw_line": {
+        "align_stats": {
+          "scale": 71.30756457929489,
+          "shift": -46.72832436039357,
+          "valid_pixels": 491520.0
+        },
+        "backbone_input_stats": {
+          "max": 4.5,
+          "mean": 0.7166103720664978,
+          "min": -1.828125,
+          "p01": -1.1171875,
+          "p50": 0.91015625,
+          "p99": 2.296875
+        },
+        "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0608_0113_lod_true_raw_rgb16_ram3_dav2s_decoder_e10/last_epoch_model.pth",
+        "experiment": "0608_0113_lod_true_raw_rgb16_ram3_dav2s_decoder_e10",
+        "metrics": {
+          "abs_rel": 0.15561337908476272,
+          "d1": 0.7456034342447917,
+          "d2": 0.9614095052083333,
+          "d3": 0.9939229329427083,
+          "log10": 0.06408760677945051,
+          "rmse": 19.503358969707016,
+          "rmse_log": 0.20761746571932124,
+          "silog": 0.20512343067517144,
+          "silog_x100": 20.512343067517143,
+          "sq_rel": 3.5304939792424457
+        }
+      },
+      "rgb_dark_path": "/home/caq/6666_raw/0000_dataset/LOD/RGB_Dark/4410.JPG",
+      "rgb_line": {
+        "align_stats": {
+          "scale": 70.03606925736523,
+          "shift": -23.479754973008365,
+          "valid_pixels": 491520.0
+        },
+        "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0608_0109_lod_true_rgb_dark_dav2s_decoder_e10/last_epoch_model.pth",
+        "experiment": "0608_0109_lod_true_rgb_dark_dav2s_decoder_e10",
+        "metrics": {
+          "abs_rel": 0.20859098994506206,
+          "d1": 0.72354736328125,
+          "d2": 0.82689208984375,
+          "d3": 0.9703511555989583,
+          "log10": 0.08104179560394843,
+          "rmse": 28.92495117960604,
+          "rmse_log": 0.2835966160341544,
+          "silog": 0.2830922021109076,
+          "silog_x100": 28.309220211090757,
+          "sq_rel": 9.004027638731783
+        },
+        "rgb_dark_input_stats": {
+          "max": 0.6274510025978088,
+          "mean": 0.027858290821313858,
+          "min": 0.0,
+          "p01": 0.0,
+          "p50": 0.027450980618596077,
+          "p99": 0.06666667014360428
+        }
+      },
+      "rgb_normal_path": "/home/caq/6666_raw/0000_dataset/LOD/RGB_normal/4409.JPG",
+      "sample_index": 108,
+      "sample_name": "lod-4409-4410",
+      "semantics": {
+        "raw_dark_rgb16": "RAW line student input; visualized after RamCore3 as backbone x3",
+        "rgb_dark": "RGB line student input",
+        "rgb_normal": "teacher source for pseudo label"
+      }
+    },
+    {
+      "d1_colormap": "RdYlGn",
+      "d1_definition": "per-pixel delta1 pass after affine alignment, threshold < 1.25",
+      "error_colormap": "magma",
+      "error_definition": "abs(aligned inverse-relative prediction - pseudo inverse-relative label) / pseudo inverse-relative label",
+      "error_vmax": 1.0773806273937219,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_true_rgb_raw_panel/0608_133403_random10_seed42_flatpanels/sample_panels/lod_true_rgb_raw_panel_idx0080_lod-2965-2966.png",
+      "pred_vmax": 565.5554809570312,
+      "pred_vmin": 39.346739501953124,
+      "prediction_colormap": "Spectral_r",
+      "pseudo_depth_path": "/home/caq/6666_raw/0000_dataset/LOD/pseudo_depth_dav2l_rgb_normal_rel_1200x800/01Valid/2965_2966.npy",
+      "raw_dark_path": "/home/caq/6666_raw/0000_dataset/LOD/RAW_Dark/2966.png",
+      "raw_line": {
+        "align_stats": {
+          "scale": 71.46623605873506,
+          "shift": -19.574325753937014,
+          "valid_pixels": 491520.0
+        },
+        "backbone_input_stats": {
+          "max": 5.09375,
+          "mean": -0.0465678945183754,
+          "min": -1.8359375,
+          "p01": -1.4296875,
+          "p50": -0.2001953125,
+          "p99": 3.578125
+        },
+        "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0608_0113_lod_true_raw_rgb16_ram3_dav2s_decoder_e10/last_epoch_model.pth",
+        "experiment": "0608_0113_lod_true_raw_rgb16_ram3_dav2s_decoder_e10",
+        "metrics": {
+          "abs_rel": 0.14810828897866898,
+          "d1": 0.8228108723958333,
+          "d2": 0.931170654296875,
+          "d3": 0.9862406412760417,
+          "log10": 0.05372608782224413,
+          "rmse": 17.524611848510915,
+          "rmse_log": 0.21316678225565502,
+          "silog": 0.2100819089964662,
+          "silog_x100": 21.00819089964662,
+          "sq_rel": 4.131695782780783
+        }
+      },
+      "rgb_dark_path": "/home/caq/6666_raw/0000_dataset/LOD/RGB_Dark/2966.JPG",
+      "rgb_line": {
+        "align_stats": {
+          "scale": 76.04100080464187,
+          "shift": -4.706690219367525,
+          "valid_pixels": 491520.0
+        },
+        "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0608_0109_lod_true_rgb_dark_dav2s_decoder_e10/last_epoch_model.pth",
+        "experiment": "0608_0109_lod_true_rgb_dark_dav2s_decoder_e10",
+        "metrics": {
+          "abs_rel": 0.10163299021878863,
+          "d1": 0.8833394368489583,
+          "d2": 0.9611124674479167,
+          "d3": 0.9885050455729166,
+          "log10": 0.0368765156817554,
+          "rmse": 12.504731018740793,
+          "rmse_log": 0.17238368180288208,
+          "silog": 0.17035083567189455,
+          "silog_x100": 17.035083567189453,
+          "sq_rel": 2.3982177086626657
+        },
+        "rgb_dark_input_stats": {
+          "max": 0.5254902243614197,
+          "mean": 0.05845044553279877,
+          "min": 0.0,
+          "p01": 0.0,
+          "p50": 0.04313725605607033,
+          "p99": 0.32156863808631897
+        }
+      },
+      "rgb_normal_path": "/home/caq/6666_raw/0000_dataset/LOD/RGB_normal/2965.JPG",
+      "sample_index": 80,
+      "sample_name": "lod-2965-2966",
+      "semantics": {
+        "raw_dark_rgb16": "RAW line student input; visualized after RamCore3 as backbone x3",
+        "rgb_dark": "RGB line student input",
+        "rgb_normal": "teacher source for pseudo label"
+      }
+    },
+    {
+      "d1_colormap": "RdYlGn",
+      "d1_definition": "per-pixel delta1 pass after affine alignment, threshold < 1.25",
+      "error_colormap": "magma",
+      "error_definition": "abs(aligned inverse-relative prediction - pseudo inverse-relative label) / pseudo inverse-relative label",
+      "error_vmax": 1.4156826519966104,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_true_rgb_raw_panel/0608_133403_random10_seed42_flatpanels/sample_panels/lod_true_rgb_raw_panel_idx0009_lod-0385-0386.png",
+      "pred_vmax": 476.41165435791004,
+      "pred_vmin": 9.999999974752427e-07,
+      "prediction_colormap": "Spectral_r",
+      "pseudo_depth_path": "/home/caq/6666_raw/0000_dataset/LOD/pseudo_depth_dav2l_rgb_normal_rel_1200x800/01Valid/0385_0386.npy",
+      "raw_dark_path": "/home/caq/6666_raw/0000_dataset/LOD/RAW_Dark/386.png",
+      "raw_line": {
+        "align_stats": {
+          "scale": 78.06281847231617,
+          "shift": -64.6372366915485,
+          "valid_pixels": 491520.0
+        },
+        "backbone_input_stats": {
+          "max": 5.6875,
+          "mean": -0.009852051734924316,
+          "min": -1.875,
+          "p01": -1.390625,
+          "p50": -0.359375,
+          "p99": 2.96875
+        },
+        "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0608_0113_lod_true_raw_rgb16_ram3_dav2s_decoder_e10/last_epoch_model.pth",
+        "experiment": "0608_0113_lod_true_raw_rgb16_ram3_dav2s_decoder_e10",
+        "metrics": {
+          "abs_rel": 0.10882231632557789,
+          "d1": 0.8917256673177083,
+          "d2": 0.9216471354166667,
+          "d3": 0.937567138671875,
+          "log10": 0.28810837447154464,
+          "rmse": 12.014713586533155,
+          "rmse_log": 3.042694645138892,
+          "silog": 3.0125436364228855,
+          "silog_x100": 301.2543636422885,
+          "sq_rel": 1.5007889267157448
+        }
+      },
+      "rgb_dark_path": "/home/caq/6666_raw/0000_dataset/LOD/RGB_Dark/386.JPG",
+      "rgb_line": {
+        "align_stats": {
+          "scale": 82.22549826499049,
+          "shift": -49.91246989966365,
+          "valid_pixels": 491520.0
+        },
+        "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0608_0109_lod_true_rgb_dark_dav2s_decoder_e10/last_epoch_model.pth",
+        "experiment": "0608_0109_lod_true_rgb_dark_dav2s_decoder_e10",
+        "metrics": {
+          "abs_rel": 0.1247299183928151,
+          "d1": 0.9136800130208333,
+          "d2": 0.9527201334635417,
+          "d3": 0.9722676595052083,
+          "log10": 0.042130923272837816,
+          "rmse": 14.517450448321926,
+          "rmse_log": 0.23243685255232074,
+          "silog": 0.23207214473857254,
+          "silog_x100": 23.207214473857256,
+          "sq_rel": 3.034812985492208
+        },
+        "rgb_dark_input_stats": {
+          "max": 0.42352941632270813,
+          "mean": 0.015323667787015438,
+          "min": 0.0,
+          "p01": 0.0,
+          "p50": 0.007843137718737125,
+          "p99": 0.07058823853731155
+        }
+      },
+      "rgb_normal_path": "/home/caq/6666_raw/0000_dataset/LOD/RGB_normal/385.JPG",
+      "sample_index": 9,
+      "sample_name": "lod-0385-0386",
+      "semantics": {
+        "raw_dark_rgb16": "RAW line student input; visualized after RamCore3 as backbone x3",
+        "rgb_dark": "RGB line student input",
+        "rgb_normal": "teacher source for pseudo label"
+      }
+    },
+    {
+      "d1_colormap": "RdYlGn",
+      "d1_definition": "per-pixel delta1 pass after affine alignment, threshold < 1.25",
+      "error_colormap": "magma",
+      "error_definition": "abs(aligned inverse-relative prediction - pseudo inverse-relative label) / pseudo inverse-relative label",
+      "error_vmax": 1.2234287238121029,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_true_rgb_raw_panel/0608_133403_random10_seed42_flatpanels/sample_panels/lod_true_rgb_raw_panel_idx0068_lod-2371-2372.png",
+      "pred_vmax": 423.8891397094726,
+      "pred_vmin": 32.033125762939456,
+      "prediction_colormap": "Spectral_r",
+      "pseudo_depth_path": "/home/caq/6666_raw/0000_dataset/LOD/pseudo_depth_dav2l_rgb_normal_rel_1200x800/01Valid/2371_2372.npy",
+      "raw_dark_path": "/home/caq/6666_raw/0000_dataset/LOD/RAW_Dark/2372.png",
+      "raw_line": {
+        "align_stats": {
+          "scale": 61.80439291398769,
+          "shift": 31.49692236973989,
+          "valid_pixels": 491520.0
+        },
+        "backbone_input_stats": {
+          "max": 6.34375,
+          "mean": -0.4735325276851654,
+          "min": -1.9921875,
+          "p01": -1.375,
+          "p50": -0.6796875,
+          "p99": 2.21875
+        },
+        "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0608_0113_lod_true_raw_rgb16_ram3_dav2s_decoder_e10/last_epoch_model.pth",
+        "experiment": "0608_0113_lod_true_raw_rgb16_ram3_dav2s_decoder_e10",
+        "metrics": {
+          "abs_rel": 0.11948640910470693,
+          "d1": 0.8943339029947917,
+          "d2": 0.9585795084635417,
+          "d3": 0.9802388509114583,
+          "log10": 0.045574970504809284,
+          "rmse": 33.402289771820655,
+          "rmse_log": 0.18603646446420383,
+          "silog": 0.1848660482233553,
+          "silog_x100": 18.486604822335533,
+          "sq_rel": 6.431607917646975
+        }
+      },
+      "rgb_dark_path": "/home/caq/6666_raw/0000_dataset/LOD/RGB_Dark/2372.JPG",
+      "rgb_line": {
+        "align_stats": {
+          "scale": 64.4152832450301,
+          "shift": 27.755078510400892,
+          "valid_pixels": 491520.0
+        },
+        "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0608_0109_lod_true_rgb_dark_dav2s_decoder_e10/last_epoch_model.pth",
+        "experiment": "0608_0109_lod_true_rgb_dark_dav2s_decoder_e10",
+        "metrics": {
+          "abs_rel": 0.11178697205344879,
+          "d1": 0.9001444498697917,
+          "d2": 0.9615458170572917,
+          "d3": 0.9814371744791667,
+          "log10": 0.0434631168375876,
+          "rmse": 33.06787085107949,
+          "rmse_log": 0.1760455550429074,
+          "silog": 0.17530944192037967,
+          "silog_x100": 17.530944192037968,
+          "sq_rel": 6.205451469315232
+        },
+        "rgb_dark_input_stats": {
+          "max": 1.0,
+          "mean": 0.01916474848985672,
+          "min": 0.0,
+          "p01": 0.0,
+          "p50": 0.0117647061124444,
+          "p99": 0.13333334028720856
+        }
+      },
+      "rgb_normal_path": "/home/caq/6666_raw/0000_dataset/LOD/RGB_normal/2371.JPG",
+      "sample_index": 68,
+      "sample_name": "lod-2371-2372",
+      "semantics": {
+        "raw_dark_rgb16": "RAW line student input; visualized after RamCore3 as backbone x3",
+        "rgb_dark": "RGB line student input",
+        "rgb_normal": "teacher source for pseudo label"
+      }
+    },
+    {
+      "d1_colormap": "RdYlGn",
+      "d1_definition": "per-pixel delta1 pass after affine alignment, threshold < 1.25",
+      "error_colormap": "magma",
+      "error_definition": "abs(aligned inverse-relative prediction - pseudo inverse-relative label) / pseudo inverse-relative label",
+      "error_vmax": 3.0413317251205294,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_true_rgb_raw_panel/0608_133403_random10_seed42_flatpanels/sample_panels/lod_true_rgb_raw_panel_idx0046_lod-1797-1798.png",
+      "pred_vmax": 399.1932373046875,
+      "pred_vmin": 9.999999974752427e-07,
+      "prediction_colormap": "Spectral_r",
+      "pseudo_depth_path": "/home/caq/6666_raw/0000_dataset/LOD/pseudo_depth_dav2l_rgb_normal_rel_1200x800/01Valid/1797_1798.npy",
+      "raw_dark_path": "/home/caq/6666_raw/0000_dataset/LOD/RAW_Dark/1798.png",
+      "raw_line": {
+        "align_stats": {
+          "scale": 70.86770905487835,
+          "shift": -83.65209685184762,
+          "valid_pixels": 491520.0
+        },
+        "backbone_input_stats": {
+          "max": 2.265625,
+          "mean": -0.7070484757423401,
+          "min": -1.7109375,
+          "p01": -1.4921875,
+          "p50": -0.890625,
+          "p99": 0.9296875
+        },
+        "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0608_0113_lod_true_raw_rgb16_ram3_dav2s_decoder_e10/last_epoch_model.pth",
+        "experiment": "0608_0113_lod_true_raw_rgb16_ram3_dav2s_decoder_e10",
+        "metrics": {
+          "abs_rel": 0.7482310835795941,
+          "d1": 0.185430908203125,
+          "d2": 0.33236287434895834,
+          "d3": 0.46834920247395834,
+          "log10": 1.205479745424991,
+          "rmse": 43.321821866140354,
+          "rmse_log": 6.0679413420277495,
+          "silog": 5.847966614145375,
+          "silog_x100": 584.7966614145375,
+          "sq_rel": 34.92422989540723
+        }
+      },
+      "rgb_dark_path": "/home/caq/6666_raw/0000_dataset/LOD/RGB_Dark/1798.JPG",
+      "rgb_line": {
+        "align_stats": {
+          "scale": 71.96387116052223,
+          "shift": -79.81628474976159,
+          "valid_pixels": 491520.0
+        },
+        "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0608_0109_lod_true_rgb_dark_dav2s_decoder_e10/last_epoch_model.pth",
+        "experiment": "0608_0109_lod_true_rgb_dark_dav2s_decoder_e10",
+        "metrics": {
+          "abs_rel": 0.721630561755898,
+          "d1": 0.1804443359375,
+          "d2": 0.33060302734375,
+          "d3": 0.5103068033854167,
+          "log10": 1.183663166820297,
+          "rmse": 39.80421908640307,
+          "rmse_log": 5.989128632733383,
+          "silog": 5.7717670126424006,
+          "silog_x100": 577.17670126424,
+          "sq_rel": 34.9875197306256
+        },
+        "rgb_dark_input_stats": {
+          "max": 0.800000011920929,
+          "mean": 0.020642628893256187,
+          "min": 0.0,
+          "p01": 0.0,
+          "p50": 0.007843137718737125,
+          "p99": 0.15294118225574493
+        }
+      },
+      "rgb_normal_path": "/home/caq/6666_raw/0000_dataset/LOD/RGB_normal/1797.JPG",
+      "sample_index": 46,
+      "sample_name": "lod-1797-1798",
+      "semantics": {
+        "raw_dark_rgb16": "RAW line student input; visualized after RamCore3 as backbone x3",
+        "rgb_dark": "RGB line student input",
+        "rgb_normal": "teacher source for pseudo label"
+      }
+    },
+    {
+      "d1_colormap": "RdYlGn",
+      "d1_definition": "per-pixel delta1 pass after affine alignment, threshold < 1.25",
+      "error_colormap": "magma",
+      "error_definition": "abs(aligned inverse-relative prediction - pseudo inverse-relative label) / pseudo inverse-relative label",
+      "error_vmax": 2.749284093379973,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_true_rgb_raw_panel/0608_133403_random10_seed42_flatpanels/sample_panels/lod_true_rgb_raw_panel_idx0106_lod-4175-4176.png",
+      "pred_vmax": 367.998046875,
+      "pred_vmin": 9.999999974752427e-07,
+      "prediction_colormap": "Spectral_r",
+      "pseudo_depth_path": "/home/caq/6666_raw/0000_dataset/LOD/pseudo_depth_dav2l_rgb_normal_rel_1200x800/01Valid/4175_4176.npy",
+      "raw_dark_path": "/home/caq/6666_raw/0000_dataset/LOD/RAW_Dark/4176.png",
+      "raw_line": {
+        "align_stats": {
+          "scale": 65.77203130721756,
+          "shift": -40.43675444092518,
+          "valid_pixels": 491520.0
+        },
+        "backbone_input_stats": {
+          "max": 6.3125,
+          "mean": -0.4836607277393341,
+          "min": -2.171875,
+          "p01": -1.25,
+          "p50": -0.6328125,
+          "p99": 1.7578125
+        },
+        "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0608_0113_lod_true_raw_rgb16_ram3_dav2s_decoder_e10/last_epoch_model.pth",
+        "experiment": "0608_0113_lod_true_raw_rgb16_ram3_dav2s_decoder_e10",
+        "metrics": {
+          "abs_rel": 0.3458535504893347,
+          "d1": 0.6824503580729167,
+          "d2": 0.754571533203125,
+          "d3": 0.7959554036458333,
+          "log10": 0.6193615158711966,
+          "rmse": 22.387824420419246,
+          "rmse_log": 4.424122906097042,
+          "silog": 4.346721904671841,
+          "silog_x100": 434.6721904671841,
+          "sq_rel": 11.296814327761803
+        }
+      },
+      "rgb_dark_path": "/home/caq/6666_raw/0000_dataset/LOD/RGB_Dark/4176.JPG",
+      "rgb_line": {
+        "align_stats": {
+          "scale": 65.71149717750443,
+          "shift": -36.53834865966117,
+          "valid_pixels": 491520.0
+        },
+        "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0608_0109_lod_true_rgb_dark_dav2s_decoder_e10/last_epoch_model.pth",
+        "experiment": "0608_0109_lod_true_rgb_dark_dav2s_decoder_e10",
+        "metrics": {
+          "abs_rel": 0.2794308309614797,
+          "d1": 0.7260152180989583,
+          "d2": 0.8063680013020833,
+          "d3": 0.8820597330729166,
+          "log10": 0.26417442588110274,
+          "rmse": 24.272771280552146,
+          "rmse_log": 2.5077037401971967,
+          "silog": 2.4927982182190385,
+          "silog_x100": 249.27982182190385,
+          "sq_rel": 11.278110134741768
+        },
+        "rgb_dark_input_stats": {
+          "max": 1.0,
+          "mean": 0.011482241563498974,
+          "min": 0.0,
+          "p01": 0.0,
+          "p50": 0.007843137718737125,
+          "p99": 0.07058823853731155
+        }
+      },
+      "rgb_normal_path": "/home/caq/6666_raw/0000_dataset/LOD/RGB_normal/4175.JPG",
+      "sample_index": 106,
+      "sample_name": "lod-4175-4176",
+      "semantics": {
+        "raw_dark_rgb16": "RAW line student input; visualized after RamCore3 as backbone x3",
+        "rgb_dark": "RGB line student input",
+        "rgb_normal": "teacher source for pseudo label"
+      }
+    },
+    {
+      "d1_colormap": "RdYlGn",
+      "d1_definition": "per-pixel delta1 pass after affine alignment, threshold < 1.25",
+      "error_colormap": "magma",
+      "error_definition": "abs(aligned inverse-relative prediction - pseudo inverse-relative label) / pseudo inverse-relative label",
+      "error_vmax": 0.6031671035289764,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_true_rgb_raw_panel/0608_133403_random10_seed42_flatpanels/sample_panels/lod_true_rgb_raw_panel_idx0076_lod-2817-2818.png",
+      "pred_vmax": 417.47003173828125,
+      "pred_vmin": 31.12308120727539,
+      "prediction_colormap": "Spectral_r",
+      "pseudo_depth_path": "/home/caq/6666_raw/0000_dataset/LOD/pseudo_depth_dav2l_rgb_normal_rel_1200x800/01Valid/2817_2818.npy",
+      "raw_dark_path": "/home/caq/6666_raw/0000_dataset/LOD/RAW_Dark/2818.png",
+      "raw_line": {
+        "align_stats": {
+          "scale": 63.53039621631534,
+          "shift": 24.3756956350865,
+          "valid_pixels": 491520.0
+        },
+        "backbone_input_stats": {
+          "max": 7.09375,
+          "mean": 0.21259379386901855,
+          "min": -1.7734375,
+          "p01": -1.171875,
+          "p50": 0.171875,
+          "p99": 1.875
+        },
+        "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0608_0113_lod_true_raw_rgb16_ram3_dav2s_decoder_e10/last_epoch_model.pth",
+        "experiment": "0608_0113_lod_true_raw_rgb16_ram3_dav2s_decoder_e10",
+        "metrics": {
+          "abs_rel": 0.07250103256748262,
+          "d1": 0.9374226888020833,
+          "d2": 0.9845458984375,
+          "d3": 0.9928120930989583,
+          "log10": 0.029134596141143256,
+          "rmse": 17.311341640437046,
+          "rmse_log": 0.1274113607016035,
+          "silog": 0.1272829930537866,
+          "silog_x100": 12.728299305378659,
+          "sq_rel": 1.778853328360363
+        }
+      },
+      "rgb_dark_path": "/home/caq/6666_raw/0000_dataset/LOD/RGB_Dark/2818.JPG",
+      "rgb_line": {
+        "align_stats": {
+          "scale": 61.5305566313078,
+          "shift": 15.62026445877319,
+          "valid_pixels": 491520.0
+        },
+        "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0608_0109_lod_true_rgb_dark_dav2s_decoder_e10/last_epoch_model.pth",
+        "experiment": "0608_0109_lod_true_rgb_dark_dav2s_decoder_e10",
+        "metrics": {
+          "abs_rel": 0.060193593007914305,
+          "d1": 0.9770833333333333,
+          "d2": 0.9922709147135417,
+          "d3": 0.9981709798177083,
+          "log10": 0.025228594459089853,
+          "rmse": 17.129314687879504,
+          "rmse_log": 0.0969046274389105,
+          "silog": 0.09689377491076731,
+          "silog_x100": 9.689377491076732,
+          "sq_rel": 1.47538569603248
+        },
+        "rgb_dark_input_stats": {
+          "max": 0.7529411911964417,
+          "mean": 0.06460260599851608,
+          "min": 0.0,
+          "p01": 0.003921568859368563,
+          "p50": 0.062745101749897,
+          "p99": 0.1568627506494522
+        }
+      },
+      "rgb_normal_path": "/home/caq/6666_raw/0000_dataset/LOD/RGB_normal/2817.JPG",
+      "sample_index": 76,
+      "sample_name": "lod-2817-2818",
+      "semantics": {
+        "raw_dark_rgb16": "RAW line student input; visualized after RamCore3 as backbone x3",
+        "rgb_dark": "RGB line student input",
+        "rgb_normal": "teacher source for pseudo label"
+      }
+    },
+    {
+      "d1_colormap": "RdYlGn",
+      "d1_definition": "per-pixel delta1 pass after affine alignment, threshold < 1.25",
+      "error_colormap": "magma",
+      "error_definition": "abs(aligned inverse-relative prediction - pseudo inverse-relative label) / pseudo inverse-relative label",
+      "error_vmax": 0.9999999403953552,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_true_rgb_raw_panel/0608_133403_random10_seed42_flatpanels/sample_panels/lod_true_rgb_raw_panel_idx0010_lod-0459-0460.png",
+      "pred_vmax": 508.3139651489251,
+      "pred_vmin": 7.447981357574463,
+      "prediction_colormap": "Spectral_r",
+      "pseudo_depth_path": "/home/caq/6666_raw/0000_dataset/LOD/pseudo_depth_dav2l_rgb_normal_rel_1200x800/01Valid/0459_0460.npy",
+      "raw_dark_path": "/home/caq/6666_raw/0000_dataset/LOD/RAW_Dark/460.png",
+      "raw_line": {
+        "align_stats": {
+          "scale": 80.5036649555091,
+          "shift": -37.06059221843817,
+          "valid_pixels": 491520.0
+        },
+        "backbone_input_stats": {
+          "max": 4.09375,
+          "mean": 0.5205574631690979,
+          "min": -1.828125,
+          "p01": -1.0390625,
+          "p50": 0.416015625,
+          "p99": 3.21875
+        },
+        "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0608_0113_lod_true_raw_rgb16_ram3_dav2s_decoder_e10/last_epoch_model.pth",
+        "experiment": "0608_0113_lod_true_raw_rgb16_ram3_dav2s_decoder_e10",
+        "metrics": {
+          "abs_rel": 0.1422676306133552,
+          "d1": 0.8392049153645833,
+          "d2": 0.945086669921875,
+          "d3": 0.973321533203125,
+          "log10": 0.08235462520708445,
+          "rmse": 28.34151285503823,
+          "rmse_log": 1.0095325900978773,
+          "silog": 1.0084525343713706,
+          "silog_x100": 100.84525343713706,
+          "sq_rel": 5.601255249168818
+        }
+      },
+      "rgb_dark_path": "/home/caq/6666_raw/0000_dataset/LOD/RGB_Dark/460.JPG",
+      "rgb_line": {
+        "align_stats": {
+          "scale": 85.4910626977584,
+          "shift": -46.65183198730546,
+          "valid_pixels": 491520.0
+        },
+        "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0608_0109_lod_true_rgb_dark_dav2s_decoder_e10/last_epoch_model.pth",
+        "experiment": "0608_0109_lod_true_rgb_dark_dav2s_decoder_e10",
+        "metrics": {
+          "abs_rel": 0.13014020268234702,
+          "d1": 0.8688802083333333,
+          "d2": 0.9324381510416667,
+          "d3": 0.9546040852864583,
+          "log10": 0.11859815503686925,
+          "rmse": 21.199558548669692,
+          "rmse_log": 1.556725423199466,
+          "silog": 1.5517646436200945,
+          "silog_x100": 155.17646436200945,
+          "sq_rel": 3.3960743895672634
+        },
+        "rgb_dark_input_stats": {
+          "max": 0.250980406999588,
+          "mean": 0.05355984345078468,
+          "min": 0.0,
+          "p01": 0.003921568859368563,
+          "p50": 0.0470588244497776,
+          "p99": 0.18039216101169586
+        }
+      },
+      "rgb_normal_path": "/home/caq/6666_raw/0000_dataset/LOD/RGB_normal/459.JPG",
+      "sample_index": 10,
+      "sample_name": "lod-0459-0460",
+      "semantics": {
+        "raw_dark_rgb16": "RAW line student input; visualized after RamCore3 as backbone x3",
+        "rgb_dark": "RGB line student input",
+        "rgb_normal": "teacher source for pseudo label"
+      }
+    },
+    {
+      "d1_colormap": "RdYlGn",
+      "d1_definition": "per-pixel delta1 pass after affine alignment, threshold < 1.25",
+      "error_colormap": "magma",
+      "error_definition": "abs(aligned inverse-relative prediction - pseudo inverse-relative label) / pseudo inverse-relative label",
+      "error_vmax": 0.346579540669918,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_true_rgb_raw_panel/0608_133403_random10_seed42_flatpanels/sample_panels/lod_true_rgb_raw_panel_idx0022_lod-0827-0828.png",
+      "pred_vmax": 675.7490466308593,
+      "pred_vmin": 67.67497253417969,
+      "prediction_colormap": "Spectral_r",
+      "pseudo_depth_path": "/home/caq/6666_raw/0000_dataset/LOD/pseudo_depth_dav2l_rgb_normal_rel_1200x800/01Valid/0827_0828.npy",
+      "raw_dark_path": "/home/caq/6666_raw/0000_dataset/LOD/RAW_Dark/828.png",
+      "raw_line": {
+        "align_stats": {
+          "scale": 79.55198791797578,
+          "shift": 19.81948106288877,
+          "valid_pixels": 491520.0
+        },
+        "backbone_input_stats": {
+          "max": 2.4375,
+          "mean": -0.6087308526039124,
+          "min": -1.875,
+          "p01": -1.625,
+          "p50": -0.71484375,
+          "p99": 1.1640625
+        },
+        "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0608_0113_lod_true_raw_rgb16_ram3_dav2s_decoder_e10/last_epoch_model.pth",
+        "experiment": "0608_0113_lod_true_raw_rgb16_ram3_dav2s_decoder_e10",
+        "metrics": {
+          "abs_rel": 0.13704707466538402,
+          "d1": 0.8260782877604167,
+          "d2": 0.9948465983072917,
+          "d3": 0.998687744140625,
+          "log10": 0.06006840623919238,
+          "rmse": 38.552600760713595,
+          "rmse_log": 0.16806202036942883,
+          "silog": 0.16758856585651696,
+          "silog_x100": 16.758856585651696,
+          "sq_rel": 5.631671936364691
+        }
+      },
+      "rgb_dark_path": "/home/caq/6666_raw/0000_dataset/LOD/RGB_Dark/828.JPG",
+      "rgb_line": {
+        "align_stats": {
+          "scale": 78.25582183627931,
+          "shift": 23.011144693179165,
+          "valid_pixels": 491520.0
+        },
+        "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0608_0109_lod_true_rgb_dark_dav2s_decoder_e10/last_epoch_model.pth",
+        "experiment": "0608_0109_lod_true_rgb_dark_dav2s_decoder_e10",
+        "metrics": {
+          "abs_rel": 0.13714538275898044,
+          "d1": 0.8548197428385417,
+          "d2": 0.996136474609375,
+          "d3": 0.9992228190104167,
+          "log10": 0.0605018853488438,
+          "rmse": 36.06451273317554,
+          "rmse_log": 0.16627420115197297,
+          "silog": 0.1658395419849383,
+          "silog_x100": 16.58395419849383,
+          "sq_rel": 5.048439605166433
+        },
+        "rgb_dark_input_stats": {
+          "max": 0.6196078658103943,
+          "mean": 0.03007712960243225,
+          "min": 0.0,
+          "p01": 0.0,
+          "p50": 0.0235294122248888,
+          "p99": 0.11372549086809158
+        }
+      },
+      "rgb_normal_path": "/home/caq/6666_raw/0000_dataset/LOD/RGB_normal/827.JPG",
+      "sample_index": 22,
+      "sample_name": "lod-0827-0828",
+      "semantics": {
+        "raw_dark_rgb16": "RAW line student input; visualized after RamCore3 as backbone x3",
+        "rgb_dark": "RGB line student input",
+        "rgb_normal": "teacher source for pseudo label"
+      }
+    },
+    {
+      "d1_colormap": "RdYlGn",
+      "d1_definition": "per-pixel delta1 pass after affine alignment, threshold < 1.25",
+      "error_colormap": "magma",
+      "error_definition": "abs(aligned inverse-relative prediction - pseudo inverse-relative label) / pseudo inverse-relative label",
+      "error_vmax": 3.9083161330223,
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_true_rgb_raw_panel/0608_133403_random10_seed42_flatpanels/sample_panels/lod_true_rgb_raw_panel_idx0092_lod-3457-3458.png",
+      "pred_vmax": 472.5213928222656,
+      "pred_vmin": 24.1143377494812,
+      "prediction_colormap": "Spectral_r",
+      "pseudo_depth_path": "/home/caq/6666_raw/0000_dataset/LOD/pseudo_depth_dav2l_rgb_normal_rel_1200x800/01Valid/3457_3458.npy",
+      "raw_dark_path": "/home/caq/6666_raw/0000_dataset/LOD/RAW_Dark/3458.png",
+      "raw_line": {
+        "align_stats": {
+          "scale": 65.26796745047982,
+          "shift": 3.4078888387881543,
+          "valid_pixels": 491520.0
+        },
+        "backbone_input_stats": {
+          "max": 4.96875,
+          "mean": 0.0892699584364891,
+          "min": -1.890625,
+          "p01": -1.0078125,
+          "p50": 0.0537109375,
+          "p99": 1.5390625
+        },
+        "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0608_0113_lod_true_raw_rgb16_ram3_dav2s_decoder_e10/last_epoch_model.pth",
+        "experiment": "0608_0113_lod_true_raw_rgb16_ram3_dav2s_decoder_e10",
+        "metrics": {
+          "abs_rel": 0.3014685853552159,
+          "d1": 0.753228759765625,
+          "d2": 0.85682373046875,
+          "d3": 0.9234476725260417,
+          "log10": 0.09010403290507088,
+          "rmse": 33.797669636653346,
+          "rmse_log": 0.38140700624476664,
+          "silog": 0.3783993786086188,
+          "silog_x100": 37.83993786086188,
+          "sq_rel": 14.885884951119964
+        }
+      },
+      "rgb_dark_path": "/home/caq/6666_raw/0000_dataset/LOD/RGB_Dark/3458.JPG",
+      "rgb_line": {
+        "align_stats": {
+          "scale": 67.44527081586403,
+          "shift": 14.757140249941331,
+          "valid_pixels": 491520.0
+        },
+        "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0608_0109_lod_true_rgb_dark_dav2s_decoder_e10/last_epoch_model.pth",
+        "experiment": "0608_0109_lod_true_rgb_dark_dav2s_decoder_e10",
+        "metrics": {
+          "abs_rel": 0.31271628007415825,
+          "d1": 0.7479105631510417,
+          "d2": 0.8892985026041667,
+          "d3": 0.9266255696614584,
+          "log10": 0.08640689248935261,
+          "rmse": 32.925162482764584,
+          "rmse_log": 0.39238880771686985,
+          "silog": 0.390085230901704,
+          "silog_x100": 39.0085230901704,
+          "sq_rel": 18.337074004610606
+        },
+        "rgb_dark_input_stats": {
+          "max": 0.9137254953384399,
+          "mean": 0.004480945412069559,
+          "min": 0.0,
+          "p01": 0.0,
+          "p50": 0.003921568859368563,
+          "p99": 0.019607843831181526
+        }
+      },
+      "rgb_normal_path": "/home/caq/6666_raw/0000_dataset/LOD/RGB_normal/3457.JPG",
+      "sample_index": 92,
+      "sample_name": "lod-3457-3458",
+      "semantics": {
+        "raw_dark_rgb16": "RAW line student input; visualized after RamCore3 as backbone x3",
+        "rgb_dark": "RGB line student input",
+        "rgb_normal": "teacher source for pseudo label"
+      }
+    }
+  ],
+  "semantics": {
+    "raw_dark_rgb16": "RAW line student input; visualized after RamCore3 as backbone x3",
+    "rgb_dark": "RGB line student input",
+    "rgb_normal": "teacher source for pseudo label"
+  }
+}
