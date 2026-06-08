@@ -10,8 +10,8 @@ CONDA_ENV="${CONDA_ENV:-dav3}"
 GPU="${GPU:-${CUDA_VISIBLE_DEVICES:-0}}"
 PRETRAINED="${PRETRAINED:-/home/caq/333_cvpr/da_ours/checkpoints/depth_anything_v2_vits.pth}"
 LOD_ROOT="${LOD_ROOT:-/home/caq/6666_raw/0000_dataset/LOD}"
-LOD_MANIFEST="${LOD_MANIFEST:-${LOD_ROOT}/pseudo_depth_dav2l_rgb_normal_rel_1200x800/lod_true_rgb_normal_dav2l_rel_manifest.csv}"
-SESSION_PREFIX="${SESSION_PREFIX:-lod_true_rgb_aug_e40_queue}"
+LOD_MANIFEST="${LOD_MANIFEST:-${LOD_ROOT}/pseudo_depth_dav2l_rgb_normal_rel_1200x800/lod_true_rgb_normal_dav2l_rel_manifest_block8_val112_excl10_uniform.csv}"
+SESSION_PREFIX="${SESSION_PREFIX:-lod_true_rgb_aug_e40_block8excl10_queue}"
 MASTER_PORT="${MASTER_PORT:-29628}"
 
 if [[ "${1:-}" != "--run-internal" ]]; then
@@ -48,7 +48,7 @@ run_one() {
   local aug_preset="$2"
   local run_timestamp
   run_timestamp="$(date +%m%d_%H%M)"
-  local run_name="${run_timestamp}_lod_true_rgb_dark_dav2s_decoder_e40_${run_id}_aug-${aug_preset}_poly"
+  local run_name="${run_timestamp}_lod_true_rgb_dark_block8excl10_dav2s_decoder_e40_${run_id}_aug-${aug_preset}_poly"
   local save="${EXP_ROOT}/${run_name}"
   local heavy="${HEAVY_ROOT}/${run_name}"
   local log="${LOG_ROOT}/${run_name}.tmux.log"
@@ -63,7 +63,7 @@ run_one() {
   echo "[FORMAL] save=${save}"
   echo "[FORMAL] heavy=${heavy}"
   echo "[FORMAL] log=${log}"
-  echo "[FORMAL] matrix=${run_id} link=RGB_Dark epochs=40 aug_preset=${aug_preset} lr_schedule=poly warmup_steps=0 train_proxy=112"
+  echo "[FORMAL] matrix=${run_id} link=RGB_Dark split=block8_val112_excl10_uniform train=1958 val=112 buffer=160 nearest_val_train_pair_distance_min=11 epochs=40 aug_preset=${aug_preset} lr_schedule=poly warmup_steps=0 train_proxy=112 lod_manifest=${LOD_MANIFEST}"
 
   set +e
   CUDA_VISIBLE_DEVICES="${GPU}" "${CONDA_BIN}" run --live-stream -n "${CONDA_ENV}" \

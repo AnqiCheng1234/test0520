@@ -64,6 +64,202 @@
 - `0608_1448` Plan B formal scripts added and `bash -n` passed: `finetune_stf/scripts/formal/0608_run_lod_true_rgb_aug_e40_queue.sh` for `R0/Rg/R1` and `finetune_stf/scripts/formal/0608_run_lod_true_raw_rgb16_aug_e40_queue.sh` for `W0/Wg/W1`.
 - `0608_1448` Plan B e40 formal matrix launched in one sequential tmux queue to avoid GPU contention. Session: `0608_1448_lod_true_aug_e40_full_matrix`; queue log: `/home/caq/6666_raw/dav2_raw_0603/finetune_stf/logs/0608_1448_lod_true_aug_e40_full_matrix.queue.log`; attach: `tmux attach -t 0608_1448_lod_true_aug_e40_full_matrix`; monitor: `tail -f /home/caq/6666_raw/dav2_raw_0603/finetune_stf/logs/0608_1448_lod_true_aug_e40_full_matrix.queue.log`.
 - `0608_1448` Plan B formal first run started: `0608_1448_lod_true_rgb_dark_dav2s_decoder_e40_R0_aug-baseline_e10_poly`; run log `/home/caq/6666_raw/dav2_raw_0603/finetune_stf/logs/0608_1448_lod_true_rgb_dark_dav2s_decoder_e40_R0_aug-baseline_e10_poly.tmux.log`; save path `/home/caq/6666_raw/dav2_raw_0603/finetune_stf/exp/0608_1448_lod_true_rgb_dark_dav2s_decoder_e40_R0_aug-baseline_e10_poly`; heavy path `/mnt/drive/3333_raw/0000_exp_ckpt/0608_1448_lod_true_rgb_dark_dav2s_decoder_e40_R0_aug-baseline_e10_poly`. Initial eval completed: `lod_val d1=0.8154`, `lod_train_proxy d1=0.7993`, gap `-0.0161`; epoch `0/40` started.
+- `0608_1455` Plan B formal R0 progress observed from log: epoch `1` `lod_val d1=0.8182`, `lod_train_proxy d1=0.8091`, gap `-0.0091`; epoch `2` `lod_val d1=0.8190`, `lod_train_proxy d1=0.8082`, gap `-0.0108`; epoch `3` `lod_val d1=0.8203`, `lod_train_proxy d1=0.8101`, gap `-0.0102`, best checkpoint improved to `0.8203`; epoch `4/40` started.
+- `0608_1455` Plan B interim findings recorded: current seed42 pair-random split has severe neighbor leakage; fixed-split gap has not shown positive train-only memorization; RAW e10 remains more consistent with under-training than overfitting; RGB overfitting is not proven by B0; augmentation/LR/train-proxy mechanisms are smoke-verified, but final augmentation and RGB-vs-RAW conclusions require the full e40 matrix.
+- `0608_1457` Plan B formal matrix stopped after user flagged the split leakage issue. The tmux session `0608_1448_lod_true_aug_e40_full_matrix` was interrupted and has exited. Queue log records R0 status `120`; last complete epoch was epoch `4/40` with `lod_val d1=0.8202`, `lod_train_proxy d1=0.8103`, gap `-0.0099`. This run is marked abandoned/non-formal because it used the leaked seed42 pair-random split.
+- `0608_1500` Plan B split regeneration candidate completed: added `scripts/build_lod_true_block_split_manifest.py` and generated `/home/caq/6666_raw/0000_dataset/LOD/pseudo_depth_dav2l_rgb_normal_rel_1200x800/lod_true_rgb_normal_dav2l_rel_manifest_block8_val112_excl10_uniform.csv`. Policy: `8` uniform contiguous validation blocks x `14` pairs = `112` val; exclude `10` neighboring pair indices on both sides of every val block into `02HoldoutBuffer`; counts `00Train=1958`, `01Valid=112`, `02HoldoutBuffer=160`; nearest val-to-train distance min/max `11/24` pairs.
+- `0608_1500` Plan B new split validation: first smoke attempt failed due a script block-overlap boundary-check bug and was kept at `/tmp/codex_smoke_lod_block_split`; retry smoke passed and successful retry output was deleted. Full split metadata is `/home/caq/6666_raw/0000_dataset/LOD/pseudo_depth_dav2l_rgb_normal_rel_1200x800/lod_true_rgb_normal_dav2l_rel_manifest_block8_val112_excl10_uniform.meta.json`. RGB and RAW dataset loading smoke passed with `train=1958`, `val=112`.
+- `0608_1500` Plan B formal scripts updated for the new block split but not relaunched pending user confirmation of split policy. Updated scripts: `finetune_stf/scripts/formal/0608_run_lod_true_rgb_aug_e40_queue.sh` and `finetune_stf/scripts/formal/0608_run_lod_true_raw_rgb16_aug_e40_queue.sh`; both now default to the block split manifest, include `block8excl10` in run names, log the split counts/distance, and passed `bash -n`.
+- `0608_1509` Plan B block-split formal e40 matrix launched in one sequential tmux queue. Session: `0608_1509_lod_true_aug_e40_block8excl10_full_matrix`; queue log: `/home/caq/6666_raw/dav2_raw_0603/finetune_stf/logs/0608_1509_lod_true_aug_e40_block8excl10_full_matrix.queue.log`; attach: `tmux attach -t 0608_1509_lod_true_aug_e40_block8excl10_full_matrix`; monitor: `tail -f /home/caq/6666_raw/dav2_raw_0603/finetune_stf/logs/0608_1509_lod_true_aug_e40_block8excl10_full_matrix.queue.log`.
+- `0608_1509` Plan B block-split first run started: `0608_1509_lod_true_rgb_dark_block8excl10_dav2s_decoder_e40_R0_aug-baseline_e10_poly`; run log `/home/caq/6666_raw/dav2_raw_0603/finetune_stf/logs/0608_1509_lod_true_rgb_dark_block8excl10_dav2s_decoder_e40_R0_aug-baseline_e10_poly.tmux.log`; save path `/home/caq/6666_raw/dav2_raw_0603/finetune_stf/exp/0608_1509_lod_true_rgb_dark_block8excl10_dav2s_decoder_e40_R0_aug-baseline_e10_poly`; heavy path `/mnt/drive/3333_raw/0000_exp_ckpt/0608_1509_lod_true_rgb_dark_block8excl10_dav2s_decoder_e40_R0_aug-baseline_e10_poly`. Resolved data counts confirmed `lod_train=1958`, `lod_val=112`; init eval completed with `lod_val d1=0.8245`, `lod_train_proxy d1=0.8077`, gap `-0.0168`; epoch `0/40` started.
+- `0608_1918` Plan B block-split formal e40 matrix completed: all six runs finished with `status=0`; RGB queue finished at `2026-06-08T17:39:26+08:00`, RAW queue finished at `2026-06-08T19:18:12+08:00`; tmux session `0608_1509_lod_true_aug_e40_block8excl10_full_matrix` has exited.
+- `0608_1925` Plan B result audit completed from the six block-split tmux logs and exp logs. Result summary was written to `plans/result/lod_true_aug_overfit_summary.md`, and the Plan B summary below was updated.
+- `0608_1925` Plan B headline result: fair `geom` comparison gives RGB pipeline `Rg d1=0.8338@e30` vs RAW pipeline `Wg d1=0.8258@e33`, delta `+0.0080`, exceeding `min_effective_d1_delta=0.003`; under the block8excl10 pseudo-val protocol, RGB pipeline wins the headline RGB-vs-RAW comparison. The ranking is consistent in `baseline_e10` (`R0-W0=+0.0052`) and `medium` (`R1-W1=+0.0072`).
+- `0608_1925` Plan B augmentation result: `baseline_e10` is best in both domains (`R0=0.8351`, `W0=0.8299`). `geom` and `medium` do not improve RGB beyond the noise threshold and reduce RAW by about `0.004 d1`; current Plan B does not support keeping these augmentation presets as the default.
+- `0608_1925` Plan B overfit/under-training result: RGB e40 does not show train-only memorization by the defined gap signal (`R0 best gap=-0.0146`, last gap=-0.0139) and only has a small best-to-last val drop (`0.0014`). RAW e10 under-training is confirmed by the block-split trace: `W0` improves from epoch 9 `d1=0.8160` to best `0.8299@e36`; `W1` still peaks at epoch 39 but remains below `W0`, so more RAW epochs may be worth testing, but `medium` augmentation is not the current answer.
+
+## Plan B Execution Summary
+
+本节汇总 `0608 Plan B: Data Augmentation + Anti-Overfitting / Under-training` 已执行内容与结果，便于直接查阅；上方 `Execution Log` 保留逐时流水记录。
+
+### B0.2 / B0.3 诊断结果
+
+诊断脚本：
+
+```text
+finetune_stf/scripts/eval_lod_train_val_gap.py
+```
+
+诊断口径：
+
+- checkpoint：现有 e10 RGB / RAW formal run 的 `best_model.pth` 与 `last_epoch_model.pth`
+- train proxy：`00Train` 固定 `112` 样本，`seed=42`，center crop，no aug
+- val：`01Valid` 全 `112` 样本，center crop，no aug
+- gap：`d1(train_proxy) - d1(lod_val)`
+- split audit：每个 `01Valid` pair 到最近 `00Train` pair 的 ID / pair 距离
+
+| Run | Checkpoint | train_proxy d1 | val d1 | gap | train_proxy abs_rel | val abs_rel | Report |
+|---|---|---:|---:|---:|---:|---:|---|
+| `0608_0109_lod_true_rgb_dark_dav2s_decoder_e10` | best | `0.8104` | `0.8210` | `-0.0106` | `4.0344` | `2.5870` | `finetune_stf/analysis/lod_overfit_diag/0608_1434_0608_0109_lod_true_rgb_dark_dav2s_decoder_e10/gap_report.json` |
+| `0608_0109_lod_true_rgb_dark_dav2s_decoder_e10` | last | `0.8120` | `0.8196` | `-0.0076` | `4.2818` | `2.4970` | same report |
+| `0608_0113_lod_true_raw_rgb16_ram3_dav2s_decoder_e10` | best | `0.8170` | `0.8205` | `-0.0035` | `4.2252` | `2.7702` | `finetune_stf/analysis/lod_overfit_diag/0608_1435_0608_0113_lod_true_raw_rgb16_ram3_dav2s_decoder_e10/gap_report.json` |
+| `0608_0113_lod_true_raw_rgb16_ram3_dav2s_decoder_e10` | last | `0.8170` | `0.8205` | `-0.0035` | `4.2252` | `2.7702` | same report |
+
+Split audit result:
+
+- `00Train=2118`, `01Valid=112`
+- nearest val-to-train pair distance summary: min / p50 / max all `1` pair
+- `val_within_1_pair=100%`
+- interpretation：当前 pair-random split 有强邻近性，fixed-split train↔val gap 只能作为下限信号，不能证明跨场景泛化；B0 没有显示正向 train-only memorization gap。RAW e10 仍按 epoch trace 判为欠训练优先。
+
+### B0 Interim Findings Before Block Split
+
+- seed42 pair-random split 存在严重邻近泄漏：所有 `01Valid` pair 都能在 `00Train` 中找到距离 `1` pair 的邻近样本。因此当前 `lod_val d1` 可以用于和同口径 baseline 对照，但不能单独作为跨场景泛化证明。
+- B0 train-proxy vs val gap 没有支持“固定 split 上发生明显 train-only memorization”：RGB best/last gap 分别为 `-0.0106/-0.0076`，RAW best/last gap 为 `-0.0035`，均不是正向 train-only gap。
+- RAW e10 的欠训练证据更强：best 与 last 同为 epoch `9`，val d1 仍在末轮达到最好；后续 e40 对 RAW 更像是在验证“加 epoch + 中等正则”而不是先假设过拟合。
+- RGB e10 只能说有轻微 best-to-last 回落：best epoch `3` `d1=0.8210`，last epoch `9` `d1=0.8196`，但 B0 gap 不支持强过拟合结论。
+- augmentation、train-proxy 评估和显式 LR schedule 已通过 smoke；本条是 block-split e40 matrix 完成前的中间判断，最终结论见 B7。
+- decision update：由于 seed42 pair-random split 已确认泄漏，`0608_1448...R0` 及其队列不作为正式实验结论；后续正式训练必须使用 neighbor-excluded / block holdout split，并在 run name 与 `--lod-manifest` 中显式记录。
+
+### B1-B3 代码执行内容
+
+| Area | Result |
+|---|---|
+| Aug module | Added `finetune_stf/dataset/lod_aug.py` with `LODAugConfig`, presets `{off, baseline_e10, geom, light, medium, heavy}`, paired geometric RNG, RGB / RAW photometric branches. |
+| Dataset wiring | Updated `finetune_stf/dataset/lod_true.py`; augmentation is train-only; val and train-proxy remain center crop + no aug. |
+| Explicit args | Updated `finetune_stf/train.py` with `--aug-*`, `--aug-preset`, `--eval-lod-train-proxy`, `--lod-train-proxy-count`, `--lr-schedule`, `--warmup-steps`. |
+| Hidden hflip | Removed hidden train-loop runtime hflip for LOD only; ROD / STF behavior left unchanged. |
+| LR schedule | Added explicit `{poly, constant, cosine}` and `warmup_steps`; default remains `poly`, `warmup_steps=0`. |
+| Resolved logging | `config.json` records `resolved_augmentation` and `resolved_lr_schedule`; `resolved_config.json` includes expanded augmentation / LR schedule payloads; logs print `[AUG] ...` and `[LR] ...`. |
+| Formal scripts | Added `finetune_stf/scripts/formal/0608_run_lod_true_rgb_aug_e40_queue.sh` and `finetune_stf/scripts/formal/0608_run_lod_true_raw_rgb16_aug_e40_queue.sh`. |
+
+### B4 Smoke Results
+
+All successful smoke outputs used paths containing `codex_smoke` and were deleted after success.
+
+| Smoke | Result |
+|---|---|
+| `py_compile` | Passed for `finetune_stf/train.py`, `finetune_stf/dataset/lod_aug.py`, `finetune_stf/dataset/lod_true.py`, `finetune_stf/scripts/eval_lod_train_val_gap.py`. |
+| Dataset aug smoke | Passed: `off` passthrough, forced hflip, RGB/RAW paired geometry for same sample/epoch/seed, RAW medium finite and clamped to `[0,1]`. |
+| RGB train smoke | Passed for `--aug-preset geom` and `--aug-preset medium`, 1 train step + 2 val samples + train-proxy. |
+| RAW train smoke | Passed for `--aug-preset geom`, 1 train step + 2 val samples + train-proxy. |
+| LR schedule smoke | Passed using RAW `--aug-preset medium --lr-schedule cosine --warmup-steps 1`. |
+
+### B5 Leaked-Split Formal Matrix (Aborted)
+
+This matrix was launched before the split leakage diagnosis was acted on. It was stopped after the leakage issue was raised; outputs are retained for traceability but should not be used as formal evidence.
+
+```text
+tmux session: 0608_1448_lod_true_aug_e40_full_matrix
+queue log: /home/caq/6666_raw/dav2_raw_0603/finetune_stf/logs/0608_1448_lod_true_aug_e40_full_matrix.queue.log
+attach: tmux attach -t 0608_1448_lod_true_aug_e40_full_matrix
+monitor: tail -f /home/caq/6666_raw/dav2_raw_0603/finetune_stf/logs/0608_1448_lod_true_aug_e40_full_matrix.queue.log
+```
+
+Queued run order:
+
+| Run | Link | epochs | aug preset | LR schedule | Status |
+|---|---|---:|---|---|---|
+| R0 | RGB_Dark | 40 | `baseline_e10` | `poly`, `warmup_steps=0` | interrupted, abandoned |
+| Rg | RGB_Dark | 40 | `geom` | `poly`, `warmup_steps=0` | not started |
+| R1 | RGB_Dark | 40 | `medium` | `poly`, `warmup_steps=0` | not started |
+| W0 | RAW_RGB16 | 40 | `baseline_e10` | `poly`, `warmup_steps=0` | not started |
+| Wg | RAW_RGB16 | 40 | `geom` | `poly`, `warmup_steps=0` | not started |
+| W1 | RAW_RGB16 | 40 | `medium` | `poly`, `warmup_steps=0` | not started |
+
+Final leaked-split R0 status:
+
+- current run: `0608_1448_lod_true_rgb_dark_dav2s_decoder_e40_R0_aug-baseline_e10_poly`
+- run log: `finetune_stf/logs/0608_1448_lod_true_rgb_dark_dav2s_decoder_e40_R0_aug-baseline_e10_poly.tmux.log`
+- save path: `finetune_stf/exp/0608_1448_lod_true_rgb_dark_dav2s_decoder_e40_R0_aug-baseline_e10_poly`
+- heavy path: `/mnt/drive/3333_raw/0000_exp_ckpt/0608_1448_lod_true_rgb_dark_dav2s_decoder_e40_R0_aug-baseline_e10_poly`
+- init eval: `lod_val d1=0.8154`, `lod_train_proxy d1=0.7993`, gap `-0.0161`
+- epoch 0 eval: `lod_val d1=0.8197`, `lod_train_proxy d1=0.8082`, gap `-0.0115`; best checkpoint saved at epoch 0
+- epoch 1 eval: `lod_val d1=0.8182`, `lod_train_proxy d1=0.8091`, gap `-0.0091`
+- epoch 2 eval: `lod_val d1=0.8190`, `lod_train_proxy d1=0.8082`, gap `-0.0108`
+- epoch 3 eval: `lod_val d1=0.8203`, `lod_train_proxy d1=0.8101`, gap `-0.0102`; best checkpoint improved to `0.8203` at epoch 3
+- epoch 4 eval: `lod_val d1=0.8202`, `lod_train_proxy d1=0.8103`, gap `-0.0099`
+- final state: interrupted during epoch `5/40`; queue log records `[END] ... status=120`; tmux session exited
+
+### B6 Block Split Candidate
+
+New manifest:
+
+```text
+/home/caq/6666_raw/0000_dataset/LOD/pseudo_depth_dav2l_rgb_normal_rel_1200x800/lod_true_rgb_normal_dav2l_rel_manifest_block8_val112_excl10_uniform.csv
+```
+
+Metadata:
+
+```text
+/home/caq/6666_raw/0000_dataset/LOD/pseudo_depth_dav2l_rgb_normal_rel_1200x800/lod_true_rgb_normal_dav2l_rel_manifest_block8_val112_excl10_uniform.meta.json
+```
+
+Split policy:
+
+- source pseudo labels are reused; no DAv2-L teacher regeneration was needed
+- validation: `8` uniform contiguous blocks, `14` pairs per block, total `112`
+- neighbor exclusion: `10` pair indices on both sides of each validation block go to `02HoldoutBuffer`
+- split counts: `00Train=1958`, `01Valid=112`, `02HoldoutBuffer=160`
+- nearest val-to-train distance: min `11` pairs, max `24` pairs
+- formal scripts now default to this manifest and include `block8excl10` in run names
+- formal retraining launched at `0608_1509`
+
+### B7 Block-Split Formal Matrix Results
+
+Formal matrix launched in tmux because the e40 matrix was long-running. It completed successfully; all six runs ended with `status=0`.
+
+```text
+tmux session: 0608_1509_lod_true_aug_e40_block8excl10_full_matrix
+queue log: /home/caq/6666_raw/dav2_raw_0603/finetune_stf/logs/0608_1509_lod_true_aug_e40_block8excl10_full_matrix.queue.log
+queue completion: [QUEUE] all RAW_RGB16 aug e40 runs done 2026-06-08T19:18:12+08:00
+```
+
+Run status:
+
+| Run | Full run name | End time | Status |
+|---|---|---|---:|
+| R0 | `0608_1509_lod_true_rgb_dark_block8excl10_dav2s_decoder_e40_R0_aug-baseline_e10_poly` | `2026-06-08T16:05:53+08:00` | `0` |
+| Rg | `0608_1605_lod_true_rgb_dark_block8excl10_dav2s_decoder_e40_Rg_aug-geom_poly` | `2026-06-08T16:59:45+08:00` | `0` |
+| R1 | `0608_1659_lod_true_rgb_dark_block8excl10_dav2s_decoder_e40_R1_aug-medium_poly` | `2026-06-08T17:39:26+08:00` | `0` |
+| W0 | `0608_1739_lod_true_raw_rgb16_block8excl10_ram3_dav2s_decoder_e40_W0_aug-baseline_e10_poly` | `2026-06-08T18:11:59+08:00` | `0` |
+| Wg | `0608_1811_lod_true_raw_rgb16_block8excl10_ram3_dav2s_decoder_e40_Wg_aug-geom_poly` | `2026-06-08T18:44:59+08:00` | `0` |
+| W1 | `0608_1844_lod_true_raw_rgb16_block8excl10_ram3_dav2s_decoder_e40_W1_aug-medium_poly` | `2026-06-08T19:18:12+08:00` | `0` |
+
+Protocol invariants confirmed from logs / resolved config:
+
+- split manifest: `/home/caq/6666_raw/0000_dataset/LOD/pseudo_depth_dav2l_rgb_normal_rel_1200x800/lod_true_rgb_normal_dav2l_rel_manifest_block8_val112_excl10_uniform.csv`
+- counts: `lod_train=1958`, `lod_val=112`, `lod_train_proxy=112`
+- epochs: `40`; LR: `poly`, `warmup_steps=0`; best metric: `lod_d1` maximize
+- RGB: `dataset_family=lod_true_rgb_dark`, `input_domain=rgb`, `front_end=dav2_rgb`, `model_input_tensor=image`, decoder-only
+- RAW: `dataset_family=lod_true_raw_dark_rgb16`, `input_domain=raw3`, `front_end=raw_rgb16_ram3`, `model_input_tensor=raw`, `raw_storage_format=raw_rgb16_png_3ch`
+
+Main results:
+
+| Run | Link | Aug | init val d1 | epoch 9 val d1 | best val d1 (epoch) | train_proxy d1 @best | gap @best | last val d1 | last gap |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|
+| R0 | RGB_Dark | `baseline_e10` | `0.8245` | `0.8323` | **`0.8351` (e30)** | `0.8204` | `-0.0146` | `0.8337` | `-0.0139` |
+| Rg | RGB_Dark | `geom` | `0.8245` | `0.8315` | `0.8338` (e30) | `0.8193` | `-0.0145` | `0.8332` | `-0.0144` |
+| R1 | RGB_Dark | `medium` | `0.8245` | `0.8283` | `0.8332` (e27) | `0.8137` | `-0.0195` | `0.8319` | `-0.0196` |
+| W0 | RAW_RGB16 | `baseline_e10` | `0.3704` | `0.8160` | **`0.8299` (e36)** | `0.8320` | `0.0021` | `0.8295` | `0.0039` |
+| Wg | RAW_RGB16 | `geom` | `0.3704` | `0.8122` | `0.8258` (e33) | `0.8320` | `0.0062` | `0.8257` | `0.0044` |
+| W1 | RAW_RGB16 | `medium` | `0.3704` | `0.8150` | `0.8260` (e39) | `0.8257` | `-0.0004` | `0.8260` | `-0.0004` |
+
+Fair RGB-vs-RAW pipeline comparison:
+
+| Aug axis | RGB best d1 | RAW best d1 | RGB - RAW | Interpretation |
+|---|---:|---:|---:|---|
+| `baseline_e10` | `0.8351` | `0.8299` | `+0.0052` | RGB higher, above `0.003` threshold |
+| `geom` headline | `0.8338` | `0.8258` | `+0.0080` | RGB pipeline wins the fair geometric comparison |
+| `medium` | `0.8332` | `0.8260` | `+0.0072` | RGB higher; medium has photometric confound, used only as robustness check |
+
+Plan B conclusions:
+
+- Headline pipeline conclusion: under the block8excl10 True LOD pseudo-val protocol, RGB_Dark decoder pipeline beats RAW_RGB16 RamCore3 pipeline. The fair `geom` delta is `+0.0080 d1`, and the direction is consistent in `baseline_e10` and `medium`.
+- Augmentation conclusion: `geom` / `medium` do not improve over explicit `baseline_e10`. For RGB, the differences are within the planned `0.003` noise threshold; for RAW, both `geom` and `medium` are worse by about `0.004 d1`.
+- Overfitting conclusion: RGB e40 does not show the defined train-only memorization signal. Its train-proxy gap stays negative, and best-to-last val d1 drop is only `0.0014` for R0.
+- Under-training conclusion: RAW e10 was under-trained. In the block-split W0 trace, epoch 9 `d1=0.8160` improves to `0.8299@e36`. W1 still peaks at the final epoch but remains below W0, so extra RAW epochs may be worth a separate test; medium augmentation is not supported as the next default.
+- Validity boundary: all metrics are LOD pseudo inverse-relative proxy metrics over 112 validation pairs, not metric-depth benchmark numbers. The block split removes immediate neighbor leakage (`min val-to-train distance=11 pairs`) but does not make this a paper-level detection split.
 
 ## Execution Checklist
 
@@ -81,7 +277,7 @@
 
 用户已确认：
 
-1. Split 使用按 pair 随机 `95/5`，`seed=42`，并定死精确计数为 `2118 train / 112 val`。不强行对齐论文 1830/400 计数。
+1. Split 使用按 pair 随机 `95/5`，`seed=42`，并定死精确计数为 `2118 train / 112 val`。不强行对齐论文 1830/400 计数。**Superseded on 0608_1500:** B0.3 found severe neighbor leakage; this split is now debug-only and must not be used for formal conclusions.
 2. `RGB_Dark` 和 `RAW_Dark` 两条训练输入链路同时修改接入。
 3. DAv2-L teacher input_size 主用 `812`（≈LOD 原生短边 800，近原生处理、插值最小，与 ROD「近原生」teacher 口径一致）；生成前做 `812` vs `924` preview，确认轻度上采样是否还能多挤出细节，取更优者写入 `run_config.json`。
 4. Formal best checkpoint 使用 LOD validation `d1` 衡量，而不是 `abs_rel`。

@@ -405,6 +405,44 @@ INPUT_TYPE_ALIASES: dict[str, dict[str, Any]] = {
     ),
     "lod_true_rgb_dark": _LOD_TRUE_RGB_DARK,
     "lod_true_raw_dark_rgb16": _LOD_TRUE_RAW_DARK_RGB16,
+    "lod_true_raw_dark_rgb16_lora": _with(_LOD_TRUE_RAW_DARK_RGB16, lora="dav2_lora"),
+    "lod_true_raw_dark_rgb16_bridge": _with(
+        _LOD_TRUE_RAW_DARK_RGB16,
+        bridge="raw_feature_bridge",
+        bridge_feature_source_channels="x3",
+    ),
+    "lod_true_raw_dark_rgb16_bridge_lora": _with(
+        _LOD_TRUE_RAW_DARK_RGB16,
+        bridge="raw_feature_bridge",
+        lora="dav2_lora",
+        bridge_feature_source_channels="x3",
+    ),
+    "lod_true_raw_dark_rgb16_feature_adapter": _with(
+        _LOD_TRUE_RAW_DARK_RGB16,
+        decoder_feature_adapter="raw_feature_adapter",
+        adapter_feature_source_channels="x3",
+    ),
+    "lod_true_raw_dark_rgb16_feature_adapter_lora": _with(
+        _LOD_TRUE_RAW_DARK_RGB16,
+        decoder_feature_adapter="raw_feature_adapter",
+        lora="dav2_lora",
+        adapter_feature_source_channels="x3",
+    ),
+    "lod_true_raw_dark_rgb16_bridge_feature_adapter": _with(
+        _LOD_TRUE_RAW_DARK_RGB16,
+        bridge="raw_feature_bridge",
+        decoder_feature_adapter="raw_feature_adapter",
+        bridge_feature_source_channels="x3",
+        adapter_feature_source_channels="x3",
+    ),
+    "lod_true_raw_dark_rgb16_bridge_feature_adapter_lora": _with(
+        _LOD_TRUE_RAW_DARK_RGB16,
+        bridge="raw_feature_bridge",
+        decoder_feature_adapter="raw_feature_adapter",
+        lora="dav2_lora",
+        bridge_feature_source_channels="x3",
+        adapter_feature_source_channels="x3",
+    ),
 }
 
 
@@ -414,9 +452,12 @@ def resolve_legacy_input_type(input_type: str) -> dict[str, Any]:
         raise ValueError(f"Unsupported legacy input_type={name!r}")
     resolved = dict(INPUT_TYPE_ALIASES[name])
     resolved["input_type_alias"] = name
-    resolved["raw_storage_format"] = (
-        "legacy_bggR_decomp16" if resolved["dataset_family"] == "stf_raw" else NONE
-    )
+    if resolved["dataset_family"] == "stf_raw":
+        resolved["raw_storage_format"] = "legacy_bggR_decomp16"
+    elif resolved["dataset_family"] == "lod_true_raw_dark_rgb16":
+        resolved["raw_storage_format"] = "raw_rgb16_png_3ch"
+    else:
+        resolved["raw_storage_format"] = NONE
     bridge_source_channels = resolved.get("bridge_feature_source_channels", NONE)
     adapter_source_channels = resolved.get("adapter_feature_source_channels", NONE)
     resolved["bridge_feature_keys"] = (
@@ -737,11 +778,23 @@ def _legacy_alias_from_config(config: dict[str, Any]) -> str:
         and front_end == "raw_rgb16_ram3"
         and dataset_input_mode == "raw_rgb16_dark"
         and model_input_tensor == "raw"
-        and not bridge
-        and not adapter
-        and not lora
     ):
-        return "lod_true_raw_dark_rgb16"
+        if not bridge and not adapter:
+            return "lod_true_raw_dark_rgb16_lora" if lora else "lod_true_raw_dark_rgb16"
+        if bridge and not adapter and bridge_src == "x3":
+            return "lod_true_raw_dark_rgb16_bridge_lora" if lora else "lod_true_raw_dark_rgb16_bridge"
+        if adapter and not bridge and adapter_src == "x3":
+            return (
+                "lod_true_raw_dark_rgb16_feature_adapter_lora"
+                if lora
+                else "lod_true_raw_dark_rgb16_feature_adapter"
+            )
+        if bridge and adapter and bridge_src == "x3" and adapter_src == "x3":
+            return (
+                "lod_true_raw_dark_rgb16_bridge_feature_adapter_lora"
+                if lora
+                else "lod_true_raw_dark_rgb16_bridge_feature_adapter"
+            )
     raise ValueError(
         "The resolved orthogonal config is expressible, but this train.py revision has no "
         "legacy model factory alias for it yet: "
@@ -950,8 +1003,14 @@ def validate_resolved_config(resolved: ResolvedConfig, args: Any | None = None) 
             raise ValueError("dataset_family=lod_true_raw_dark_rgb16 requires raw3/raw_rgb16_ram3/raw")
         if cfg.raw_storage_format != "raw_rgb16_png_3ch":
             raise ValueError("dataset_family=lod_true_raw_dark_rgb16 requires raw_storage_format=raw_rgb16_png_3ch")
-        if cfg.bridge != NONE or cfg.decoder_feature_adapter != NONE or cfg.lora != NONE:
-            raise ValueError("dataset_family=lod_true_raw_dark_rgb16 requires bridge/decoder_feature_adapter/lora none")
+        if cfg.bridge not in (NONE, "raw_feature_bridge"):
+            raise ValueError("dataset_family=lod_true_raw_dark_rgb16 only supports bridge in {none, raw_feature_bridge}")
+        if cfg.decoder_feature_adapter not in (NONE, "raw_feature_adapter"):
+            raise ValueError(
+                "dataset_family=lod_true_raw_dark_rgb16 only supports decoder_feature_adapter in {none, raw_feature_adapter}"
+            )
+        if cfg.lora not in (NONE, "dav2_lora"):
+            raise ValueError("dataset_family=lod_true_raw_dark_rgb16 only supports lora in {none, dav2_lora}")
     if cfg.front_end == "dav2_rgb":
         if cfg.input_domain != "rgb" or cfg.model_input_tensor != "image":
             raise ValueError("front_end=dav2_rgb requires input_domain=rgb and model_input_tensor=image")
@@ -1001,14 +1060,14 @@ def validate_resolved_config(resolved: ResolvedConfig, args: Any | None = None) 
     elif cfg.lora == "dav2_lora" and cfg.sources.get("lora_tap_layers") != NOT_APPLICABLE:
         if not cfg.lora_tap_layers:
             raise ValueError("lora=dav2_lora with lora_block_mode=tap requires lora_tap_layers")
-    if cfg.bridge_feature_source_channels == "x3" and cfg.front_end != "raw_to_base_rgb_ram3":
-        raise ValueError("bridge_feature_source_channels=x3 requires front_end=raw_to_base_rgb_ram3")
-    if cfg.adapter_feature_source_channels == "x3" and cfg.front_end != "raw_to_base_rgb_ram3":
-        raise ValueError("adapter_feature_source_channels=x3 requires front_end=raw_to_base_rgb_ram3")
-    if cfg.bridge_feature_source_channels == "x4" and cfg.front_end == "raw_to_base_rgb_ram3":
-        raise ValueError("front_end=raw_to_base_rgb_ram3 uses x3 bridge features, not x4")
-    if cfg.adapter_feature_source_channels == "x4" and cfg.front_end == "raw_to_base_rgb_ram3":
-        raise ValueError("front_end=raw_to_base_rgb_ram3 uses x3 adapter features, not x4")
+    if cfg.bridge_feature_source_channels == "x3" and cfg.front_end not in {"raw_to_base_rgb_ram3", "raw_rgb16_ram3"}:
+        raise ValueError("bridge_feature_source_channels=x3 requires front_end=raw_to_base_rgb_ram3 or raw_rgb16_ram3")
+    if cfg.adapter_feature_source_channels == "x3" and cfg.front_end not in {"raw_to_base_rgb_ram3", "raw_rgb16_ram3"}:
+        raise ValueError("adapter_feature_source_channels=x3 requires front_end=raw_to_base_rgb_ram3 or raw_rgb16_ram3")
+    if cfg.bridge_feature_source_channels == "x4" and cfg.front_end in {"raw_to_base_rgb_ram3", "raw_rgb16_ram3"}:
+        raise ValueError(f"front_end={cfg.front_end} uses x3 bridge features, not x4")
+    if cfg.adapter_feature_source_channels == "x4" and cfg.front_end in {"raw_to_base_rgb_ram3", "raw_rgb16_ram3"}:
+        raise ValueError(f"front_end={cfg.front_end} uses x3 adapter features, not x4")
     if cfg.raw_storage_format != NONE and cfg.dataset_family not in {"stf_raw", "lod_true_raw_dark_rgb16"}:
         raise ValueError("raw_storage_format is only applicable for stf_raw or lod_true_raw_dark_rgb16")
     if cfg.kitti_eval_protocol not in KITTI_EVAL_PROTOCOL_CHOICES_RESOLVED:

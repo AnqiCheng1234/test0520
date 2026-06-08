@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Make a one-sample ROD raw-RAM comparison panel for four final checkpoints."""
+"""Make ROD Student-RGB / RAW-RAM comparison panels for final checkpoints."""
 
 from __future__ import annotations
 
@@ -8,6 +8,7 @@ import csv
 from dataclasses import dataclass
 from datetime import datetime
 import gc
+import hashlib
 import json
 import random
 import re
@@ -53,10 +54,13 @@ from finetune_stf.util.model_input import select_model_input  # noqa: E402
 
 
 DEFAULT_EXPERIMENTS = (
-    PROJECT_ROOT / "finetune_stf/exp/0605_1332_rod_night_rawram3_identity_dav2s_ram_decoder_e5",
-    PROJECT_ROOT / "finetune_stf/exp/0605_1844_rod_night_rawram3_identity_dav2s_ram_lora_tap_r8a16_decoder_e5",
+    PROJECT_ROOT / "finetune_stf/exp/0604_0752_rod_night_studentrgb_dav2s_decoder_e10",
+    PROJECT_ROOT / "finetune_stf/exp/0605_0139_rod_night_studentrgb_dav2s_lora_tap_r8a16_decoder_e10",
+    PROJECT_ROOT / "finetune_stf/exp/0605_0730_rod_night_studentrgb_dav2s_backbone_ld09_decoder_e10",
+    PROJECT_ROOT / "finetune_stf/exp/0606_1348_repl0605_1332_rod_night_rawram3_identity_dav2s_ram_decoder_e10",
+    PROJECT_ROOT / "finetune_stf/exp/0606_1348_repl0605_1844_rod_night_rawram3_identity_dav2s_ram_lora_tap_r8a16_decoder_e10",
     PROJECT_ROOT / "finetune_stf/exp/0606_0330_rod_night_rawram3_identity_dav2s_ram_backbone_ld09_decoder_e10",
-    PROJECT_ROOT / "finetune_stf/exp/0606_1431_rod_night_rawram3_identity_dav2s_ram_backbone_lowlr_ld09_e10",
+    PROJECT_ROOT / "finetune_stf/exp/0608_1444_rod_night_rawram3_identity_dav2s_ram_lora_tap_r8a16_bridge_feature_adapter_decoder_e10",
 )
 CSV_FIELDS = (
     "row",
@@ -104,7 +108,7 @@ def parse_args() -> argparse.Namespace:
         action="append",
         type=Path,
         default=None,
-        help="Raw experiment directory. Can be passed multiple times; defaults to the four requested runs.",
+        help="ROD experiment directory. Can be passed multiple times; defaults to the requested Student-RGB/RAW runs.",
     )
     parser.add_argument(
         "--checkpoint-name",
@@ -137,8 +141,30 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--error-cmap", default="magma")
     parser.add_argument("--error-vmax-pct", type=float, default=99.0)
     parser.add_argument("--d1-threshold", type=float, default=1.25)
-    parser.add_argument("--x3-vis-low-pct", type=float, default=1.0)
-    parser.add_argument("--x3-vis-high-pct", type=float, default=99.0)
+    parser.add_argument(
+        "--x3-vis-low-pct",
+        type=float,
+        default=1.0,
+        help="Deprecated compatibility option; input display now uses --input-vmin/--input-vmax.",
+    )
+    parser.add_argument(
+        "--x3-vis-high-pct",
+        type=float,
+        default=99.0,
+        help="Deprecated compatibility option; input display now uses --input-vmin/--input-vmax.",
+    )
+    parser.add_argument(
+        "--input-vmin",
+        type=float,
+        default=-2.64,
+        help="Fixed lower bound for the shared backbone-input display window (no percentile stretch).",
+    )
+    parser.add_argument(
+        "--input-vmax",
+        type=float,
+        default=2.64,
+        help="Fixed upper bound for the shared backbone-input display window (no percentile stretch).",
+    )
     parser.add_argument("--dry-run", action="store_true", help="Resolve inputs and checkpoints, then exit.")
     return parser.parse_args()
 
@@ -156,6 +182,14 @@ def parse_sample_indices_arg(value: str) -> list[int]:
 def load_json(path: Path) -> dict:
     with path.open("r", encoding="utf-8") as handle:
         return json.load(handle)
+
+
+def file_sha256(path: str | Path) -> str:
+    digest = hashlib.sha256()
+    with Path(path).expanduser().open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def load_exp_args(exp_dir: Path) -> argparse.Namespace:
@@ -266,6 +300,17 @@ def stable_sample_seed(exp_args: argparse.Namespace, sample_index: int) -> int:
 
 def tensor_2d_np(tensor: torch.Tensor) -> np.ndarray:
     return tensor.detach().float().cpu().numpy().astype(np.float32, copy=False)
+
+
+def to_chw_numpy(tensor: object) -> np.ndarray:
+    """Detach a possibly batched CHW/BCHW tensor to a CHW float32 array."""
+    if hasattr(tensor, "detach"):
+        arr = tensor.detach().float().cpu().numpy()
+    else:
+        arr = np.asarray(tensor, dtype=np.float32)
+    if arr.ndim == 4:
+        arr = arr[0]
+    return arr.astype(np.float32, copy=False)
 
 
 def infer_prediction(
@@ -409,7 +454,11 @@ def x3_before_backbone(
         raise ValueError("Model does not expose ram_core")
     raw_input = raw_input.to(device=device, non_blocking=True).float()
     with torch.no_grad(), torch.autocast(device_type=device.type, dtype=amp_dtype, enabled=use_amp):
-        if raw_input.shape[1] == 4 and getattr(module, "uses_base_rgb", False):
+        expected_channels = None
+        encoder_features = getattr(getattr(module.ram_core, "encoder", None), "features", None)
+        if encoder_features is not None and len(encoder_features) > 0:
+            expected_channels = getattr(encoder_features[0], "in_channels", None)
+        if raw_input.shape[1] == 4 and (getattr(module, "uses_base_rgb", False) or expected_channels == 3):
             x3_input = packed_bayer_to_base_rgb(raw_input)
         else:
             x3_input = raw_input
@@ -434,6 +483,22 @@ def x3_preview_image(x3_chw: np.ndarray, *, low_pct: float, high_pct: float) -> 
     if not np.isfinite(lo) or not np.isfinite(hi) or hi <= lo:
         lo, hi = 0.0, 1.0
     vis = np.clip((hwc - float(lo)) / max(float(hi) - float(lo), 1e-6), 0.0, 1.0)
+    return rgb_float_to_image(vis)
+
+
+def fixed_window_image(chw: np.ndarray, *, vmin: float, vmax: float) -> Image.Image:
+    """Render a CHW backbone-input tensor with a fixed shared linear window.
+
+    The same [vmin, vmax] -> [0, 1] mapping is used for all rows, so RGB
+    ImageNet-normalized inputs and RAW RamCore x3 outputs can be compared by
+    absolute value instead of by per-image contrast stretch.
+    """
+    arr = np.asarray(chw, dtype=np.float32)
+    if arr.ndim != 3 or arr.shape[0] != 3:
+        raise ValueError(f"Expected CHW with 3 channels, got {arr.shape}")
+    hwc = np.transpose(arr, (1, 2, 0))
+    span = max(float(vmax) - float(vmin), 1e-6)
+    vis = np.clip((hwc - float(vmin)) / span, 0.0, 1.0)
     return rgb_float_to_image(vis)
 
 
@@ -536,12 +601,14 @@ def make_panel(
     d1_cmap: str,
     d1_threshold: float,
     error_vmax: float,
+    input_vmin: float,
+    input_vmax: float,
 ) -> Image.Image:
     tile_w, tile_h = tile_size
     label_w = 255
     header_h = 64
     footer_h = 32
-    cols = ("Input / x3", "Pseudo / dist", "Pred", "Error", "D1 map")
+    cols = ("Backbone input", "Pseudo / dist", "Pred", "Error", "D1 map")
     width = label_w + tile_w * len(cols)
     height = header_h + tile_h * len(rows) + footer_h
     canvas = Image.new("RGB", (width, height), (245, 245, 245))
@@ -551,10 +618,10 @@ def make_panel(
     label_font = load_font(13)
     small_font = load_font(11)
 
-    draw.text((12, 12), f"ROD raw-RAM final ckpt panel: {sample_name}", font=title_font, fill=(20, 20, 20))
+    draw.text((12, 12), f"ROD Student-RGB / RAW-RAM final ckpt panel: {sample_name}", font=title_font, fill=(20, 20, 20))
     draw.text(
         (12, 38),
-        f"cmaps: {pred_cmap} / {error_cmap} / {d1_cmap}",
+        f"input window [{input_vmin:g},{input_vmax:g}], no stretch",
         font=small_font,
         fill=(70, 70, 70),
     )
@@ -690,6 +757,10 @@ def child_command_for_sample(args: argparse.Namespace, exp_dirs: tuple[Path, ...
         str(float(args.x3_vis_low_pct)),
         "--x3-vis-high-pct",
         str(float(args.x3_vis_high_pct)),
+        "--input-vmin",
+        str(float(args.input_vmin)),
+        "--input-vmax",
+        str(float(args.input_vmax)),
     ]
     for exp_dir in exp_dirs:
         cmd.extend(["--exp-dir", str(exp_dir)])
@@ -739,6 +810,9 @@ def run_multi_sample_mode(args: argparse.Namespace) -> None:
         "panels_dir": str(panels_dir),
         "metadata_dir": str(metadata_dir),
         "experiments": [str(path) for path in exp_dirs],
+        "input_vmin": float(args.input_vmin),
+        "input_vmax": float(args.input_vmax),
+        "input_visualization": "backbone input rendered with fixed shared [input_vmin,input_vmax] window, no per-image stretch",
     }
     if args.dry_run:
         print(json.dumps(planned, indent=2, sort_keys=True))
@@ -814,13 +888,20 @@ def main() -> None:
     if not exp_args_list:
         raise ValueError("At least one experiment directory is required")
     ref_args = exp_args_list[0]
+    reference_manifest = str(ref_args.rod_night_manifest)
+    reference_manifest_hash = file_sha256(reference_manifest)
     for exp_args in exp_args_list:
-        if exp_args.resolved_config.dataset_family != "rod_raw":
-            raise ValueError(f"{exp_args.save_path} is not a rod_raw experiment")
-        if exp_args.resolved_config.model_input_tensor != "raw":
-            raise ValueError(f"{exp_args.save_path} does not use raw model input")
-        if exp_args.rod_night_manifest != ref_args.rod_night_manifest:
-            raise ValueError("All experiments must use the same ROD manifest")
+        dataset_family = str(exp_args.resolved_config.dataset_family)
+        model_input_tensor = str(exp_args.resolved_config.model_input_tensor)
+        if dataset_family not in {"rod_raw", "rod_raw_student_rgb"}:
+            raise ValueError(f"{exp_args.save_path} is not a supported ROD experiment: {dataset_family}")
+        if dataset_family == "rod_raw" and model_input_tensor != "raw":
+            raise ValueError(f"{exp_args.save_path} rod_raw experiment does not use raw model input")
+        if dataset_family == "rod_raw_student_rgb" and model_input_tensor != "image":
+            raise ValueError(f"{exp_args.save_path} rod_raw_student_rgb experiment does not use image model input")
+        current_manifest = str(exp_args.rod_night_manifest)
+        if current_manifest != reference_manifest and file_sha256(current_manifest) != reference_manifest_hash:
+            raise ValueError("All experiments must use the same ROD manifest content")
         if (int(exp_args.input_height), int(exp_args.input_width)) != (int(ref_args.input_height), int(ref_args.input_width)):
             raise ValueError("All experiments must use the same input size")
 
@@ -846,6 +927,8 @@ def main() -> None:
         "sample_name": sample_name,
         "valid_pixels": int(np.count_nonzero(valid_mask)),
         "output_root": str(output_root),
+        "input_vmin": float(args.input_vmin),
+        "input_vmax": float(args.input_vmax),
     }
     if args.dry_run:
         print(json.dumps(dry_payload, indent=2, sort_keys=True))
@@ -860,10 +943,6 @@ def main() -> None:
     csv_rows: list[dict[str, object]] = []
     aligned_for_limits: list[np.ndarray] = [target]
 
-    teacher_rgb = crop_pipeline_rgb(raw_sample, "teacher_bright_degreen_v1")
-    student_rgb = crop_pipeline_rgb(raw_sample, "student_dark_degreen_v1")
-    pseudo_placeholder = None
-
     rgb_model = build_rgb_reference_eval_model(ref_args)
     rgb_model.to(device).eval()
     rgb_input = select_model_input(
@@ -873,6 +952,8 @@ def main() -> None:
         sample_source="rod_val",
         add_batch_dim=True,
     )
+    rgb_backbone_input = to_chw_numpy(rgb_input)
+    rgb_backbone_stats = x3_stats(rgb_backbone_input)
     rgb_pred = infer_prediction(
         rgb_model,
         rgb_input,
@@ -888,15 +969,17 @@ def main() -> None:
     if device.type == "cuda":
         torch.cuda.empty_cache()
 
-    raw_records = []
+    experiment_records = []
     for exp_dir, exp_args, checkpoint in zip(exp_dirs, exp_args_list, checkpoints):
         model = build_model(exp_args)
         ckpt_meta = load_checkpoint_into_model(model, checkpoint)
         model.to(device).eval()
-        raw_input = select_model_input(
-            raw_sample,
+        dataset_family = str(exp_args.resolved_config.dataset_family)
+        sample = rgb_sample if dataset_family == "rod_raw_student_rgb" else raw_sample
+        model_input = select_model_input(
+            sample,
             exp_args.resolved_config.model_input_tensor,
-            dataset_family=exp_args.resolved_config.dataset_family,
+            dataset_family=dataset_family,
             sample_source="rod_val",
             add_batch_dim=True,
         )
@@ -904,31 +987,47 @@ def main() -> None:
         use_amp = use_amp_for(device, exp_args, args.no_amp)
         pred = infer_prediction(
             model,
-            raw_input,
+            model_input,
             target_hw,
             device=device,
             amp_dtype=amp_dtype,
             use_amp=use_amp,
         )
         result = build_prediction_result(pred, target, valid_mask, d1_threshold=args.d1_threshold)
-        x3 = x3_before_backbone(
-            model,
-            raw_input,
-            device=device,
-            amp_dtype=amp_dtype,
-            use_amp=use_amp,
-        )
-        stat = x3_stats(x3)
+        if dataset_family == "rod_raw_student_rgb":
+            backbone_input = to_chw_numpy(model_input)
+            input_title = "Student RGB backbone input (imagenet-norm)"
+            input_labels = ("R", "G", "B")
+            row_kind = "student_rgb_final"
+            input_prefix = "in"
+        else:
+            backbone_input = x3_before_backbone(
+                model,
+                model_input,
+                device=device,
+                amp_dtype=amp_dtype,
+                use_amp=use_amp,
+            )
+            input_title = "RAW backbone input (RamCore3 x3)"
+            input_labels = ("ch0", "ch1", "ch2")
+            row_kind = "raw_ram_final"
+            input_prefix = "x3"
+        stat = x3_stats(backbone_input)
         aligned_for_limits.append(result.aligned_pred)
-        raw_records.append(
+        experiment_records.append(
             {
                 "exp_dir": exp_dir,
                 "exp_args": exp_args,
+                "dataset_family": dataset_family,
                 "checkpoint": checkpoint,
                 "checkpoint_meta": ckpt_meta,
                 "result": result,
-                "x3": x3,
-                "x3_stats": stat,
+                "backbone_input": backbone_input,
+                "input_stats": stat,
+                "input_title": input_title,
+                "input_labels": input_labels,
+                "row_kind": row_kind,
+                "input_prefix": input_prefix,
             }
         )
         del model
@@ -937,42 +1036,21 @@ def main() -> None:
             torch.cuda.empty_cache()
 
     pred_vmin, pred_vmax = robust_limits(aligned_for_limits, valid_mask)
-    error_arrays = [rgb_result.rel_error] + [record["result"].rel_error for record in raw_records]
+    error_arrays = [rgb_result.rel_error] + [record["result"].rel_error for record in experiment_records]
     _, error_vmax = robust_limits(error_arrays, valid_mask, low_pct=0.0, high_pct=float(args.error_vmax_pct))
     pseudo_image = colorize_array(target, valid_mask, vmin=pred_vmin, vmax=pred_vmax, cmap_name=args.pred_cmap)
-    pseudo_placeholder = pseudo_image
 
     rows_for_panel.append(
         {
             "label_lines": [
-                "Reference",
-                "teacher RGB",
-                "pseudo label",
-            ],
-            "images": [
-                rgb_float_to_image(teacher_rgb),
-                pseudo_placeholder,
-                blank_tile((int(args.tile_width), int(args.tile_height))),
-                blank_tile((int(args.tile_width), int(args.tile_height))),
-                blank_tile((int(args.tile_width), int(args.tile_height))),
-            ],
-        }
-    )
-    rows_for_panel.append(
-        {
-            "label_lines": [
-                "Student RGB",
+                "Student RGB + D0",
                 "DAv2-S init",
                 metric_line(rgb_result.metrics),
+                f"in mean/max {rgb_backbone_stats['mean']:.2g}/{rgb_backbone_stats['max']:.2g}",
             ],
             "images": [
-                rgb_float_to_image(student_rgb),
-                x3_hist_image(
-                    np.transpose(student_rgb, (2, 0, 1)),
-                    size=(int(args.tile_width), int(args.tile_height)),
-                    title="student RGB dist",
-                    labels=("R", "G", "B"),
-                ),
+                fixed_window_image(rgb_backbone_input, vmin=args.input_vmin, vmax=args.input_vmax),
+                pseudo_image,
                 colorize_array(rgb_result.aligned_pred, valid_mask, vmin=pred_vmin, vmax=pred_vmax, cmap_name=args.pred_cmap),
                 colorize_error(rgb_result.rel_error, rgb_result.error_valid, vmax=error_vmax, cmap_name=args.error_cmap),
                 colorize_d1(rgb_result.d1_score, rgb_result.d1_valid, cmap_name=args.d1_cmap),
@@ -981,33 +1059,40 @@ def main() -> None:
     )
     csv_rows.append(
         csv_row(
-            row=1,
+            row=0,
             kind="student_rgb_dav2s_init",
             experiment="DAv2-S student RGB init",
             checkpoint=str(ref_args.pretrained_from),
             sample_index=sample_index,
             sample_name=sample_name,
             result=rgb_result,
+            x3_stat=rgb_backbone_stats,
         )
     )
 
-    for row_idx, record in enumerate(raw_records, start=2):
+    for row_idx, record in enumerate(experiment_records, start=1):
         exp_dir = record["exp_dir"]
         result = record["result"]
-        stat = record["x3_stats"]
+        stat = record["input_stats"]
         exp_label = exp_dir.name.split("_rod_night_", 1)[0]
+        family_label = "Student RGB" if record["dataset_family"] == "rod_raw_student_rgb" else "RAW RamCore"
         label_lines = [
             exp_label,
-            "final/last ckpt",
+            f"{family_label} final/last",
             metric_line(result.metrics),
-            f"x3 p1/p99 {stat['p01']:.2g}/{stat['p99']:.2g}",
+            f"{record['input_prefix']} mean/max {stat['mean']:.2g}/{stat['max']:.2g}",
         ]
         rows_for_panel.append(
             {
                 "label_lines": label_lines,
                 "images": [
-                    x3_preview_image(record["x3"], low_pct=args.x3_vis_low_pct, high_pct=args.x3_vis_high_pct),
-                    x3_hist_image(record["x3"], size=(int(args.tile_width), int(args.tile_height)), title=f"{exp_label} x3"),
+                    fixed_window_image(record["backbone_input"], vmin=args.input_vmin, vmax=args.input_vmax),
+                    x3_hist_image(
+                        record["backbone_input"],
+                        size=(int(args.tile_width), int(args.tile_height)),
+                        title=f"{exp_label} {record['input_title']}",
+                        labels=record["input_labels"],
+                    ),
                     colorize_array(result.aligned_pred, valid_mask, vmin=pred_vmin, vmax=pred_vmax, cmap_name=args.pred_cmap),
                     colorize_error(result.rel_error, result.error_valid, vmax=error_vmax, cmap_name=args.error_cmap),
                     colorize_d1(result.d1_score, result.d1_valid, cmap_name=args.d1_cmap),
@@ -1017,7 +1102,7 @@ def main() -> None:
         csv_rows.append(
             csv_row(
                 row=row_idx,
-                kind="raw_ram_final",
+                kind=record["row_kind"],
                 experiment=exp_dir.name,
                 checkpoint=str(record["checkpoint"]),
                 sample_index=sample_index,
@@ -1036,6 +1121,8 @@ def main() -> None:
         d1_cmap=args.d1_cmap,
         d1_threshold=args.d1_threshold,
         error_vmax=error_vmax,
+        input_vmin=float(args.input_vmin),
+        input_vmax=float(args.input_vmax),
     )
     panel_path = output_root / f"rod_raw_four_exp_panel_idx{sample_index:04d}_{safe_filename_part(sample_name)}.png"
     panel.save(panel_path)
@@ -1052,26 +1139,32 @@ def main() -> None:
         "error_definition": "abs(aligned inverse-relative prediction - pseudo inverse-relative label) / pseudo inverse-relative label",
         "error_vmax": float(error_vmax),
         "error_vmax_percentile": float(args.error_vmax_pct),
+        "input_vmin": float(args.input_vmin),
+        "input_vmax": float(args.input_vmax),
+        "input_visualization": "backbone input rendered with fixed shared [input_vmin,input_vmax] window, no per-image stretch",
         "d1_colormap": str(args.d1_cmap),
         "d1_definition": f"per-pixel delta1 pass map after affine alignment; pass means max(target/pred,pred/target) < {float(args.d1_threshold):g}",
         "pred_visualization": "aligned inverse-relative prediction, colored with shared pseudo/pred robust limits",
         "pred_vmin": float(pred_vmin),
         "pred_vmax": float(pred_vmax),
-        "raw_rows": [
+        "experiment_rows": [
             {
                 "experiment": record["exp_dir"].name,
+                "dataset_family": record["dataset_family"],
+                "row_kind": record["row_kind"],
                 "checkpoint": str(record["checkpoint"]),
                 "checkpoint_meta": record["checkpoint_meta"],
-                "x3_stats": record["x3_stats"],
+                "backbone_input_stats": record["input_stats"],
                 "metrics": record["result"].metrics,
                 "align_stats": record["result"].align_stats,
             }
-            for record in raw_records
+            for record in experiment_records
         ],
-        "reference_row": {
+        "student_rgb_init_row": {
             "checkpoint": str(ref_args.pretrained_from),
             "metrics": rgb_result.metrics,
             "align_stats": rgb_result.align_stats,
+            "backbone_input_stats": rgb_backbone_stats,
         },
     }
     summary_path.write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")

@@ -1,0 +1,54 @@
+{
+  "exp": "0608_1444_rod_night_rawram3_identity_dav2s_ram_lora_tap_r8a16_bridge_feature_adapter_decoder_e10",
+  "train_points": 30,
+  "epochs_with_loss": 10,
+  "epochs_with_eval": 10,
+  "first_avg_loss": 0.04248432,
+  "last_avg_loss": 0.01795214,
+  "best_d1": {
+    "epoch": 4,
+    "d1": 0.8517,
+    "abs_rel": 5.6001,
+    "rmse": 13.9164
+  },
+  "best_abs_rel": {
+    "epoch": 4,
+    "abs_rel": 5.6001,
+    "d1": 0.8517,
+    "rmse": 13.9164
+  },
+  "best_rmse": {
+    "epoch": 4,
+    "rmse": 13.9164,
+    "abs_rel": 5.6001,
+    "d1": 0.8517
+  },
+  "last_eval": {
+    "epoch": 9,
+    "abs_rel": 7.6183,
+    "rmse": 14.8583,
+    "silog": 0.9818,
+    "d1": 0.8477,
+    "d2": 0.9179,
+    "d3": 0.9435
+  },
+  "pretrain_eval_not_plotted": {
+    "checkpoint_source": "/home/caq/333_cvpr/da_ours/checkpoints/depth_anything_v2_vits.pth",
+    "metrics": {
+      "abs_rel": 130.71055578207168,
+      "d1": 0.26970881571376115,
+      "d2": 0.5123173227002068,
+      "d3": 0.65187873112438,
+      "edge_overlap_iou": NaN,
+      "edge_sobel_l1": NaN,
+      "log10": 0.3535753377410792,
+      "rmse": 96.24649651050947,
+      "rmse_log": 1.272315753266775,
+      "silog": 1.2423747181707099,
+      "silog_x100": 124.23747181707114,
+      "sq_rel": 25446.13532320699
+    },
+    "split": "rod_night_val",
+    "stage": "rod_only"
+  }
+}

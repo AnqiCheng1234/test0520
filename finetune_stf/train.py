@@ -1069,6 +1069,8 @@ def _bridge_input_type(cfg):
         return "raw_ram_bridge"
     if cfg.front_end == "raw_to_base_rgb_ram3":
         return "raw_ram_rgb_bridge"
+    if cfg.front_end == "raw_rgb16_ram3":
+        return "raw_rgb16_ram3_bridge"
     raise ValueError(f"front_end={cfg.front_end!r} has no bridge input type")
 
 
@@ -1077,6 +1079,8 @@ def _feature_adapter_input_type(cfg):
         return "raw_ram_bridge_feature_adapter" if cfg.bridge != "none" else "raw_ram_feature_adapter"
     if cfg.front_end == "raw_to_base_rgb_ram3":
         return "raw_ram_rgb_bridge_feature_adapter" if cfg.bridge != "none" else "raw_ram_rgb_feature_adapter"
+    if cfg.front_end == "raw_rgb16_ram3":
+        return "raw_rgb16_ram3_bridge_feature_adapter" if cfg.bridge != "none" else "raw_rgb16_ram3_feature_adapter"
     raise ValueError(f"front_end={cfg.front_end!r} has no decoder feature adapter input type")
 
 
@@ -1130,6 +1134,7 @@ def build_model(args):
             bridge_layers=list(cfg.bridge_layers),
             rgb_interface_mode=args.rgb_interface_mode,
             rgb_residual_scale=args.rgb_residual_scale,
+            raw_ram_rgb_tail=args.raw_ram_rgb_tail,
             sensor_hw=sensor_hw,
             backbone_hw=None,
         )

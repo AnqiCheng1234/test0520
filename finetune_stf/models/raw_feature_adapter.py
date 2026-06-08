@@ -27,12 +27,16 @@ RAW_RAM_FEATURE_ADAPTER_ONLY_INPUT_TYPES = ("raw_ram_feature_adapter",)
 RAW_RAM_FEATURE_ADAPTER_LORA_INPUT_TYPES = ("raw_ram_feature_adapter_lora",)
 RAW_RAM_RGB_FEATURE_ADAPTER_ONLY_INPUT_TYPES = ("raw_ram_rgb_feature_adapter",)
 RAW_RAM_RGB_FEATURE_ADAPTER_LORA_INPUT_TYPES = ("raw_ram_rgb_feature_adapter_lora",)
+RAW_RGB16_RAM3_FEATURE_ADAPTER_ONLY_INPUT_TYPES = ("raw_rgb16_ram3_feature_adapter",)
+RAW_RGB16_RAM3_FEATURE_ADAPTER_LORA_INPUT_TYPES = ("raw_rgb16_ram3_feature_adapter_lora",)
 RAW_RAM_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES = ("raw_ram_bridge_feature_adapter",)
 RAW_RAM_BRIDGE_FEATURE_ADAPTER_LORA_INPUT_TYPES = (
     "raw_ram_bridge_feature_adapter_lora",
     "raw_ram_rgb_bridge_feature_adapter_lora",
+    "raw_rgb16_ram3_bridge_feature_adapter_lora",
 )
 RAW_RAM_RGB_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES = ("raw_ram_rgb_bridge_feature_adapter",)
+RAW_RGB16_RAM3_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES = ("raw_rgb16_ram3_bridge_feature_adapter",)
 RAW_RAM_BRIDGE_FEATURE_ADAPTER_INPUT_TYPES = (
     RAW_RAM_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES
     + RAW_RAM_BRIDGE_FEATURE_ADAPTER_LORA_INPUT_TYPES
@@ -42,8 +46,11 @@ RAW_RAM_FEATURE_ADAPTER_INPUT_TYPES = (
     + RAW_RAM_FEATURE_ADAPTER_LORA_INPUT_TYPES
     + RAW_RAM_RGB_FEATURE_ADAPTER_ONLY_INPUT_TYPES
     + RAW_RAM_RGB_FEATURE_ADAPTER_LORA_INPUT_TYPES
+    + RAW_RGB16_RAM3_FEATURE_ADAPTER_ONLY_INPUT_TYPES
+    + RAW_RGB16_RAM3_FEATURE_ADAPTER_LORA_INPUT_TYPES
     + RAW_RAM_BRIDGE_FEATURE_ADAPTER_INPUT_TYPES
     + RAW_RAM_RGB_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES
+    + RAW_RGB16_RAM3_BRIDGE_FEATURE_ADAPTER_ONLY_INPUT_TYPES
 )
 DEFAULT_FEATURE_ADAPTER_KEYS = ("x_cat", "ffm_mid", "x4")
 
@@ -389,6 +396,7 @@ class RawRamRgbFeatureAdapterDepthModel(RawRamFeatureAdapterDepthModel):
         feature_keys=DEFAULT_RGB_BRIDGE_FEATURE_KEYS,
         adapter_dim=64,
         raw_ram_rgb_tail="tanh2p5",
+        input_is_rgb3=False,
         sensor_hw=SENSOR_INPUT_HW,
         backbone_hw=BACKBONE_INPUT_HW,
     ):
@@ -404,6 +412,10 @@ class RawRamRgbFeatureAdapterDepthModel(RawRamFeatureAdapterDepthModel):
         self.feature_adapter_keys = tuple(feature_keys)
         self.dav2 = dav2_model
         self.raw_ram_rgb_tail = raw_ram_rgb_tail
+        self.input_is_rgb3 = bool(input_is_rgb3)
+        self.front_end = "raw_rgb16_ram3" if self.input_is_rgb3 else "raw_to_base_rgb_ram3"
+        self.ram_core_type = "RamCore3"
+        self.imagenet_norm_enabled = False
         self.feature_projector = RAWFeatureProjector(
             feature_channels=RAW_RAM_RGB_BRIDGE_FEATURE_CHANNELS,
             feature_keys=self.feature_adapter_keys,
@@ -416,8 +428,15 @@ class RawRamRgbFeatureAdapterDepthModel(RawRamFeatureAdapterDepthModel):
         self.spatial_adapter = CenterPadCropAdapter(sensor_hw=sensor_hw, backbone_hw=backbone_hw)
         _register_imagenet_stats(self)
 
+    def _ram_input(self, x_raw):
+        if self.input_is_rgb3:
+            if x_raw.shape[1] != 3:
+                raise ValueError(f"raw_rgb16 RamCore3 feature adapter expects 3 input channels, got {x_raw.shape[1]}")
+            return x_raw
+        return packed_bayer_to_base_rgb(x_raw)
+
     def forward_features(self, x_raw):
-        x3_in = packed_bayer_to_base_rgb(x_raw)
+        x3_in = self._ram_input(x_raw)
         x3, feature_dict = self.ram_core.forward_with_features(x3_in)
         if self.raw_ram_rgb_tail == "tanh2p5":
             x3 = phase1b_tanh_tail_squash(x3)
@@ -462,6 +481,7 @@ class RawRamRgbBridgeFeatureAdapterDepthModel(RawRamRgbFeatureAdapterDepthModel)
         bridge_source="ram_core",
         adapter_dim=64,
         raw_ram_rgb_tail="tanh2p5",
+        input_is_rgb3=False,
         sensor_hw=SENSOR_INPUT_HW,
         backbone_hw=BACKBONE_INPUT_HW,
     ):
@@ -472,6 +492,7 @@ class RawRamRgbBridgeFeatureAdapterDepthModel(RawRamRgbFeatureAdapterDepthModel)
             feature_keys=feature_keys,
             adapter_dim=adapter_dim,
             raw_ram_rgb_tail=raw_ram_rgb_tail,
+            input_is_rgb3=input_is_rgb3,
             sensor_hw=sensor_hw,
             backbone_hw=backbone_hw,
         )
@@ -575,7 +596,7 @@ def build_raw_ram_feature_adapter_depth_model(
             sensor_hw=sensor_hw,
             backbone_hw=backbone_hw,
         )
-    if input_type == "raw_ram_rgb_bridge_feature_adapter":
+    if input_type in {"raw_ram_rgb_bridge_feature_adapter", "raw_rgb16_ram3_bridge_feature_adapter"}:
         return RawRamRgbBridgeFeatureAdapterDepthModel(
             dav2_model,
             feature_keys=feature_keys,
@@ -584,15 +605,17 @@ def build_raw_ram_feature_adapter_depth_model(
             bridge_source=bridge_source,
             adapter_dim=adapter_dim,
             raw_ram_rgb_tail=raw_ram_rgb_tail,
+            input_is_rgb3=input_type == "raw_rgb16_ram3_bridge_feature_adapter",
             sensor_hw=sensor_hw,
             backbone_hw=backbone_hw,
         )
-    if input_type == "raw_ram_rgb_feature_adapter":
+    if input_type in {"raw_ram_rgb_feature_adapter", "raw_rgb16_ram3_feature_adapter"}:
         return RawRamRgbFeatureAdapterDepthModel(
             dav2_model,
             feature_keys=feature_keys,
             adapter_dim=adapter_dim,
             raw_ram_rgb_tail=raw_ram_rgb_tail,
+            input_is_rgb3=input_type == "raw_rgb16_ram3_feature_adapter",
             sensor_hw=sensor_hw,
             backbone_hw=backbone_hw,
         )
@@ -613,13 +636,18 @@ def build_raw_ram_feature_adapter_depth_model(
             sensor_hw=sensor_hw,
             backbone_hw=backbone_hw,
         )
-    if input_type in {"raw_ram_feature_adapter_lora", "raw_ram_rgb_feature_adapter_lora"}:
-        if input_type == "raw_ram_rgb_feature_adapter_lora":
+    if input_type in {
+        "raw_ram_feature_adapter_lora",
+        "raw_ram_rgb_feature_adapter_lora",
+        "raw_rgb16_ram3_feature_adapter_lora",
+    }:
+        if input_type in {"raw_ram_rgb_feature_adapter_lora", "raw_rgb16_ram3_feature_adapter_lora"}:
             model = RawRamRgbFeatureAdapterDepthModel(
                 dav2_model,
                 feature_keys=feature_keys,
                 adapter_dim=adapter_dim,
                 raw_ram_rgb_tail=raw_ram_rgb_tail,
+                input_is_rgb3=input_type == "raw_rgb16_ram3_feature_adapter_lora",
                 sensor_hw=sensor_hw,
                 backbone_hw=backbone_hw,
             )
@@ -644,7 +672,7 @@ def build_raw_ram_feature_adapter_depth_model(
             alpha=model.lora_alpha,
         )
         return model
-    if input_type == "raw_ram_rgb_bridge_feature_adapter_lora":
+    if input_type in {"raw_ram_rgb_bridge_feature_adapter_lora", "raw_rgb16_ram3_bridge_feature_adapter_lora"}:
         model = RawRamRgbBridgeFeatureAdapterDepthModel(
             dav2_model,
             feature_keys=feature_keys,
@@ -653,6 +681,7 @@ def build_raw_ram_feature_adapter_depth_model(
             bridge_source=bridge_source,
             adapter_dim=adapter_dim,
             raw_ram_rgb_tail=raw_ram_rgb_tail,
+            input_is_rgb3=input_type == "raw_rgb16_ram3_bridge_feature_adapter_lora",
             sensor_hw=sensor_hw,
             backbone_hw=backbone_hw,
         )

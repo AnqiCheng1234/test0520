@@ -1,0 +1,392 @@
+{
+  "checkpoints": [
+    "/mnt/drive/3333_raw/0000_exp_ckpt/0604_0752_rod_night_studentrgb_dav2s_decoder_e10/last_epoch_model.pth",
+    "/mnt/drive/3333_raw/0000_exp_ckpt/0605_0139_rod_night_studentrgb_dav2s_lora_tap_r8a16_decoder_e10/last_epoch_model.pth",
+    "/mnt/drive/3333_raw/0000_exp_ckpt/0605_0730_rod_night_studentrgb_dav2s_backbone_ld09_decoder_e10/last_epoch_model.pth",
+    "/mnt/drive/3333_raw/0000_exp_ckpt_186/0606_1348_repl0605_1332_rod_night_rawram3_identity_dav2s_ram_decoder_e10/last_epoch_model.pth",
+    "/mnt/drive/3333_raw/0000_exp_ckpt_186/0606_1348_repl0605_1844_rod_night_rawram3_identity_dav2s_ram_lora_tap_r8a16_decoder_e10/last_epoch_model.pth",
+    "/mnt/drive/3333_raw/0000_exp_ckpt/0606_0330_rod_night_rawram3_identity_dav2s_ram_backbone_ld09_decoder_e10/last_epoch_model.pth",
+    "/mnt/drive/3333_raw/0000_exp_ckpt/0608_1444_rod_night_rawram3_identity_dav2s_ram_lora_tap_r8a16_bridge_feature_adapter_decoder_e10/last_epoch_model.pth"
+  ],
+  "csv_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/rod_raw_four_exp_panel/0608_205236_random10_seed42_mixed_studentrgb_raw_fixed_backbone_input/metadata/sample_0171/metrics_by_row.csv",
+  "d1_colormap": "RdYlGn",
+  "d1_definition": "per-pixel delta1 pass map after affine alignment; pass means max(target/pred,pred/target) < 1.25",
+  "error_colormap": "magma",
+  "error_definition": "abs(aligned inverse-relative prediction - pseudo inverse-relative label) / pseudo inverse-relative label",
+  "error_vmax": 0.9999999403953552,
+  "error_vmax_percentile": 99.0,
+  "experiment_rows": [
+    {
+      "align_stats": {
+        "scale": 93.54139589286751,
+        "shift": -1.6197592149161195,
+        "valid_pixels": 423884.0
+      },
+      "backbone_input_stats": {
+        "max": 2.640000104904175,
+        "mean": -1.94034743309021,
+        "min": -2.1179039478302,
+        "p01": -2.1179039478302,
+        "p50": -2.018207311630249,
+        "p99": -1.492997169494629
+      },
+      "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0604_0752_rod_night_studentrgb_dav2s_decoder_e10/last_epoch_model.pth",
+      "checkpoint_meta": {
+        "best_metric": "rod",
+        "best_metrics": {
+          "avg4": Infinity,
+          "eth3d": Infinity,
+          "kitti": Infinity,
+          "robotcar": Infinity,
+          "robotcar_day": Infinity,
+          "robotcar_night": Infinity,
+          "rod": 9.128799823388668,
+          "stf": Infinity
+        },
+        "epoch": 9,
+        "path": "/mnt/drive/3333_raw/0000_exp_ckpt/0604_0752_rod_night_studentrgb_dav2s_decoder_e10/last_epoch_model.pth"
+      },
+      "dataset_family": "rod_raw_student_rgb",
+      "experiment": "0604_0752_rod_night_studentrgb_dav2s_decoder_e10",
+      "metrics": {
+        "abs_rel": 0.8891901746209495,
+        "d1": 0.8832675920770777,
+        "d2": 0.9205655320795312,
+        "d3": 0.9555703918996706,
+        "log10": 0.060367262189257385,
+        "rmse": 22.812116508505284,
+        "rmse_log": 0.29457053881757334,
+        "silog": 0.2944257042565196,
+        "silog_x100": 29.442570425651958,
+        "sq_rel": 56.30547949862759
+      },
+      "row_kind": "student_rgb_final"
+    },
+    {
+      "align_stats": {
+        "scale": 54.15546284857684,
+        "shift": 3.67098085238519,
+        "valid_pixels": 423884.0
+      },
+      "backbone_input_stats": {
+        "max": 2.640000104904175,
+        "mean": -1.94034743309021,
+        "min": -2.1179039478302,
+        "p01": -2.1179039478302,
+        "p50": -2.018207311630249,
+        "p99": -1.492997169494629
+      },
+      "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0605_0139_rod_night_studentrgb_dav2s_lora_tap_r8a16_decoder_e10/last_epoch_model.pth",
+      "checkpoint_meta": {
+        "best_metric": "rod",
+        "best_metrics": {
+          "avg4": Infinity,
+          "eth3d": Infinity,
+          "kitti": Infinity,
+          "robotcar": Infinity,
+          "robotcar_day": Infinity,
+          "robotcar_night": Infinity,
+          "rod": 8.325166951746594,
+          "stf": Infinity
+        },
+        "epoch": 9,
+        "path": "/mnt/drive/3333_raw/0000_exp_ckpt/0605_0139_rod_night_studentrgb_dav2s_lora_tap_r8a16_decoder_e10/last_epoch_model.pth"
+      },
+      "dataset_family": "rod_raw_student_rgb",
+      "experiment": "0605_0139_rod_night_studentrgb_dav2s_lora_tap_r8a16_decoder_e10",
+      "metrics": {
+        "abs_rel": 0.7044738376431516,
+        "d1": 0.8839989242339885,
+        "d2": 0.9333968727293316,
+        "d3": 0.9675099791452378,
+        "log10": 0.047680760440402134,
+        "rmse": 17.673083016923382,
+        "rmse_log": 0.2539114836496797,
+        "silog": 0.25388976255910456,
+        "silog_x100": 25.388976255910457,
+        "sq_rel": 35.266929053270125
+      },
+      "row_kind": "student_rgb_final"
+    },
+    {
+      "align_stats": {
+        "scale": 44.44946853409914,
+        "shift": 5.751005699480147,
+        "valid_pixels": 423884.0
+      },
+      "backbone_input_stats": {
+        "max": 2.640000104904175,
+        "mean": -1.94034743309021,
+        "min": -2.1179039478302,
+        "p01": -2.1179039478302,
+        "p50": -2.018207311630249,
+        "p99": -1.492997169494629
+      },
+      "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0605_0730_rod_night_studentrgb_dav2s_backbone_ld09_decoder_e10/last_epoch_model.pth",
+      "checkpoint_meta": {
+        "best_metric": "rod",
+        "best_metrics": {
+          "avg4": Infinity,
+          "eth3d": Infinity,
+          "kitti": Infinity,
+          "robotcar": Infinity,
+          "robotcar_day": Infinity,
+          "robotcar_night": Infinity,
+          "rod": 5.887954012995225,
+          "stf": Infinity
+        },
+        "epoch": 9,
+        "path": "/mnt/drive/3333_raw/0000_exp_ckpt/0605_0730_rod_night_studentrgb_dav2s_backbone_ld09_decoder_e10/last_epoch_model.pth"
+      },
+      "dataset_family": "rod_raw_student_rgb",
+      "experiment": "0605_0730_rod_night_studentrgb_dav2s_backbone_ld09_decoder_e10",
+      "metrics": {
+        "abs_rel": 0.694682726013915,
+        "d1": 0.9024001849562616,
+        "d2": 0.9611521076520935,
+        "d3": 0.9848449104000151,
+        "log10": 0.03370315064977524,
+        "rmse": 11.254977946183992,
+        "rmse_log": 0.20430394417548126,
+        "silog": 0.20428404640600129,
+        "silog_x100": 20.428404640600128,
+        "sq_rel": 35.7051622810759
+      },
+      "row_kind": "student_rgb_final"
+    },
+    {
+      "align_stats": {
+        "scale": 76.08273210811646,
+        "shift": -4.835446526139454,
+        "valid_pixels": 423884.0
+      },
+      "backbone_input_stats": {
+        "max": 23.375,
+        "mean": 0.13557200133800507,
+        "min": -9.625,
+        "p01": -0.91796875,
+        "p50": -0.0400390625,
+        "p99": 2.859375
+      },
+      "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt_186/0606_1348_repl0605_1332_rod_night_rawram3_identity_dav2s_ram_decoder_e10/last_epoch_model.pth",
+      "checkpoint_meta": {
+        "best_metric": "rod",
+        "best_metrics": {
+          "avg4": Infinity,
+          "eth3d": Infinity,
+          "kitti": Infinity,
+          "robotcar": Infinity,
+          "robotcar_day": Infinity,
+          "robotcar_night": Infinity,
+          "rod": 5.565339358065942,
+          "stf": Infinity
+        },
+        "epoch": 9,
+        "path": "/mnt/drive/3333_raw/0000_exp_ckpt_186/0606_1348_repl0605_1332_rod_night_rawram3_identity_dav2s_ram_decoder_e10/last_epoch_model.pth"
+      },
+      "dataset_family": "rod_raw",
+      "experiment": "0606_1348_repl0605_1332_rod_night_rawram3_identity_dav2s_ram_decoder_e10",
+      "metrics": {
+        "abs_rel": 0.3636306922184218,
+        "d1": 0.9337035604080361,
+        "d2": 0.9788668598012664,
+        "d3": 0.9929792112936559,
+        "log10": 0.03038330193054961,
+        "rmse": 12.37917396424041,
+        "rmse_log": 0.16234112158228908,
+        "silog": 0.16184063979053795,
+        "silog_x100": 16.184063979053796,
+        "sq_rel": 9.270217979877717
+      },
+      "row_kind": "raw_ram_final"
+    },
+    {
+      "align_stats": {
+        "scale": 51.01165494530278,
+        "shift": 2.2618155843082195,
+        "valid_pixels": 423884.0
+      },
+      "backbone_input_stats": {
+        "max": 41.5,
+        "mean": 0.7093124985694885,
+        "min": -5.53125,
+        "p01": -0.48046875,
+        "p50": 0.5703125,
+        "p99": 3.171875
+      },
+      "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt_186/0606_1348_repl0605_1844_rod_night_rawram3_identity_dav2s_ram_lora_tap_r8a16_decoder_e10/last_epoch_model.pth",
+      "checkpoint_meta": {
+        "best_metric": "rod",
+        "best_metrics": {
+          "avg4": Infinity,
+          "eth3d": Infinity,
+          "kitti": Infinity,
+          "robotcar": Infinity,
+          "robotcar_day": Infinity,
+          "robotcar_night": Infinity,
+          "rod": 6.838340669048608,
+          "stf": Infinity
+        },
+        "epoch": 9,
+        "path": "/mnt/drive/3333_raw/0000_exp_ckpt_186/0606_1348_repl0605_1844_rod_night_rawram3_identity_dav2s_ram_lora_tap_r8a16_decoder_e10/last_epoch_model.pth"
+      },
+      "dataset_family": "rod_raw",
+      "experiment": "0606_1348_repl0605_1844_rod_night_rawram3_identity_dav2s_ram_lora_tap_r8a16_decoder_e10",
+      "metrics": {
+        "abs_rel": 0.2522947697219548,
+        "d1": 0.9263454152551169,
+        "d2": 0.9774560964792255,
+        "d3": 0.9933283634201809,
+        "log10": 0.03276563649623676,
+        "rmse": 11.039980503449291,
+        "rmse_log": 0.1622703695250302,
+        "silog": 0.1622660444623887,
+        "silog_x100": 16.22660444623887,
+        "sq_rel": 4.049421883999572
+      },
+      "row_kind": "raw_ram_final"
+    },
+    {
+      "align_stats": {
+        "scale": 47.858359794069266,
+        "shift": 4.644352191902885,
+        "valid_pixels": 423884.0
+      },
+      "backbone_input_stats": {
+        "max": 86.5,
+        "mean": 0.3900914788246155,
+        "min": -4.5,
+        "p01": -0.69140625,
+        "p50": 0.2138671875,
+        "p99": 2.796875
+      },
+      "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0606_0330_rod_night_rawram3_identity_dav2s_ram_backbone_ld09_decoder_e10/last_epoch_model.pth",
+      "checkpoint_meta": {
+        "best_metric": "rod",
+        "best_metrics": {
+          "avg4": Infinity,
+          "eth3d": Infinity,
+          "kitti": Infinity,
+          "robotcar": Infinity,
+          "robotcar_day": Infinity,
+          "robotcar_night": Infinity,
+          "rod": 4.2575196485325195,
+          "stf": Infinity
+        },
+        "epoch": 9,
+        "path": "/mnt/drive/3333_raw/0000_exp_ckpt/0606_0330_rod_night_rawram3_identity_dav2s_ram_backbone_ld09_decoder_e10/last_epoch_model.pth"
+      },
+      "dataset_family": "rod_raw",
+      "experiment": "0606_0330_rod_night_rawram3_identity_dav2s_ram_backbone_ld09_decoder_e10",
+      "metrics": {
+        "abs_rel": 0.23833575305284807,
+        "d1": 0.9488916779118816,
+        "d2": 0.9887752309594134,
+        "d3": 0.9962324598239141,
+        "log10": 0.027487309079074488,
+        "rmse": 8.355281869542036,
+        "rmse_log": 0.14360067374120242,
+        "silog": 0.14357591258072308,
+        "silog_x100": 14.357591258072308,
+        "sq_rel": 3.5222987654691393
+      },
+      "row_kind": "raw_ram_final"
+    },
+    {
+      "align_stats": {
+        "scale": 50.734287909349035,
+        "shift": 1.5514930068848953,
+        "valid_pixels": 423884.0
+      },
+      "backbone_input_stats": {
+        "max": 13.8125,
+        "mean": 0.5620822310447693,
+        "min": -6.65625,
+        "p01": -0.70703125,
+        "p50": 0.4140625,
+        "p99": 2.984375
+      },
+      "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0608_1444_rod_night_rawram3_identity_dav2s_ram_lora_tap_r8a16_bridge_feature_adapter_decoder_e10/last_epoch_model.pth",
+      "checkpoint_meta": {
+        "best_metric": "rod",
+        "best_metrics": {
+          "avg4": Infinity,
+          "eth3d": Infinity,
+          "kitti": Infinity,
+          "lod_d1": -Infinity,
+          "robotcar": Infinity,
+          "robotcar_day": Infinity,
+          "robotcar_night": Infinity,
+          "rod": 0.8516662495341711,
+          "stf": Infinity
+        },
+        "epoch": 9,
+        "path": "/mnt/drive/3333_raw/0000_exp_ckpt/0608_1444_rod_night_rawram3_identity_dav2s_ram_lora_tap_r8a16_bridge_feature_adapter_decoder_e10/last_epoch_model.pth"
+      },
+      "dataset_family": "rod_raw",
+      "experiment": "0608_1444_rod_night_rawram3_identity_dav2s_ram_lora_tap_r8a16_bridge_feature_adapter_decoder_e10",
+      "metrics": {
+        "abs_rel": 0.2333755966389218,
+        "d1": 0.9350105217465156,
+        "d2": 0.9863004973058667,
+        "d3": 0.996362212303366,
+        "log10": 0.027986158243530877,
+        "rmse": 10.033261298076324,
+        "rmse_log": 0.1486745372906841,
+        "silog": 0.1485968584375945,
+        "silog_x100": 14.859685843759449,
+        "sq_rel": 4.221771459193448
+      },
+      "row_kind": "raw_ram_final"
+    }
+  ],
+  "experiments": [
+    "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/exp/0604_0752_rod_night_studentrgb_dav2s_decoder_e10",
+    "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/exp/0605_0139_rod_night_studentrgb_dav2s_lora_tap_r8a16_decoder_e10",
+    "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/exp/0605_0730_rod_night_studentrgb_dav2s_backbone_ld09_decoder_e10",
+    "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/exp/0606_1348_repl0605_1332_rod_night_rawram3_identity_dav2s_ram_decoder_e10",
+    "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/exp/0606_1348_repl0605_1844_rod_night_rawram3_identity_dav2s_ram_lora_tap_r8a16_decoder_e10",
+    "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/exp/0606_0330_rod_night_rawram3_identity_dav2s_ram_backbone_ld09_decoder_e10",
+    "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/exp/0608_1444_rod_night_rawram3_identity_dav2s_ram_lora_tap_r8a16_bridge_feature_adapter_decoder_e10"
+  ],
+  "input_visualization": "backbone input rendered with fixed shared [input_vmin,input_vmax] window, no per-image stretch",
+  "input_vmax": 2.64,
+  "input_vmin": -2.64,
+  "output_root": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/rod_raw_four_exp_panel/0608_205236_random10_seed42_mixed_studentrgb_raw_fixed_backbone_input/metadata/sample_0171",
+  "panel_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/rod_raw_four_exp_panel/0608_205236_random10_seed42_mixed_studentrgb_raw_fixed_backbone_input/sample_panels/rod_raw_four_exp_panel_idx0171_night-06181.png",
+  "pred_visualization": "aligned inverse-relative prediction, colored with shared pseudo/pred robust limits",
+  "pred_vmax": 477.7799072265625,
+  "pred_vmin": 8.337284088134766,
+  "prediction_colormap": "Spectral_r",
+  "sample_index": 171,
+  "sample_name": "night-06181",
+  "student_rgb_init_row": {
+    "align_stats": {
+      "scale": 58.926095518581306,
+      "shift": -8.735261798328152,
+      "valid_pixels": 423884.0
+    },
+    "backbone_input_stats": {
+      "max": 2.640000104904175,
+      "mean": -1.94034743309021,
+      "min": -2.1179039478302,
+      "p01": -2.1179039478302,
+      "p50": -2.018207311630249,
+      "p99": -1.492997169494629
+    },
+    "checkpoint": "/home/caq/333_cvpr/da_ours/checkpoints/depth_anything_v2_vits.pth",
+    "metrics": {
+      "abs_rel": 0.96958467004675,
+      "d1": 0.8267639259797491,
+      "d2": 0.8821328476658709,
+      "d3": 0.9088099574411868,
+      "log10": 0.40766485613672,
+      "rmse": 27.80775450243681,
+      "rmse_log": 3.6578953770977978,
+      "silog": 3.6133332021336098,
+      "silog_x100": 361.333320213361,
+      "sq_rel": 67.7094189460961
+    }
+  },
+  "valid_pixels": 423884
+}

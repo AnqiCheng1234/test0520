@@ -1,0 +1,239 @@
+{
+  "checkpoints": [
+    "/mnt/drive/3333_raw/0000_exp_ckpt/0605_1332_rod_night_rawram3_identity_dav2s_ram_decoder_e5/last_epoch_model.pth",
+    "/mnt/drive/3333_raw/0000_exp_ckpt/0605_1844_rod_night_rawram3_identity_dav2s_ram_lora_tap_r8a16_decoder_e5/last_epoch_model.pth",
+    "/mnt/drive/3333_raw/0000_exp_ckpt/0606_0330_rod_night_rawram3_identity_dav2s_ram_backbone_ld09_decoder_e10/last_epoch_model.pth",
+    "/mnt/drive/3333_raw/0000_exp_ckpt/0606_1431_rod_night_rawram3_identity_dav2s_ram_backbone_lowlr_ld09_e10/last_epoch_model.pth"
+  ],
+  "csv_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/rod_raw_four_exp_panel/0608_201732_random10_seed42_fixed_backbone_input/metadata/sample_1541/metrics_by_row.csv",
+  "d1_colormap": "RdYlGn",
+  "d1_definition": "per-pixel delta1 pass map after affine alignment; pass means max(target/pred,pred/target) < 1.25",
+  "error_colormap": "magma",
+  "error_definition": "abs(aligned inverse-relative prediction - pseudo inverse-relative label) / pseudo inverse-relative label",
+  "error_vmax": 0.9999999403953552,
+  "error_vmax_percentile": 99.0,
+  "experiments": [
+    "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/exp/0605_1332_rod_night_rawram3_identity_dav2s_ram_decoder_e5",
+    "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/exp/0605_1844_rod_night_rawram3_identity_dav2s_ram_lora_tap_r8a16_decoder_e5",
+    "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/exp/0606_0330_rod_night_rawram3_identity_dav2s_ram_backbone_ld09_decoder_e10",
+    "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/exp/0606_1431_rod_night_rawram3_identity_dav2s_ram_backbone_lowlr_ld09_e10"
+  ],
+  "input_visualization": "backbone input rendered with fixed shared [input_vmin,input_vmax] window, no per-image stretch",
+  "input_vmax": 2.64,
+  "input_vmin": -2.64,
+  "output_root": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/rod_raw_four_exp_panel/0608_201732_random10_seed42_fixed_backbone_input/metadata/sample_1541",
+  "panel_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/rod_raw_four_exp_panel/0608_201732_random10_seed42_fixed_backbone_input/sample_panels/rod_raw_four_exp_panel_idx1541_night-07551.png",
+  "pred_visualization": "aligned inverse-relative prediction, colored with shared pseudo/pred robust limits",
+  "pred_vmax": 486.0225830078125,
+  "pred_vmin": 9.999999974752427e-07,
+  "prediction_colormap": "Spectral_r",
+  "raw_rows": [
+    {
+      "align_stats": {
+        "scale": 67.41489013215988,
+        "shift": -36.442826544724596,
+        "valid_pixels": 462810.0
+      },
+      "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0605_1332_rod_night_rawram3_identity_dav2s_ram_decoder_e5/last_epoch_model.pth",
+      "checkpoint_meta": {
+        "best_metric": "rod",
+        "best_metrics": {
+          "avg4": Infinity,
+          "eth3d": Infinity,
+          "kitti": Infinity,
+          "robotcar": Infinity,
+          "robotcar_day": Infinity,
+          "robotcar_night": Infinity,
+          "rod": 5.941340356684774,
+          "stf": Infinity
+        },
+        "epoch": 4,
+        "path": "/mnt/drive/3333_raw/0000_exp_ckpt/0605_1332_rod_night_rawram3_identity_dav2s_ram_decoder_e5/last_epoch_model.pth"
+      },
+      "experiment": "0605_1332_rod_night_rawram3_identity_dav2s_ram_decoder_e5",
+      "metrics": {
+        "abs_rel": 0.3744188331694884,
+        "d1": 0.4117607657570061,
+        "d2": 0.7159417471532594,
+        "d3": 0.7740692724876299,
+        "log10": 1.1740842706486543,
+        "rmse": 65.3614496623349,
+        "rmse_log": 6.245491961156727,
+        "silog": 5.986896248519586,
+        "silog_x100": 598.6896248519586,
+        "sq_rel": 12.991659765464462
+      },
+      "x3_stats": {
+        "max": 18.375,
+        "mean": 0.7345384955406189,
+        "min": -18.625,
+        "p01": -0.8046875,
+        "p50": 0.72265625,
+        "p99": 2.765625
+      }
+    },
+    {
+      "align_stats": {
+        "scale": 48.86453613333728,
+        "shift": -28.717516089580563,
+        "valid_pixels": 462810.0
+      },
+      "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0605_1844_rod_night_rawram3_identity_dav2s_ram_lora_tap_r8a16_decoder_e5/last_epoch_model.pth",
+      "checkpoint_meta": {
+        "best_metric": "rod",
+        "best_metrics": {
+          "avg4": Infinity,
+          "eth3d": Infinity,
+          "kitti": Infinity,
+          "robotcar": Infinity,
+          "robotcar_day": Infinity,
+          "robotcar_night": Infinity,
+          "rod": 7.392906988658901,
+          "stf": Infinity
+        },
+        "epoch": 4,
+        "path": "/mnt/drive/3333_raw/0000_exp_ckpt/0605_1844_rod_night_rawram3_identity_dav2s_ram_lora_tap_r8a16_decoder_e5/last_epoch_model.pth"
+      },
+      "experiment": "0605_1844_rod_night_rawram3_identity_dav2s_ram_lora_tap_r8a16_decoder_e5",
+      "metrics": {
+        "abs_rel": 0.3797956358192203,
+        "d1": 0.3945225902638232,
+        "d2": 0.6952572329897798,
+        "d3": 0.7653745597545429,
+        "log10": 1.136087338022496,
+        "rmse": 70.71458178946837,
+        "rmse_log": 6.101501108077882,
+        "silog": 5.857825523725582,
+        "silog_x100": 585.7825523725583,
+        "sq_rel": 14.342287248975198
+      },
+      "x3_stats": {
+        "max": 37.0,
+        "mean": 0.6150552034378052,
+        "min": -12.5,
+        "p01": -0.60546875,
+        "p50": 0.58984375,
+        "p99": 2.90625
+      }
+    },
+    {
+      "align_stats": {
+        "scale": 39.11705562166855,
+        "shift": -27.618961903509696,
+        "valid_pixels": 462810.0
+      },
+      "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0606_0330_rod_night_rawram3_identity_dav2s_ram_backbone_ld09_decoder_e10/last_epoch_model.pth",
+      "checkpoint_meta": {
+        "best_metric": "rod",
+        "best_metrics": {
+          "avg4": Infinity,
+          "eth3d": Infinity,
+          "kitti": Infinity,
+          "robotcar": Infinity,
+          "robotcar_day": Infinity,
+          "robotcar_night": Infinity,
+          "rod": 4.2575196485325195,
+          "stf": Infinity
+        },
+        "epoch": 9,
+        "path": "/mnt/drive/3333_raw/0000_exp_ckpt/0606_0330_rod_night_rawram3_identity_dav2s_ram_backbone_ld09_decoder_e10/last_epoch_model.pth"
+      },
+      "experiment": "0606_0330_rod_night_rawram3_identity_dav2s_ram_backbone_ld09_decoder_e10",
+      "metrics": {
+        "abs_rel": 0.37073908277046713,
+        "d1": 0.37921825371102613,
+        "d2": 0.6868153237829779,
+        "d3": 0.7773427540459368,
+        "log10": 0.9967876577459989,
+        "rmse": 70.91890251953329,
+        "rmse_log": 5.599907155247683,
+        "silog": 5.398527829871606,
+        "silog_x100": 539.8527829871606,
+        "sq_rel": 14.18741906977627
+      },
+      "x3_stats": {
+        "max": 38.25,
+        "mean": 0.38780102133750916,
+        "min": -4.0625,
+        "p01": -0.73828125,
+        "p50": 0.341796875,
+        "p99": 2.359375
+      }
+    },
+    {
+      "align_stats": {
+        "scale": 48.20670515902321,
+        "shift": -28.98597925044624,
+        "valid_pixels": 462810.0
+      },
+      "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0606_1431_rod_night_rawram3_identity_dav2s_ram_backbone_lowlr_ld09_e10/last_epoch_model.pth",
+      "checkpoint_meta": {
+        "best_metric": "rod",
+        "best_metrics": {
+          "avg4": Infinity,
+          "eth3d": Infinity,
+          "kitti": Infinity,
+          "robotcar": Infinity,
+          "robotcar_day": Infinity,
+          "robotcar_night": Infinity,
+          "rod": 6.419512670778,
+          "stf": Infinity
+        },
+        "epoch": 9,
+        "path": "/mnt/drive/3333_raw/0000_exp_ckpt/0606_1431_rod_night_rawram3_identity_dav2s_ram_backbone_lowlr_ld09_e10/last_epoch_model.pth"
+      },
+      "experiment": "0606_1431_rod_night_rawram3_identity_dav2s_ram_backbone_lowlr_ld09_e10",
+      "metrics": {
+        "abs_rel": 0.38970242350449,
+        "d1": 0.4063092845876278,
+        "d2": 0.6860914846265206,
+        "d3": 0.7409001534106869,
+        "log10": 1.23062626792707,
+        "rmse": 65.19869390915369,
+        "rmse_log": 6.37825165810082,
+        "silog": 6.098603777393525,
+        "silog_x100": 609.8603777393525,
+        "sq_rel": 13.363211233617166
+      },
+      "x3_stats": {
+        "max": 19.375,
+        "mean": 0.6224607825279236,
+        "min": -5.625,
+        "p01": -0.6953125,
+        "p50": 0.546875,
+        "p99": 3.359375
+      }
+    }
+  ],
+  "reference_row": {
+    "align_stats": {
+      "scale": 45.02134114223614,
+      "shift": -28.061967453632995,
+      "valid_pixels": 462810.0
+    },
+    "backbone_input_stats": {
+      "max": 2.640000104904175,
+      "mean": -1.833029866218567,
+      "min": -2.1179039478302,
+      "p01": -2.1007790565490723,
+      "p50": -1.8952821493148804,
+      "p99": -0.3403921127319336
+    },
+    "checkpoint": "/home/caq/333_cvpr/da_ours/checkpoints/depth_anything_v2_vits.pth",
+    "metrics": {
+      "abs_rel": 0.40322126746546316,
+      "d1": 0.32634990600894537,
+      "d2": 0.6702815410211533,
+      "d3": 0.768339059225168,
+      "log10": 1.0019006772370818,
+      "rmse": 71.30895664918897,
+      "rmse_log": 5.598910845847733,
+      "silog": 5.400617877626701,
+      "silog_x100": 540.0617877626701,
+      "sq_rel": 16.017321132046824
+    }
+  },
+  "sample_index": 1541,
+  "sample_name": "night-07551",
+  "valid_pixels": 462810
+}

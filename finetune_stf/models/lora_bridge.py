@@ -24,6 +24,11 @@ DEFAULT_BRIDGE_FEATURE_KEYS = ("x_cat", "ffm_mid", "x4")
 RAW_RAM_RGB_BRIDGE_ONLY_INPUT_TYPES = ("raw_ram_rgb_bridge",)
 RAW_RAM_RGB_BRIDGE_LORA_INPUT_TYPES = ("raw_ram_rgb_bridge_lora",)
 RAW_RAM_RGB_BRIDGE_INPUT_TYPES = RAW_RAM_RGB_BRIDGE_ONLY_INPUT_TYPES + RAW_RAM_RGB_BRIDGE_LORA_INPUT_TYPES
+RAW_RGB16_RAM3_BRIDGE_ONLY_INPUT_TYPES = ("raw_rgb16_ram3_bridge",)
+RAW_RGB16_RAM3_BRIDGE_LORA_INPUT_TYPES = ("raw_rgb16_ram3_bridge_lora",)
+RAW_RGB16_RAM3_BRIDGE_INPUT_TYPES = (
+    RAW_RGB16_RAM3_BRIDGE_ONLY_INPUT_TYPES + RAW_RGB16_RAM3_BRIDGE_LORA_INPUT_TYPES
+)
 DEFAULT_RGB_BRIDGE_FEATURE_KEYS = ("x_cat", "ffm_mid", "x3")
 LORA_BLOCK_MODE_CHOICES = ("all", "front", "mid", "back", "tap")
 DEFAULT_LORA_BLOCK_MODE = "tap"
@@ -395,12 +400,17 @@ class RawRamRgbBridgeDepthModel(nn.Module):
         bridge_feature_keys=DEFAULT_RGB_BRIDGE_FEATURE_KEYS,
         bridge_layers=None,
         bridge_source="ram_core",
+        raw_ram_rgb_tail="tanh2p5",
+        input_is_rgb3=False,
         sensor_hw=SENSOR_INPUT_HW,
         backbone_hw=BACKBONE_INPUT_HW,
     ):
         super().__init__()
         if bridge_source != "ram_core":
             raise ValueError(f"Unsupported bridge_source for now: {bridge_source}")
+        raw_ram_rgb_tail = str(raw_ram_rgb_tail)
+        if raw_ram_rgb_tail not in ("identity", "tanh2p5"):
+            raise ValueError(f"Unsupported raw_ram_rgb_tail={raw_ram_rgb_tail!r}")
 
         feature_keys = tuple(bridge_feature_keys)
         unknown_keys = [key for key in feature_keys if key not in RAW_RAM_RGB_BRIDGE_FEATURE_CHANNELS]
@@ -415,6 +425,11 @@ class RawRamRgbBridgeDepthModel(nn.Module):
         self.bridge_source = bridge_source
         self.bridge_feature_keys = feature_keys
         self.bridge_layers = tuple(int(layer) for layer in bridge_layers)
+        self.input_is_rgb3 = bool(input_is_rgb3)
+        self.front_end = "raw_rgb16_ram3" if self.input_is_rgb3 else "raw_to_base_rgb_ram3"
+        self.ram_core_type = "RamCore3"
+        self.raw_ram_rgb_tail = raw_ram_rgb_tail
+        self.imagenet_norm_enabled = False
         self.bridge_adapter = RawFeatureBridgeAdapter(
             feature_channels=RAW_RAM_RGB_BRIDGE_FEATURE_CHANNELS,
             feature_keys=self.bridge_feature_keys,
@@ -424,12 +439,18 @@ class RawRamRgbBridgeDepthModel(nn.Module):
         self.spatial_adapter = CenterPadCropAdapter(sensor_hw=sensor_hw, backbone_hw=backbone_hw)
         _register_imagenet_stats(self)
 
+    def _ram_input(self, x_raw):
+        if self.input_is_rgb3:
+            if x_raw.shape[1] != 3:
+                raise ValueError(f"raw_rgb16 RamCore3 bridge expects 3 input channels, got {x_raw.shape[1]}")
+            return x_raw
+        return packed_bayer_to_base_rgb(x_raw)
+
     def build_bridge_injections(self, x_raw):
-        x3_in = packed_bayer_to_base_rgb(x_raw)
+        x3_in = self._ram_input(x_raw)
         x3, feature_dict = self.ram_core.forward_with_features(x3_in)
-        # Phase-1b path shared with raw_ram_rgb: BN output with soft tail squash,
-        # still no hard clamp and no ImageNet normalization after RamCore3.
-        x3 = phase1b_tanh_tail_squash(x3)
+        if self.raw_ram_rgb_tail == "tanh2p5":
+            x3 = phase1b_tanh_tail_squash(x3)
         feature_dict = {**feature_dict, "x3": x3}
         # Pre-Phase-1 path:
         # x_rgb = torch.clamp(x3, 0, 1); x_norm = (x_rgb - self.img_mean) / self.img_std
@@ -498,6 +519,8 @@ class RawRamRgbBridgeLoRADepthModel(RawRamRgbBridgeDepthModel):
         bridge_feature_keys=DEFAULT_RGB_BRIDGE_FEATURE_KEYS,
         bridge_layers=None,
         bridge_source="ram_core",
+        raw_ram_rgb_tail="tanh2p5",
+        input_is_rgb3=False,
         lora_block_mode=DEFAULT_LORA_BLOCK_MODE,
         lora_tap_layers=None,
         lora_rank=8,
@@ -510,6 +533,8 @@ class RawRamRgbBridgeLoRADepthModel(RawRamRgbBridgeDepthModel):
             bridge_feature_keys=bridge_feature_keys,
             bridge_layers=bridge_layers,
             bridge_source=bridge_source,
+            raw_ram_rgb_tail=raw_ram_rgb_tail,
+            input_is_rgb3=input_is_rgb3,
             sensor_hw=sensor_hw,
             backbone_hw=backbone_hw,
         )
@@ -534,6 +559,7 @@ def build_raw_ram_bridge_depth_model(
     bridge_layers=None,
     rgb_interface_mode="residual_tanh",
     rgb_residual_scale=0.1,
+    raw_ram_rgb_tail="tanh2p5",
     lora_block_mode=DEFAULT_LORA_BLOCK_MODE,
     lora_tap_layers=None,
     lora_rank=8,
@@ -542,7 +568,7 @@ def build_raw_ram_bridge_depth_model(
     backbone_hw=BACKBONE_INPUT_HW,
 ):
     if bridge_feature_keys is None:
-        if input_type in RAW_RAM_RGB_BRIDGE_INPUT_TYPES:
+        if input_type in RAW_RAM_RGB_BRIDGE_INPUT_TYPES + RAW_RGB16_RAM3_BRIDGE_INPUT_TYPES:
             bridge_feature_keys = DEFAULT_RGB_BRIDGE_FEATURE_KEYS
         else:
             bridge_feature_keys = DEFAULT_BRIDGE_FEATURE_KEYS
@@ -573,21 +599,25 @@ def build_raw_ram_bridge_depth_model(
             sensor_hw=sensor_hw,
             backbone_hw=backbone_hw,
         )
-    if input_type == "raw_ram_rgb_bridge":
+    if input_type in {"raw_ram_rgb_bridge", "raw_rgb16_ram3_bridge"}:
         return RawRamRgbBridgeDepthModel(
             dav2_model,
             bridge_feature_keys=bridge_feature_keys,
             bridge_layers=bridge_layers,
             bridge_source=bridge_source,
+            raw_ram_rgb_tail=raw_ram_rgb_tail,
+            input_is_rgb3=input_type == "raw_rgb16_ram3_bridge",
             sensor_hw=sensor_hw,
             backbone_hw=backbone_hw,
         )
-    if input_type == "raw_ram_rgb_bridge_lora":
+    if input_type in {"raw_ram_rgb_bridge_lora", "raw_rgb16_ram3_bridge_lora"}:
         return RawRamRgbBridgeLoRADepthModel(
             dav2_model,
             bridge_feature_keys=bridge_feature_keys,
             bridge_layers=bridge_layers,
             bridge_source=bridge_source,
+            raw_ram_rgb_tail=raw_ram_rgb_tail,
+            input_is_rgb3=input_type == "raw_rgb16_ram3_bridge_lora",
             lora_block_mode=lora_block_mode,
             lora_tap_layers=lora_tap_layers,
             lora_rank=lora_rank,

@@ -1,0 +1,50 @@
+{
+  "align_stats": {
+    "scale": 44.44946853409914,
+    "shift": 5.751005699480147,
+    "valid_pixels": 423884.0
+  },
+  "assumption": "dav2-ld student rgb = 0605_0730_rod_night_studentrgb_dav2s_backbone_ld09_decoder_e10",
+  "checkpoint": "/mnt/drive/3333_raw/0000_exp_ckpt/0605_0730_rod_night_studentrgb_dav2s_backbone_ld09_decoder_e10/last_epoch_model.pth",
+  "checkpoint_meta": {
+    "best_metric": "rod",
+    "best_metrics": {
+      "avg4": Infinity,
+      "eth3d": Infinity,
+      "kitti": Infinity,
+      "robotcar": Infinity,
+      "robotcar_day": Infinity,
+      "robotcar_night": Infinity,
+      "rod": 5.887954012995225,
+      "stf": Infinity
+    },
+    "epoch": 9,
+    "path": "/mnt/drive/3333_raw/0000_exp_ckpt/0605_0730_rod_night_studentrgb_dav2s_backbone_ld09_decoder_e10/last_epoch_model.pth"
+  },
+  "d1_threshold": 1.25,
+  "error_vmax": 0.9999999403953552,
+  "experiment": "0605_0730_rod_night_studentrgb_dav2s_backbone_ld09_decoder_e10",
+  "metrics": {
+    "abs_rel": 0.694682726013915,
+    "d1": 0.9024001849562616,
+    "d2": 0.9611521076520935,
+    "d3": 0.9848449104000151,
+    "log10": 0.03370315064977524,
+    "rmse": 11.254977946183992,
+    "rmse_log": 0.20430394417548126,
+    "silog": 0.20428404640600129,
+    "silog_x100": 20.428404640600128,
+    "sq_rel": 35.7051622810759
+  },
+  "paths": {
+    "d1": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/rod_raw_four_exp_panel/0608_205236_random10_seed42_mixed_studentrgb_raw_fixed_backbone_input/single_sample_0171_dav2_ld_student_rgb/night-06181_0605_0730_dav2_ld_student_rgb_d1.png",
+    "error": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/rod_raw_four_exp_panel/0608_205236_random10_seed42_mixed_studentrgb_raw_fixed_backbone_input/single_sample_0171_dav2_ld_student_rgb/night-06181_0605_0730_dav2_ld_student_rgb_error.png",
+    "panel": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/rod_raw_four_exp_panel/0608_205236_random10_seed42_mixed_studentrgb_raw_fixed_backbone_input/single_sample_0171_dav2_ld_student_rgb/night-06181_0605_0730_dav2_ld_student_rgb_pred_error_d1_panel.png",
+    "pred": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/rod_raw_four_exp_panel/0608_205236_random10_seed42_mixed_studentrgb_raw_fixed_backbone_input/single_sample_0171_dav2_ld_student_rgb/night-06181_0605_0730_dav2_ld_student_rgb_pred.png",
+    "pseudo_target_same_scale": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/rod_raw_four_exp_panel/0608_205236_random10_seed42_mixed_studentrgb_raw_fixed_backbone_input/single_sample_0171_dav2_ld_student_rgb/night-06181_pseudo_target_same_scale.png"
+  },
+  "pred_vmax": 477.7799072265625,
+  "pred_vmin": 8.337284088134766,
+  "sample_index": 171,
+  "sample_name": "night-06181"
+}
