@@ -181,7 +181,7 @@ RAW_RAM_BRIDGE_FEATURE_CHANNELS = {
 }
 RAW_RAM_RGB_LORA_INPUT_TYPES = ("raw_ram_rgb_lora",)
 RAW_RAM_RGB_INPUT_TYPES = ("raw_ram_rgb", *RAW_RAM_RGB_LORA_INPUT_TYPES)
-RAW_RGB16_RAM3_INPUT_TYPES = ("raw_rgb16_ram3", "lod_true_raw_dark_rgb16")
+RAW_RGB16_RAM3_INPUT_TYPES = ("raw_rgb16_ram3", "lod_true_raw_dark_rgb16", "lod_true_raw_normal_rgb16")
 RAW_RAM_RGB_BRIDGE_FEATURE_CHANNELS = {
     "x_cat": 12,
     "ffm_mid": 64,

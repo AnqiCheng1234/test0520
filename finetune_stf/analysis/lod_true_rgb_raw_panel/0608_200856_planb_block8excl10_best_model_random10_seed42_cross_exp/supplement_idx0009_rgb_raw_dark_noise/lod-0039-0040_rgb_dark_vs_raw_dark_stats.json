@@ -1,0 +1,41 @@
+{
+  "crop_box": [
+    144,
+    120,
+    512,
+    960
+  ],
+  "crop_box_format": "h_start_w_start_h_w",
+  "display": "global p1/p99 stretch per image; display only",
+  "panel_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_true_rgb_raw_panel/0608_200856_planb_block8excl10_best_model_random10_seed42_cross_exp/supplement_idx0009_rgb_raw_dark_noise/lod-0039-0040_rgb_dark_vs_raw_dark_p1p99_stretch.png",
+  "raw_dark_path": "/home/caq/6666_raw/0000_dataset/LOD/RAW_Dark/40.png",
+  "raw_dark_stats_uint16_div_65535": {
+    "max": 0.966216504573822,
+    "mean": 0.18844182789325714,
+    "min": 0.0,
+    "p01": 0.0,
+    "p50": 0.16166934370994568,
+    "p99": 0.5652552247047424
+  },
+  "raw_dark_stretch_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_true_rgb_raw_panel/0608_200856_planb_block8excl10_best_model_random10_seed42_cross_exp/supplement_idx0009_rgb_raw_dark_noise/lod-0039-0040_raw_dark_rgb16_p1p99_stretch.png",
+  "raw_display_window": {
+    "p1": 0.0,
+    "p99": 0.5652552247047424
+  },
+  "rgb_dark_path": "/home/caq/6666_raw/0000_dataset/LOD/RGB_Dark/40.JPG",
+  "rgb_dark_stats_0_1": {
+    "max": 0.1411764770746231,
+    "mean": 0.014932604506611824,
+    "min": 0.0,
+    "p01": 0.0,
+    "p50": 0.007843137718737125,
+    "p99": 0.07058823853731155
+  },
+  "rgb_dark_stretch_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_true_rgb_raw_panel/0608_200856_planb_block8excl10_best_model_random10_seed42_cross_exp/supplement_idx0009_rgb_raw_dark_noise/lod-0039-0040_rgb_dark_p1p99_stretch.png",
+  "rgb_display_window": {
+    "p1": 0.0,
+    "p99": 0.07058823853731155
+  },
+  "sample_index": 9,
+  "sample_name": "lod-0039-0040"
+}

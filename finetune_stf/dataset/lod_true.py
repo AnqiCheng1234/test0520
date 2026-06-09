@@ -57,6 +57,11 @@ LOD_TRUE_REQUIRED_COLUMNS = (
 )
 LOD_RAW_RGB16_NORM_MODE = "uint16_div_65535"
 LOD_RAW_RGB16_STORAGE_FORMAT = "raw_rgb16_png_3ch"
+LOD_RAW_RGB16_INPUT_MODES = ("raw_rgb16_dark", "raw_rgb16_normal")
+LOD_RAW_RGB16_INPUT_SPECS = {
+    "raw_rgb16_dark": ("raw_dark_path", "RAW_Dark"),
+    "raw_rgb16_normal": ("raw_normal_path", "RAW_normal"),
+}
 
 
 def _resolve_data_path(root: Path, path_str: str | Path) -> Path:
@@ -304,7 +309,7 @@ class LODTrueRGBDark(_LODTrueBase):
 
 
 class LODTrueRawDarkRGB16(_LODTrueBase):
-    """Student input is LOD RAW_Dark uint16 3-channel PNG read as model RGB."""
+    """Student input is an explicit LOD RAW RGB16 PNG source read as model RGB."""
 
     model_input_tensor = "raw"
 
@@ -313,6 +318,7 @@ class LODTrueRawDarkRGB16(_LODTrueBase):
         *,
         raw_storage_format: str = LOD_RAW_RGB16_STORAGE_FORMAT,
         lod_raw_norm_mode: str = LOD_RAW_RGB16_NORM_MODE,
+        raw_input_mode: str = "raw_rgb16_dark",
         **kwargs,
     ):
         if raw_storage_format != LOD_RAW_RGB16_STORAGE_FORMAT:
@@ -324,19 +330,27 @@ class LODTrueRawDarkRGB16(_LODTrueBase):
             raise ValueError(
                 f"LOD true RAW requires lod_raw_norm_mode={LOD_RAW_RGB16_NORM_MODE!r}, got {lod_raw_norm_mode!r}"
             )
+        if raw_input_mode not in LOD_RAW_RGB16_INPUT_SPECS:
+            raise ValueError(
+                f"LOD true RAW requires raw_input_mode in {LOD_RAW_RGB16_INPUT_MODES}, got {raw_input_mode!r}"
+            )
         super().__init__(**kwargs)
         self.raw_storage_format = raw_storage_format
         self.lod_raw_norm_mode = lod_raw_norm_mode
+        self.raw_input_mode = str(raw_input_mode)
+        self.raw_path_key, self.raw_input_label = LOD_RAW_RGB16_INPUT_SPECS[self.raw_input_mode]
 
     def build_sample(self, idx, *, rng=random, include_geometry=False):
         row = self.rows[idx]
-        if not row["raw_dark_path"].is_file():
-            raise FileNotFoundError(f"Missing LOD RAW_Dark file: {row['raw_dark_path']}")
-        raw = _load_raw_rgb16_png(row["raw_dark_path"], norm_mode=self.lod_raw_norm_mode)
+        raw_path = row[self.raw_path_key]
+        if not raw_path.is_file():
+            raise FileNotFoundError(f"Missing LOD {self.raw_input_label} file: {raw_path}")
+        raw = _load_raw_rgb16_png(raw_path, norm_mode=self.lod_raw_norm_mode)
         target = self._load_target(row)
         if raw.shape[:2] != target.shape:
             raise ValueError(
-                f"LOD RAW_Dark shape {raw.shape[:2]} does not match pseudo label {target.shape}: {row['pair_id']}"
+                f"LOD {self.raw_input_label} shape {raw.shape[:2]} does not match pseudo label "
+                f"{target.shape}: {row['pair_id']}"
             )
         geometry_params = None
         if self.aug_config is not None:
@@ -373,22 +387,34 @@ class LODTrueRawDarkRGB16(_LODTrueBase):
         base["raw"] = _chw_tensor(raw)
         base["image"] = _chw_tensor(image)
         base["rgb_preview"] = _chw_tensor(image)
-        base["raw_path"] = str(row["raw_dark_path"])
-        base["image_path"] = str(row["raw_dark_path"])
-        base["student_input_path"] = str(row["raw_dark_path"])
+        base["raw_path"] = str(raw_path)
+        base["image_path"] = str(raw_path)
+        base["student_input_path"] = str(raw_path)
         base["input_domain"] = "raw3"
+        base["dataset_input_mode"] = self.raw_input_mode
+        base["student_input_kind"] = self.raw_input_label
         base["raw_storage_format"] = self.raw_storage_format
         base["lod_raw_norm_mode"] = self.lod_raw_norm_mode
         base["raw_channel_order"] = "RGB"
         return base
 
 
+class LODTrueRawNormalRGB16(LODTrueRawDarkRGB16):
+    """Student input is LOD RAW_normal uint16 3-channel PNG read as model RGB."""
+
+    def __init__(self, **kwargs):
+        kwargs.setdefault("raw_input_mode", "raw_rgb16_normal")
+        super().__init__(**kwargs)
+
+
 __all__ = [
     "DEFAULT_LOD_TRUE_MANIFEST",
     "DEFAULT_LOD_TRUE_ROOT",
     "LOD_RAW_RGB16_NORM_MODE",
+    "LOD_RAW_RGB16_INPUT_MODES",
     "LOD_RAW_RGB16_STORAGE_FORMAT",
     "LOD_TRUE_NATIVE_HW",
     "LODTrueRGBDark",
     "LODTrueRawDarkRGB16",
+    "LODTrueRawNormalRGB16",
 ]

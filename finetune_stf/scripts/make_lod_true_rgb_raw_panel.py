@@ -53,6 +53,11 @@ from finetune_stf.util.model_input import select_model_input  # noqa: E402
 
 DEFAULT_RGB_EXP = PROJECT_ROOT / "finetune_stf/exp/0608_0109_lod_true_rgb_dark_dav2s_decoder_e10"
 DEFAULT_RAW_EXP = PROJECT_ROOT / "finetune_stf/exp/0608_0113_lod_true_raw_rgb16_ram3_dav2s_decoder_e10"
+LOD_TRUE_RAW_RGB16_INPUT_MODE_BY_FAMILY = {
+    "lod_true_raw_dark_rgb16": "raw_rgb16_dark",
+    "lod_true_raw_normal_rgb16": "raw_rgb16_normal",
+}
+LOD_TRUE_RAW_RGB16_DATASET_FAMILIES = set(LOD_TRUE_RAW_RGB16_INPUT_MODE_BY_FAMILY)
 CSV_FIELDS = (
     "sample_index",
     "sample_name",
@@ -177,6 +182,7 @@ def build_rgb_dataset(exp_args: argparse.Namespace) -> LODTrueRGBDark:
 
 
 def build_raw_dataset(exp_args: argparse.Namespace) -> LODTrueRawDarkRGB16:
+    dataset_family = str(exp_args.resolved_config.dataset_family)
     return LODTrueRawDarkRGB16(
         lod_root=exp_args.lod_root,
         manifest_path=exp_args.lod_manifest,
@@ -187,6 +193,7 @@ def build_raw_dataset(exp_args: argparse.Namespace) -> LODTrueRawDarkRGB16:
         crop_mode=exp_args.lod_val_crop_mode,
         raw_storage_format=exp_args.raw_storage_format,
         lod_raw_norm_mode=exp_args.lod_raw_norm_mode,
+        raw_input_mode=LOD_TRUE_RAW_RGB16_INPUT_MODE_BY_FAMILY[dataset_family],
     )
 
 
@@ -532,7 +539,7 @@ def main() -> None:
     raw_args = load_exp_args(raw_exp_dir)
     if rgb_args.resolved_config.dataset_family != "lod_true_rgb_dark":
         raise ValueError(f"Expected RGB LOD experiment, got {rgb_args.resolved_config.dataset_family!r}")
-    if raw_args.resolved_config.dataset_family != "lod_true_raw_dark_rgb16":
+    if raw_args.resolved_config.dataset_family not in LOD_TRUE_RAW_RGB16_DATASET_FAMILIES:
         raise ValueError(f"Expected RAW LOD experiment, got {raw_args.resolved_config.dataset_family!r}")
     if rgb_args.lod_manifest != raw_args.lod_manifest:
         raise ValueError("RGB and RAW LOD experiments must use the same lod_manifest")

@@ -169,6 +169,15 @@ METRIC_KEYS = (
     "edge_sobel_l1",
     "edge_overlap_iou",
 )
+LOD_TRUE_RAW_RGB16_INPUT_MODE_BY_FAMILY = {
+    "lod_true_raw_dark_rgb16": "raw_rgb16_dark",
+    "lod_true_raw_normal_rgb16": "raw_rgb16_normal",
+}
+LOD_TRUE_RAW_RGB16_STUDENT_LABEL_BY_FAMILY = {
+    "lod_true_raw_dark_rgb16": "RAW_Dark",
+    "lod_true_raw_normal_rgb16": "RAW_normal",
+}
+LOD_TRUE_RAW_RGB16_DATASET_FAMILIES = set(LOD_TRUE_RAW_RGB16_INPUT_MODE_BY_FAMILY)
 RAW_PACKED_INPUT_TYPES = ("raw_packed",)
 RGB_ONLY_INPUT_TYPES = ("rgb",)
 RGB_LORA_INPUT_TYPES = ("rgb_lora",)
@@ -282,7 +291,7 @@ def supports_rgb_eval_inputs(args):
 
 
 def uses_lod_dataset(args):
-    return resolved_config(args).dataset_family in {"lod_true_rgb_dark", "lod_true_raw_dark_rgb16"}
+    return resolved_config(args).dataset_family in {"lod_true_rgb_dark", *LOD_TRUE_RAW_RGB16_DATASET_FAMILIES}
 
 
 def uses_lod_rgb_dark_dataset(args):
@@ -293,9 +302,13 @@ def uses_lod_raw_dark_rgb16_dataset(args):
     return resolved_config(args).dataset_family == "lod_true_raw_dark_rgb16"
 
 
+def uses_lod_raw_rgb16_dataset(args):
+    return resolved_config(args).dataset_family in LOD_TRUE_RAW_RGB16_DATASET_FAMILIES
+
+
 def resolve_lod_aug_config(args):
     cfg = resolved_config(args)
-    if cfg.dataset_family not in {"lod_true_rgb_dark", "lod_true_raw_dark_rgb16"}:
+    if cfg.dataset_family not in {"lod_true_rgb_dark", *LOD_TRUE_RAW_RGB16_DATASET_FAMILIES}:
         return LODAugConfig.from_preset("off", domain="rgb", seed=getattr(args, "seed", 42))
     return LODAugConfig.from_args(args, domain=cfg.input_domain)
 
@@ -739,7 +752,10 @@ def parse_args():
     if args.stage == "rod_only" and not uses_rod_dataset(args):
         parser.error("--stage rod_only requires --dataset-family rod_raw_student_rgb or rod_raw")
     if args.stage == "lod_only" and not uses_lod_dataset(args):
-        parser.error("--stage lod_only requires --dataset-family lod_true_rgb_dark or lod_true_raw_dark_rgb16")
+        parser.error(
+            "--stage lod_only requires --dataset-family lod_true_rgb_dark, "
+            "lod_true_raw_dark_rgb16, or lod_true_raw_normal_rgb16"
+        )
     if uses_rod_dataset(args):
         if args.stage not in {"rod_only", "eval_only"}:
             parser.error("ROD dataset families require --stage rod_only or --eval-only")
@@ -769,7 +785,7 @@ def parse_args():
             parser.error("LOD true dataset families require --stage lod_only or --eval-only")
         if args.lod_label_space != "inverse_relative":
             parser.error("LOD true requires --lod-label-space inverse_relative")
-        if uses_lod_raw_dark_rgb16_dataset(args):
+        if uses_lod_raw_rgb16_dataset(args):
             if args.raw_storage_format != LOD_RAW_RGB16_STORAGE_FORMAT:
                 parser.error(
                     f"LOD true RAW requires --raw-storage-format {LOD_RAW_RGB16_STORAGE_FORMAT}"
@@ -784,7 +800,7 @@ def parse_args():
             if args.raw_storage_format != "none":
                 parser.error("LOD true RGB requires --raw-storage-format n_a/none")
             if args.lod_raw_norm_mode is not None:
-                parser.error("--lod-raw-norm-mode is only applicable for lod_true_raw_dark_rgb16")
+                parser.error("--lod-raw-norm-mode is only applicable for true-LOD RAW RGB16 dataset families")
         lod_root = Path(args.lod_root).expanduser()
         lod_manifest = Path(args.lod_manifest).expanduser()
         if not lod_root.is_dir():
@@ -1456,7 +1472,7 @@ def build_datasets(args):
     cfg = resolved_config(args)
     size = (args.input_height, args.input_width)
     datasets = {}
-    if cfg.dataset_family in {"lod_true_rgb_dark", "lod_true_raw_dark_rgb16"}:
+    if cfg.dataset_family in {"lod_true_rgb_dark", *LOD_TRUE_RAW_RGB16_DATASET_FAMILIES}:
         lod_common = {
             "lod_root": args.lod_root,
             "manifest_path": args.lod_manifest,
@@ -1471,6 +1487,7 @@ def build_datasets(args):
             lod_extra = {
                 "raw_storage_format": args.raw_storage_format,
                 "lod_raw_norm_mode": args.lod_raw_norm_mode,
+                "raw_input_mode": LOD_TRUE_RAW_RGB16_INPUT_MODE_BY_FAMILY[cfg.dataset_family],
             }
         lod_aug_config = resolve_lod_aug_config(args)
         if args.eval_lod:
@@ -2206,9 +2223,10 @@ def log_setup(logger, args, datasets, train_state, model):
             args.lod_train_crop_mode,
             args.lod_val_crop_mode,
         )
-    elif cfg.dataset_family == "lod_true_raw_dark_rgb16":
+    elif cfg.dataset_family in LOD_TRUE_RAW_RGB16_DATASET_FAMILIES:
+        student_label = LOD_TRUE_RAW_RGB16_STUDENT_LABEL_BY_FAMILY[cfg.dataset_family]
         logger.info(
-            "[LOD_TRUE_RAW_RGB16] root=%s manifest=%s raw_storage_format=%s lod_raw_norm_mode=%s label_space=%s train_crop=%s val_crop=%s student_input=RAW_Dark_RGB16 teacher_source=RGB_normal_DAv2L",
+            "[LOD_TRUE_RAW_RGB16] root=%s manifest=%s raw_storage_format=%s lod_raw_norm_mode=%s label_space=%s train_crop=%s val_crop=%s student_input=%s_RGB16 teacher_source=RGB_normal_DAv2L",
             args.lod_root,
             args.lod_manifest,
             args.raw_storage_format,
@@ -2216,6 +2234,7 @@ def log_setup(logger, args, datasets, train_state, model):
             args.lod_label_space,
             args.lod_train_crop_mode,
             args.lod_val_crop_mode,
+            student_label,
         )
     if "stf_train" in datasets:
         if "val" in datasets:

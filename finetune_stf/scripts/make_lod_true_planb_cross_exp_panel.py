@@ -10,6 +10,7 @@ from datetime import datetime
 import gc
 import json
 import random
+import re
 import sys
 from pathlib import Path
 
@@ -242,7 +243,10 @@ def is_rgb_exp(exp_args: argparse.Namespace) -> bool:
 
 
 def is_raw_exp(exp_args: argparse.Namespace) -> bool:
-    return str(exp_args.resolved_config.dataset_family) == "lod_true_raw_dark_rgb16"
+    return str(exp_args.resolved_config.dataset_family) in {
+        "lod_true_raw_dark_rgb16",
+        "lod_true_raw_normal_rgb16",
+    }
 
 
 def amp_dtype_from_args(exp_args: argparse.Namespace) -> torch.dtype:
@@ -509,7 +513,7 @@ def make_panel(
     input_vmax: float,
 ) -> Image.Image:
     tile_w, tile_h = tile_size
-    header_h = 70
+    header_h = 86
     footer_h = 34
     cols = ("Backbone input", "Pseudo / dist", "Pred", "Error", "D1 map")
     row_count = 1 + len(row_results)
@@ -532,7 +536,7 @@ def make_panel(
         fill=(70, 70, 70),
     )
     for col_idx, col_name in enumerate(cols):
-        draw.text((label_width + col_idx * tile_w + 8, 44), col_name, font=header_font, fill=(20, 20, 20))
+        draw.text((label_width + col_idx * tile_w + 8, 62), col_name, font=header_font, fill=(20, 20, 20))
 
     init = init_result.result
     reference_row = {
@@ -560,7 +564,6 @@ def make_panel(
             if epoch is not None and np.isfinite(best_lod_d1)
             else "ckpt best_model"
         )
-        x3_line = f"in p1/p99 {row_result.backbone_stats['p01']:.2g}/{row_result.backbone_stats['p99']:.2g}"
         panel_rows.append(
             {
                 "label_lines": [
@@ -568,7 +571,6 @@ def make_panel(
                     row_result.spec.display_name,
                     extra,
                     metric_line(result.metrics),
-                    x3_line,
                 ],
                 "images": [
                     row_result.input_image,
@@ -585,9 +587,10 @@ def make_panel(
         draw.rectangle((0, y, label_width - 1, y + tile_h - 1), fill=(235, 235, 235) if row_idx % 2 == 0 else (228, 228, 228))
         text_y = y + 10
         for line in row["label_lines"]:
-            if line:
-                draw.text((12, text_y), str(line)[:48], font=label_font, fill=(20, 20, 20))
-            text_y += 16
+            for wrapped_line in wrap_label_line(draw, line, label_font, label_width - 24):
+                draw.text((12, text_y), wrapped_line, font=label_font, fill=(20, 20, 20))
+                text_y += 15
+            text_y += 1
         for col_idx, image in enumerate(row["images"]):
             x = label_width + col_idx * tile_w
             canvas.paste(resize_tile(image, tile_size), (x, y))
@@ -632,6 +635,33 @@ def csv_row(
 
 def write_summary_json(path: Path, payload: dict[str, object]) -> None:
     path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def text_width(draw: ImageDraw.ImageDraw, text: str, font: object) -> int:
+    bbox = draw.textbbox((0, 0), text, font=font)
+    return int(bbox[2] - bbox[0])
+
+
+def wrap_label_line(draw: ImageDraw.ImageDraw, line: object, font: object, max_width: int) -> list[str]:
+    text = str(line)
+    if not text:
+        return []
+    if text_width(draw, text, font) <= max_width:
+        return [text]
+
+    tokens = [token for token in re.split(r"(?<=[_-])", text) if token]
+    wrapped: list[str] = []
+    current = ""
+    for token in tokens:
+        candidate = f"{current}{token}"
+        if not current or text_width(draw, candidate, font) <= max_width:
+            current = candidate
+            continue
+        wrapped.append(current)
+        current = token
+    if current:
+        wrapped.append(current)
+    return wrapped
 
 
 def main() -> None:

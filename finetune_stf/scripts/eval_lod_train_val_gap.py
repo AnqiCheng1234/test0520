@@ -33,6 +33,11 @@ from finetune_stf.util.model_input import coerce_model_input_tensor, select_mode
 DEFAULT_HEAVY_ROOT = Path("/mnt/drive/3333_raw/0000_exp_ckpt")
 DEFAULT_OUTPUT_ROOT = PROJECT_ROOT / "finetune_stf/analysis/lod_overfit_diag"
 METRIC_KEYS = ("abs_rel", "sq_rel", "rmse", "rmse_log", "log10", "silog", "silog_x100", "d1", "d2", "d3")
+LOD_TRUE_RAW_RGB16_INPUT_MODE_BY_FAMILY = {
+    "lod_true_raw_dark_rgb16": "raw_rgb16_dark",
+    "lod_true_raw_normal_rgb16": "raw_rgb16_normal",
+}
+LOD_TRUE_RAW_RGB16_DATASET_FAMILIES = set(LOD_TRUE_RAW_RGB16_INPUT_MODE_BY_FAMILY)
 
 
 def parse_args() -> argparse.Namespace:
@@ -131,10 +136,11 @@ def build_lod_dataset(args: Namespace, *, split: str, mode: str, crop_mode: str)
     }
     if cfg.dataset_family == "lod_true_rgb_dark":
         return LODTrueRGBDark(**common)
-    if cfg.dataset_family == "lod_true_raw_dark_rgb16":
+    if cfg.dataset_family in LOD_TRUE_RAW_RGB16_DATASET_FAMILIES:
         return LODTrueRawDarkRGB16(
             raw_storage_format=args.raw_storage_format,
             lod_raw_norm_mode=args.lod_raw_norm_mode,
+            raw_input_mode=LOD_TRUE_RAW_RGB16_INPUT_MODE_BY_FAMILY[cfg.dataset_family],
             **common,
         )
     raise ValueError(f"Unsupported dataset_family for true-LOD gap eval: {cfg.dataset_family!r}")
@@ -452,7 +458,7 @@ def main() -> int:
     run_config = load_json(config_path)
     train_args = make_args_from_config(run_config)
     cfg = ensure_resolved_config(train_args)
-    if cfg.dataset_family not in {"lod_true_rgb_dark", "lod_true_raw_dark_rgb16"}:
+    if cfg.dataset_family not in {"lod_true_rgb_dark", *LOD_TRUE_RAW_RGB16_DATASET_FAMILIES}:
         raise ValueError(f"Expected true-LOD dataset family, got {cfg.dataset_family!r}")
 
     output_dir = args.output_dir.expanduser().resolve() if args.output_dir else default_output_dir(args.output_root, run_dir.name)
