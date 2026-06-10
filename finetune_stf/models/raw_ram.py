@@ -181,7 +181,12 @@ RAW_RAM_BRIDGE_FEATURE_CHANNELS = {
 }
 RAW_RAM_RGB_LORA_INPUT_TYPES = ("raw_ram_rgb_lora",)
 RAW_RAM_RGB_INPUT_TYPES = ("raw_ram_rgb", *RAW_RAM_RGB_LORA_INPUT_TYPES)
-RAW_RGB16_RAM3_INPUT_TYPES = ("raw_rgb16_ram3", "lod_true_raw_dark_rgb16", "lod_true_raw_normal_rgb16")
+RAW_RGB16_RAM3_INPUT_TYPES = (
+    "raw_rgb16_ram3",
+    "lod_true_raw_dark_rgb16",
+    "lod_true_raw_normal_rgb16",
+    "lod_true_raw_dark_normal_pair_rgb16",
+)
 RAW_RAM_RGB_BRIDGE_FEATURE_CHANNELS = {
     "x_cat": 12,
     "ffm_mid": 64,
@@ -189,6 +194,8 @@ RAW_RAM_RGB_BRIDGE_FEATURE_CHANNELS = {
 }
 PHASE1B_TANH_ALPHA = 2.5
 RAW_RAM_RGB_TAIL_CHOICES = ("identity", "tanh2p5")
+RAW_RAM_LOCAL_RESIDUAL_CHOICES = ("none", "noiseaware_v1")
+RAW_RAM_LOCAL_GATE_MODE_CHOICES = ("n_a", "scalar", "channel")
 
 
 def phase1b_tanh_tail_squash(x, alpha=PHASE1B_TANH_ALPHA):
@@ -321,8 +328,32 @@ class RamCore3(nn.Module):
     Output: (B, 3, H, W)
     """
 
-    def __init__(self):
+    def __init__(
+        self,
+        *,
+        local_residual="none",
+        local_hidden_ch=16,
+        local_residual_scale=0.1,
+        local_gate_init=0.03,
+        local_gate_mode="channel",
+    ):
         super().__init__()
+        local_residual = str(local_residual)
+        local_gate_mode = str(local_gate_mode)
+        if local_residual not in RAW_RAM_LOCAL_RESIDUAL_CHOICES:
+            raise ValueError(
+                f"Unsupported local_residual={local_residual!r}; "
+                f"expected one of {RAW_RAM_LOCAL_RESIDUAL_CHOICES}"
+            )
+        if local_residual == "none":
+            local_gate_mode = "n_a"
+        if local_gate_mode not in RAW_RAM_LOCAL_GATE_MODE_CHOICES:
+            raise ValueError(
+                f"Unsupported local_gate_mode={local_gate_mode!r}; "
+                f"expected one of {RAW_RAM_LOCAL_GATE_MODE_CHOICES}"
+            )
+        if local_residual != "none" and local_gate_mode == "n_a":
+            raise ValueError("local_gate_mode must be scalar or channel when local residual is enabled")
         self.encoder = RPEncoder(in_channels=3, img_size=256)
         self.branches = nn.ModuleDict({
             "wb": WBBranch3(),
@@ -333,6 +364,24 @@ class RamCore3(nn.Module):
         self.ffm = FFM3(in_ch=12, out_ch=3)
         self.norm_layer = nn.BatchNorm2d(3, affine=True)
         self.function_order = FUNCTION_ORDER
+        self.local_residual = local_residual
+        self.local_residual_scale = float(local_residual_scale) if local_residual != "none" else 0.0
+        self.local_gate_mode = local_gate_mode
+        if local_residual == "noiseaware_v1":
+            self.local_residual_branch = LocalDenoiseBranch(
+                in_ch=6,
+                hidden_ch=int(local_hidden_ch),
+                out_ch=3,
+            )
+            gate_shape = (1, 3, 1, 1) if local_gate_mode == "channel" else (1, 1, 1, 1)
+            gate_target = float(local_gate_init)
+            if not (0.0 < gate_target < 1.0):
+                raise ValueError("local_gate_init is tanh(g)'s target and must be in (0, 1)")
+            gate_value = torch.atanh(torch.tensor(gate_target, dtype=torch.float32))
+            self.local_residual_gate = nn.Parameter(torch.full(gate_shape, float(gate_value.item())))
+        else:
+            self.local_residual_branch = None
+            self.local_residual_gate = None
 
     def forward(self, x_rgb):
         x3, _ = self.forward_with_features(x_rgb)
@@ -346,10 +395,117 @@ class RamCore3(nn.Module):
             branch_outputs.append(self.branches[name](x_rgb, z))
 
         x_cat = torch.cat(branch_outputs, dim=1)  # (B, 12, H, W)
-        x3, ffm_features = self.ffm.forward_with_features(x_cat)
-        x3 = self.norm_layer(x3)
-        feature_dict = {"x_cat": x_cat, **ffm_features, "x3": x3}
+        x3_pre_bn, ffm_features = self.ffm.forward_with_features(x_cat)
+        x3_ram = self.norm_layer(x3_pre_bn)
+        x3 = x3_ram
+        feature_dict = {"x_cat": x_cat, **ffm_features, "x3_ram": x3_ram}
+        if self.local_residual_branch is not None:
+            delta_x3 = self.local_residual_branch(torch.cat([x_rgb, x3_ram], dim=1))
+            gate = torch.tanh(self.local_residual_gate)
+            x3 = x3_ram + self.local_residual_scale * gate * torch.tanh(delta_x3)
+            feature_dict.update(
+                {
+                    "local_delta_x3": delta_x3,
+                    "local_gate_tanh": gate,
+                    "x3_out": x3,
+                }
+            )
+        feature_dict["x3"] = x3
         return x3, feature_dict
+
+
+class LocalDenoiseBranch(nn.Module):
+    """Light local residual branch for noise-aware RamCore3 correction."""
+
+    def __init__(self, *, in_ch=6, hidden_ch=16, out_ch=3):
+        super().__init__()
+        hidden_ch = int(hidden_ch)
+        if hidden_ch <= 0:
+            raise ValueError("LocalDenoiseBranch hidden_ch must be positive")
+        groups = 4 if hidden_ch % 4 == 0 else 1
+        self.net = nn.Sequential(
+            nn.Conv2d(in_ch, hidden_ch, kernel_size=3, padding=1, bias=False),
+            nn.GroupNorm(groups, hidden_ch),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(hidden_ch, hidden_ch, kernel_size=3, padding=1, groups=hidden_ch, bias=False),
+            nn.GroupNorm(groups, hidden_ch),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(hidden_ch, out_ch, kernel_size=1, padding=0, bias=True),
+        )
+
+    def forward(self, x):
+        return self.net(x)
+
+
+def _group_count(channels):
+    channels = int(channels)
+    for groups in (8, 4, 2):
+        if channels % groups == 0:
+            return groups
+    return 1
+
+
+class PostRamCleanupResBlock(nn.Module):
+    """Small residual block used by PostRamCleanupAdapter."""
+
+    def __init__(self, channels, *, norm="groupnorm"):
+        super().__init__()
+        channels = int(channels)
+        if norm != "groupnorm":
+            raise ValueError(f"Unsupported PostRamCleanupResBlock norm={norm!r}")
+        groups = _group_count(channels)
+        self.block = nn.Sequential(
+            nn.Conv2d(channels, channels, kernel_size=3, padding=1, bias=False),
+            nn.GroupNorm(groups, channels),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(channels, channels, kernel_size=3, padding=1, bias=False),
+            nn.GroupNorm(groups, channels),
+        )
+
+    def forward(self, x):
+        return F.relu(x + self.block(x), inplace=False)
+
+
+class PostRamCleanupAdapter(nn.Module):
+    """
+    Residual cleanup adapter in RamCore3 post-BN native domain.
+
+    The module returns x_ram + scale * net(x_ram). With zero-init last conv,
+    the initial mapping is exactly identity.
+    """
+
+    def __init__(self, *, channels=32, blocks=4, scale=0.1, norm="groupnorm", zero_init=True):
+        super().__init__()
+        channels = int(channels)
+        blocks = int(blocks)
+        if channels <= 0:
+            raise ValueError("PostRamCleanupAdapter channels must be positive")
+        if blocks <= 0:
+            raise ValueError("PostRamCleanupAdapter blocks must be positive")
+        if norm != "groupnorm":
+            raise ValueError(f"Unsupported PostRamCleanupAdapter norm={norm!r}")
+        self.scale = float(scale)
+        if self.scale <= 0:
+            raise ValueError("PostRamCleanupAdapter scale must be positive")
+        groups = _group_count(channels)
+        layers = [
+            nn.Conv2d(3, channels, kernel_size=3, padding=1, bias=False),
+            nn.GroupNorm(groups, channels),
+            nn.ReLU(inplace=True),
+        ]
+        layers.extend(PostRamCleanupResBlock(channels, norm=norm) for _ in range(blocks))
+        last = nn.Conv2d(channels, 3, kernel_size=3, padding=1, bias=True)
+        if bool(zero_init):
+            nn.init.zeros_(last.weight)
+            nn.init.zeros_(last.bias)
+        layers.append(last)
+        self.net = nn.Sequential(*layers)
+
+    def delta(self, x):
+        return self.scale * self.net(x)
+
+    def forward(self, x):
+        return x + self.delta(x)
 
 
 # ---------------------------------------------------------------------------
@@ -564,6 +720,18 @@ class RawToBaseRgbRam3DepthModel(nn.Module):
         sensor_hw=SENSOR_INPUT_HW,
         backbone_hw=BACKBONE_INPUT_HW,
         raw_ram_rgb_tail="tanh2p5",
+        raw_ram_local_residual="none",
+        raw_ram_local_hidden_ch=16,
+        raw_ram_local_residual_scale=0.1,
+        raw_ram_local_gate_init=0.03,
+        raw_ram_local_gate_mode="channel",
+        post_ram_cleanup="none",
+        post_ram_cleanup_channels=32,
+        post_ram_cleanup_blocks=4,
+        post_ram_cleanup_scale=0.1,
+        post_ram_cleanup_norm="groupnorm",
+        post_ram_cleanup_zero_init=True,
+        post_ram_operation_position="n_a",
     ):
         super().__init__()
         raw_ram_rgb_tail = str(raw_ram_rgb_tail)
@@ -577,9 +745,34 @@ class RawToBaseRgbRam3DepthModel(nn.Module):
         self.imagenet_norm_enabled = False
         self.uses_base_rgb = True
         self.uses_clamp = False
-        self.ram_core = RamCore3()
+        self.ram_core = RamCore3(
+            local_residual=raw_ram_local_residual,
+            local_hidden_ch=raw_ram_local_hidden_ch,
+            local_residual_scale=raw_ram_local_residual_scale,
+            local_gate_init=raw_ram_local_gate_init,
+            local_gate_mode=raw_ram_local_gate_mode,
+        )
         self.dav2 = dav2_model
         self.raw_ram_rgb_tail = raw_ram_rgb_tail
+        self.post_ram_cleanup_mode = str(post_ram_cleanup)
+        self.post_ram_operation_position = str(post_ram_operation_position)
+        if self.post_ram_cleanup_mode in {"none", "n_a"}:
+            self.post_ram_cleanup_mode = "none"
+            self.post_ram_cleanup = nn.Identity()
+            self.post_ram_cleanup_enabled = False
+        elif self.post_ram_cleanup_mode == "cnn":
+            if self.post_ram_operation_position != "pre_tail":
+                raise ValueError("RawRgb16Ram3DepthModel only implements post_ram_operation_position='pre_tail'")
+            self.post_ram_cleanup = PostRamCleanupAdapter(
+                channels=post_ram_cleanup_channels,
+                blocks=post_ram_cleanup_blocks,
+                scale=post_ram_cleanup_scale,
+                norm=post_ram_cleanup_norm,
+                zero_init=post_ram_cleanup_zero_init,
+            )
+            self.post_ram_cleanup_enabled = True
+        else:
+            raise ValueError(f"Unsupported post_ram_cleanup={post_ram_cleanup!r}")
         _register_imagenet_stats(self)
         self.spatial_adapter = CenterPadCropAdapter(sensor_hw=sensor_hw, backbone_hw=backbone_hw)
 
@@ -634,6 +827,18 @@ class RawRgb16Ram3DepthModel(nn.Module):
         sensor_hw=SENSOR_INPUT_HW,
         backbone_hw=BACKBONE_INPUT_HW,
         raw_ram_rgb_tail="identity",
+        raw_ram_local_residual="none",
+        raw_ram_local_hidden_ch=16,
+        raw_ram_local_residual_scale=0.1,
+        raw_ram_local_gate_init=0.03,
+        raw_ram_local_gate_mode="channel",
+        post_ram_cleanup="none",
+        post_ram_cleanup_channels=32,
+        post_ram_cleanup_blocks=4,
+        post_ram_cleanup_scale=0.1,
+        post_ram_cleanup_norm="groupnorm",
+        post_ram_cleanup_zero_init=True,
+        post_ram_operation_position="n_a",
     ):
         super().__init__()
         raw_ram_rgb_tail = str(raw_ram_rgb_tail)
@@ -647,21 +852,137 @@ class RawRgb16Ram3DepthModel(nn.Module):
         self.imagenet_norm_enabled = False
         self.uses_base_rgb = False
         self.uses_clamp = False
-        self.ram_core = RamCore3()
+        self.ram_core = RamCore3(
+            local_residual=raw_ram_local_residual,
+            local_hidden_ch=raw_ram_local_hidden_ch,
+            local_residual_scale=raw_ram_local_residual_scale,
+            local_gate_init=raw_ram_local_gate_init,
+            local_gate_mode=raw_ram_local_gate_mode,
+        )
         self.dav2 = dav2_model
         self.raw_ram_rgb_tail = raw_ram_rgb_tail
+        self.post_ram_cleanup_mode = str(post_ram_cleanup)
+        self.post_ram_operation_position = str(post_ram_operation_position)
+        if self.post_ram_cleanup_mode in {"none", "n_a"}:
+            self.post_ram_cleanup_mode = "none"
+            self.post_ram_cleanup = nn.Identity()
+            self.post_ram_cleanup_enabled = False
+        elif self.post_ram_cleanup_mode == "cnn":
+            if self.post_ram_operation_position != "pre_tail":
+                raise ValueError("RawRgb16Ram3DepthModel only implements post_ram_operation_position='pre_tail'")
+            self.post_ram_cleanup = PostRamCleanupAdapter(
+                channels=post_ram_cleanup_channels,
+                blocks=post_ram_cleanup_blocks,
+                scale=post_ram_cleanup_scale,
+                norm=post_ram_cleanup_norm,
+                zero_init=post_ram_cleanup_zero_init,
+            )
+            self.post_ram_cleanup_enabled = True
+        else:
+            raise ValueError(f"Unsupported post_ram_cleanup={post_ram_cleanup!r}")
         _register_imagenet_stats(self)
         self.spatial_adapter = CenterPadCropAdapter(sensor_hw=sensor_hw, backbone_hw=backbone_hw)
 
-    def forward(self, x_raw):
+    def forward(self, x_raw, *, return_features=False, return_layers=None):
         if x_raw.shape[1] != 3:
             raise ValueError(f"RawRgb16Ram3DepthModel expects 3 input channels, got {x_raw.shape[1]}")
-        x3 = self.ram_core(x_raw)
+        output = self.forward_with_dav2_features(x_raw, return_layers=return_layers or ())
+        if return_features:
+            return output
+        return output["depth"]
+
+    @staticmethod
+    def _tensor_percentiles(tensor):
+        flat = tensor.detach().float().reshape(-1)
+        if flat.numel() == 0:
+            zero = tensor.detach().new_tensor(0.0)
+            return zero, zero, zero
+        if flat.numel() > 1_000_000:
+            stride = max(int(flat.numel() // 1_000_000), 1)
+            flat = flat[::stride]
+        return torch.quantile(flat, torch.tensor([0.01, 0.50, 0.99], device=flat.device))
+
+    def _prepare_dav2_input(self, x_raw):
+        if x_raw.shape[1] != 3:
+            raise ValueError(f"RawRgb16Ram3DepthModel expects 3 input channels, got {x_raw.shape[1]}")
+        x3, ram_features = self.ram_core.forward_with_features(x_raw)
+        x3_ram_native = x3
+        if self.post_ram_cleanup_enabled:
+            x3 = self.post_ram_cleanup(x3)
+        ram_features["post_ram_xram"] = x3_ram_native
+        ram_features["post_ram_xclean"] = x3
         if self.raw_ram_rgb_tail == "tanh2p5":
             x3 = phase1b_tanh_tail_squash(x3)
         x_norm = self.spatial_adapter.pad_rgb(x3)
-        depth = self.dav2(x_norm)
-        return self.spatial_adapter.crop_depth(depth)
+        return x_norm, ram_features
+
+    def forward_with_dav2_features(self, x_raw, *, return_layers):
+        return_layers = tuple(int(layer) for layer in (return_layers or ()))
+        depth_layers = tuple(int(layer) for layer in self.dav2.intermediate_layer_idx[self.dav2.encoder])
+        unsupported = sorted(set(return_layers) - set(depth_layers))
+        if unsupported:
+            raise ValueError(
+                f"RawRgb16Ram3DepthModel v1 only supports feature layers from depth head layers "
+                f"{depth_layers}; got unsupported {unsupported}"
+            )
+        x_norm, ram_features = self._prepare_dav2_input(x_raw)
+        patch_h, patch_w = x_norm.shape[-2] // 14, x_norm.shape[-1] // 14
+        features = self.dav2.pretrained.get_intermediate_layers(
+            x_norm,
+            depth_layers,
+            norm=True,
+            return_class_token=True,
+        )
+        depth = self.dav2.depth_head(features, patch_h, patch_w)
+        depth = F.relu(depth).squeeze(1)
+        depth = self.spatial_adapter.crop_depth(depth)
+        layer_features = {
+            layer: features[idx][0]
+            for idx, layer in enumerate(depth_layers)
+            if layer in return_layers
+        }
+        ram_debug = {}
+        x3_ram = ram_features.get("x3_ram")
+        x3_out = ram_features.get("x3")
+        delta_x3 = ram_features.get("local_delta_x3")
+        gate = ram_features.get("local_gate_tanh")
+        if gate is not None:
+            ram_debug["raw_ram_local_gate_value"] = gate.detach()
+        if delta_x3 is not None:
+            ram_debug["delta_x3_l1"] = delta_x3.detach().abs().mean()
+            ram_debug["delta_x3_l2"] = delta_x3.detach().square().mean().sqrt()
+        if x3_ram is not None:
+            ram_debug["x3_ram_p1"], ram_debug["x3_ram_p50"], ram_debug["x3_ram_p99"] = self._tensor_percentiles(x3_ram)
+        if x3_out is not None:
+            ram_debug["x3_out_p1"], ram_debug["x3_out_p50"], ram_debug["x3_out_p99"] = self._tensor_percentiles(x3_out)
+        xram = ram_features.get("post_ram_xram")
+        xclean = ram_features.get("post_ram_xclean")
+        if xram is not None and xclean is not None:
+            delta = xclean - xram
+            mean_abs_xram = xram.detach().abs().mean()
+            mean_abs_delta = delta.detach().abs().mean()
+            ram_debug["post_ram_enabled"] = xram.detach().new_tensor(float(self.post_ram_cleanup_enabled))
+            ram_debug["post_ram_scale"] = xram.detach().new_tensor(
+                float(getattr(self.post_ram_cleanup, "scale", 0.0))
+            )
+            ram_debug["post_ram_mean_abs_xram"] = mean_abs_xram
+            ram_debug["post_ram_mean_abs_delta"] = mean_abs_delta
+            ram_debug["post_ram_delta_ratio"] = mean_abs_delta / mean_abs_xram.clamp_min(1e-12)
+            (
+                ram_debug["post_ram_xram_p1"],
+                ram_debug["post_ram_xram_p50"],
+                ram_debug["post_ram_xram_p99"],
+            ) = self._tensor_percentiles(xram)
+            (
+                ram_debug["post_ram_xclean_p1"],
+                ram_debug["post_ram_xclean_p50"],
+                ram_debug["post_ram_xclean_p99"],
+            ) = self._tensor_percentiles(xclean)
+        return {
+            "depth": depth,
+            "features": layer_features,
+            "ram_debug": ram_debug,
+        }
 
     def load_base_dav2_state_dict(self, state_dict):
         from finetune_stf.models.lora_bridge import _remap_state_dict_for_lora_modules
@@ -742,6 +1063,18 @@ def build_raw_ram_depth_model(
     rgb_interface_mode="residual_tanh",
     rgb_residual_scale=0.1,
     raw_ram_rgb_tail="tanh2p5",
+    raw_ram_local_residual="none",
+    raw_ram_local_hidden_ch=16,
+    raw_ram_local_residual_scale=0.1,
+    raw_ram_local_gate_init=0.03,
+    raw_ram_local_gate_mode="channel",
+    post_ram_cleanup="none",
+    post_ram_cleanup_channels=32,
+    post_ram_cleanup_blocks=4,
+    post_ram_cleanup_scale=0.1,
+    post_ram_cleanup_norm="groupnorm",
+    post_ram_cleanup_zero_init=True,
+    post_ram_operation_position="n_a",
     sensor_hw=SENSOR_INPUT_HW,
     backbone_hw=BACKBONE_INPUT_HW,
 ):
@@ -778,6 +1111,18 @@ def build_raw_ram_depth_model(
             sensor_hw=sensor_hw,
             backbone_hw=backbone_hw,
             raw_ram_rgb_tail=raw_ram_rgb_tail,
+            raw_ram_local_residual=raw_ram_local_residual,
+            raw_ram_local_hidden_ch=raw_ram_local_hidden_ch,
+            raw_ram_local_residual_scale=raw_ram_local_residual_scale,
+            raw_ram_local_gate_init=raw_ram_local_gate_init,
+            raw_ram_local_gate_mode=raw_ram_local_gate_mode,
+            post_ram_cleanup=post_ram_cleanup,
+            post_ram_cleanup_channels=post_ram_cleanup_channels,
+            post_ram_cleanup_blocks=post_ram_cleanup_blocks,
+            post_ram_cleanup_scale=post_ram_cleanup_scale,
+            post_ram_cleanup_norm=post_ram_cleanup_norm,
+            post_ram_cleanup_zero_init=post_ram_cleanup_zero_init,
+            post_ram_operation_position=post_ram_operation_position,
         )
 
     if front_end == "raw_rgb16_ram3":
@@ -791,6 +1136,18 @@ def build_raw_ram_depth_model(
             sensor_hw=sensor_hw,
             backbone_hw=backbone_hw,
             raw_ram_rgb_tail=raw_ram_rgb_tail,
+            raw_ram_local_residual=raw_ram_local_residual,
+            raw_ram_local_hidden_ch=raw_ram_local_hidden_ch,
+            raw_ram_local_residual_scale=raw_ram_local_residual_scale,
+            raw_ram_local_gate_init=raw_ram_local_gate_init,
+            raw_ram_local_gate_mode=raw_ram_local_gate_mode,
+            post_ram_cleanup=post_ram_cleanup,
+            post_ram_cleanup_channels=post_ram_cleanup_channels,
+            post_ram_cleanup_blocks=post_ram_cleanup_blocks,
+            post_ram_cleanup_scale=post_ram_cleanup_scale,
+            post_ram_cleanup_norm=post_ram_cleanup_norm,
+            post_ram_cleanup_zero_init=post_ram_cleanup_zero_init,
+            post_ram_operation_position=post_ram_operation_position,
         )
 
     if front_end == "raw_to_rgb_head":

@@ -57,7 +57,8 @@ LOD_TRUE_REQUIRED_COLUMNS = (
 )
 LOD_RAW_RGB16_NORM_MODE = "uint16_div_65535"
 LOD_RAW_RGB16_STORAGE_FORMAT = "raw_rgb16_png_3ch"
-LOD_RAW_RGB16_INPUT_MODES = ("raw_rgb16_dark", "raw_rgb16_normal")
+LOD_RAW_RGB16_DARK_NORMAL_PAIR_MODE = "raw_rgb16_dark_normal_pair"
+LOD_RAW_RGB16_INPUT_MODES = ("raw_rgb16_dark", "raw_rgb16_normal", LOD_RAW_RGB16_DARK_NORMAL_PAIR_MODE)
 LOD_RAW_RGB16_INPUT_SPECS = {
     "raw_rgb16_dark": ("raw_dark_path", "RAW_Dark"),
     "raw_rgb16_normal": ("raw_normal_path", "RAW_normal"),
@@ -332,7 +333,8 @@ class LODTrueRawDarkRGB16(_LODTrueBase):
             )
         if raw_input_mode not in LOD_RAW_RGB16_INPUT_SPECS:
             raise ValueError(
-                f"LOD true RAW requires raw_input_mode in {LOD_RAW_RGB16_INPUT_MODES}, got {raw_input_mode!r}"
+                f"LOD true single RAW requires raw_input_mode in {tuple(LOD_RAW_RGB16_INPUT_SPECS)}, "
+                f"got {raw_input_mode!r}"
             )
         super().__init__(**kwargs)
         self.raw_storage_format = raw_storage_format
@@ -407,14 +409,156 @@ class LODTrueRawNormalRGB16(LODTrueRawDarkRGB16):
         super().__init__(**kwargs)
 
 
+class LODTrueRawDarkNormalPairRGB16(_LODTrueBase):
+    """Paired LOD RAW_Dark student input and RAW_normal teacher input."""
+
+    model_input_tensor = "raw"
+
+    def __init__(
+        self,
+        *,
+        raw_storage_format: str = LOD_RAW_RGB16_STORAGE_FORMAT,
+        lod_raw_norm_mode: str = LOD_RAW_RGB16_NORM_MODE,
+        raw_input_mode: str = LOD_RAW_RGB16_DARK_NORMAL_PAIR_MODE,
+        **kwargs,
+    ):
+        if raw_storage_format != LOD_RAW_RGB16_STORAGE_FORMAT:
+            raise ValueError(
+                f"LOD true RAW pair requires raw_storage_format={LOD_RAW_RGB16_STORAGE_FORMAT!r}, "
+                f"got {raw_storage_format!r}"
+            )
+        if lod_raw_norm_mode != LOD_RAW_RGB16_NORM_MODE:
+            raise ValueError(
+                f"LOD true RAW pair requires lod_raw_norm_mode={LOD_RAW_RGB16_NORM_MODE!r}, "
+                f"got {lod_raw_norm_mode!r}"
+            )
+        if raw_input_mode != LOD_RAW_RGB16_DARK_NORMAL_PAIR_MODE:
+            raise ValueError(
+                f"LOD true RAW pair requires raw_input_mode={LOD_RAW_RGB16_DARK_NORMAL_PAIR_MODE!r}, "
+                f"got {raw_input_mode!r}"
+            )
+        super().__init__(**kwargs)
+        self.raw_storage_format = raw_storage_format
+        self.lod_raw_norm_mode = lod_raw_norm_mode
+        self.raw_input_mode = str(raw_input_mode)
+
+    def _apply_pair_geometric(
+        self,
+        raw_dark: np.ndarray,
+        raw_normal: np.ndarray,
+        target: np.ndarray,
+        valid_mask: np.ndarray,
+        *,
+        rng,
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, dict[str, Any]]:
+        stacked = np.concatenate([raw_dark, raw_normal], axis=2)
+        stacked, target, valid_mask, geometry_params = apply_geometric(
+            stacked,
+            target,
+            valid_mask,
+            rng=rng,
+            cfg=self.aug_config,
+            size=self.size,
+            crop_mode=self.crop_mode,
+        )
+        raw_dark = stacked[..., :3]
+        raw_normal = stacked[..., 3:]
+        return raw_dark, raw_normal, target, valid_mask, geometry_params
+
+    def build_sample(self, idx, *, rng=random, include_geometry=False):
+        row = self.rows[idx]
+        raw_dark_path = row["raw_dark_path"]
+        raw_normal_path = row["raw_normal_path"]
+        if not raw_dark_path.is_file():
+            raise FileNotFoundError(f"Missing LOD RAW_Dark file: {raw_dark_path}")
+        if not raw_normal_path.is_file():
+            raise FileNotFoundError(f"Missing LOD RAW_normal file: {raw_normal_path}")
+        raw_dark = _load_raw_rgb16_png(raw_dark_path, norm_mode=self.lod_raw_norm_mode)
+        raw_normal = _load_raw_rgb16_png(raw_normal_path, norm_mode=self.lod_raw_norm_mode)
+        target = self._load_target(row)
+        if raw_dark.shape != raw_normal.shape:
+            raise ValueError(
+                f"LOD RAW pair shapes differ for {row['pair_id']}: "
+                f"dark={raw_dark.shape}, normal={raw_normal.shape}"
+            )
+        if raw_dark.shape[:2] != target.shape:
+            raise ValueError(
+                f"LOD RAW pair shape {raw_dark.shape[:2]} does not match pseudo label "
+                f"{target.shape}: {row['pair_id']}"
+            )
+
+        geometry_params = None
+        if self.aug_config is not None:
+            raw_photo_active = (
+                self.aug_config.raw_gain is not None
+                or self.aug_config.raw_per_channel_gain
+                or self.aug_config.raw_black_offset > 0.0
+                or self.aug_config.raw_noise is not None
+            )
+            if raw_photo_active:
+                raise ValueError(
+                    "raw_rgb16_dark_normal_pair disables raw photometric augmentation in v1 "
+                    "so teacher RAW_normal stays aligned and unmodified"
+                )
+            valid_mask = np.isfinite(target) & (target > 0)
+            geom_rng = self.aug_config.rng(epoch=self.aug_epoch, sample_id=row["pair_id"], stream="geom")
+            raw_dark, raw_normal, target, valid_mask, geometry_params = self._apply_pair_geometric(
+                raw_dark,
+                raw_normal,
+                target,
+                valid_mask,
+                rng=geom_rng,
+            )
+            crop_box = tuple(int(v) for v in geometry_params["crop_box"])
+        else:
+            crop_box = _sample_crop_box(raw_dark.shape[0], raw_dark.shape[1], self.size, self.crop_mode, rng)
+            raw_dark = _apply_crop(raw_dark, crop_box)
+            raw_normal = _apply_crop(raw_normal, crop_box)
+            target = _apply_crop(target, crop_box)
+            valid_mask = np.isfinite(target) & (target > 0)
+            target = np.where(valid_mask, target, 0.0).astype(np.float32, copy=False)
+
+        base = self._base_sample(
+            row,
+            target,
+            valid_mask,
+            include_geometry=include_geometry,
+            crop_box=crop_box,
+            geometry_params=geometry_params,
+        )
+        raw_dark_tensor = _chw_tensor(raw_dark)
+        raw_normal_tensor = _chw_tensor(raw_normal)
+        base["raw"] = raw_dark_tensor
+        base["raw_dark"] = raw_dark_tensor
+        base["raw_normal"] = raw_normal_tensor
+        base["image"] = raw_dark_tensor
+        base["rgb_preview"] = raw_dark_tensor
+        base["raw_path"] = str(raw_dark_path)
+        base["raw_dark_path"] = str(raw_dark_path)
+        base["raw_normal_path"] = str(raw_normal_path)
+        base["image_path"] = str(raw_dark_path)
+        base["student_input_path"] = str(raw_dark_path)
+        base["teacher_input_path"] = str(raw_normal_path)
+        base["input_domain"] = "raw3"
+        base["dataset_input_mode"] = self.raw_input_mode
+        base["student_input_kind"] = "RAW_Dark"
+        base["teacher_input_kind"] = "RAW_normal"
+        base["raw_storage_format"] = self.raw_storage_format
+        base["lod_raw_norm_mode"] = self.lod_raw_norm_mode
+        base["raw_channel_order"] = "RGB"
+        return base
+
+
 __all__ = [
     "DEFAULT_LOD_TRUE_MANIFEST",
     "DEFAULT_LOD_TRUE_ROOT",
+    "LOD_RAW_RGB16_DARK_NORMAL_PAIR_MODE",
     "LOD_RAW_RGB16_NORM_MODE",
     "LOD_RAW_RGB16_INPUT_MODES",
     "LOD_RAW_RGB16_STORAGE_FORMAT",
     "LOD_TRUE_NATIVE_HW",
     "LODTrueRGBDark",
     "LODTrueRawDarkRGB16",
+    "LODTrueRawDarkNormalPairRGB16",
     "LODTrueRawNormalRGB16",
 ]

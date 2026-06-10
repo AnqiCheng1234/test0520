@@ -85,6 +85,8 @@ Checkpoint：
 | C_dark_W0 | `0608_1739_lod_true_raw_rgb16_block8excl10_ram3_dav2s_decoder_e40_W0_aug-baseline_e10_poly` | 0.829851 |
 | C_normal_W0 | `0609_0010_lod_true_raw_normal_rgb16_block8excl10_ram3_dav2s_decoder_e40_W0_aug-baseline_e10_poly` | 0.887057 |
 
+注意：这组补充报告用的是 RAW W0 pair，不是 `R0`。`R0` 指的是 `0608_1509_lod_true_rgb_dark_block8excl10_dav2s_decoder_e40_R0_aug-baseline_e10_poly`，是 `RGB_dark + dav2_rgb + lora=none` 的 decoder-only run，best D1 为 0.8351。它不是 RAW_normal checkpoint，因此没有 `C_normal + I_normal` 这一格。
+
 ### 3.1 Matrix
 
 | variant | matrix | checkpoint | input | D1 | AbsRel | RMSE |

@@ -1,4 +1,5 @@
 .idea/
+CLAUDE.md
 __pycache__/
 *.pyc
 *.log
@@ -33,3 +34,9 @@ plans/0524_unprocessing/**/*.npz
 plans/0524_unprocessing/**/*.pth
 plans/0525_pre/*.pdf
 plans/0525_pre/*.pptx
+finetune_stf/analysis/**/*.npz
+finetune_stf/analysis/**/*.png
+finetune_stf/analysis/**/*.jpg
+finetune_stf/analysis/**/artifacts/
+finetune_stf/analysis/**/viz/
+finetune_stf/analysis/**/train_viz/

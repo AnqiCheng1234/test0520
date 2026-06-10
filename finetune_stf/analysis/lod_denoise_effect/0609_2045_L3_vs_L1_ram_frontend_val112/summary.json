@@ -1,0 +1,61 @@
+{
+  "checkpoint_l1": "/mnt/drive/3333_raw/0000_exp_ckpt/0609_2045_L1_lod_raw_pair_lora_decoder_e10_featmiddeep_lam005_localnone/best_model.pth",
+  "checkpoint_l1_best_lod_d1": 0.848409834787344,
+  "checkpoint_l1_epoch": 9,
+  "checkpoint_l3": "/mnt/drive/3333_raw/0000_exp_ckpt/0609_2045_L3_lod_raw_pair_lora_decoder_e10_featmiddeep_lam005_noiseawarev1_gate003_s01/best_model.pth",
+  "checkpoint_l3_best_lod_d1": 0.8484544477729824,
+  "checkpoint_l3_epoch": 9,
+  "device": "cuda",
+  "gate_raw": [
+    0.031350478529930115,
+    0.03291124105453491,
+    0.030907198786735535
+  ],
+  "gate_tanh": [
+    0.031340211629867554,
+    0.032899364829063416,
+    0.030897360295057297
+  ],
+  "local_residual_scale_x_gate": [
+    0.0031340213026851416,
+    0.003289936576038599,
+    0.003089735982939601
+  ],
+  "mean_stats": {
+    "l1_x3_abs_mean": 0.783460170296686,
+    "l3_l1_x3_out_l1": 0.09712782204483769,
+    "l3_local_contrib_abs_mean": 0.0008417883239287351,
+    "l3_local_contrib_abs_p99": 0.0024827277229633182,
+    "l3_local_ratio_vs_x3ram": 0.0012438854937521708,
+    "l3_x3_out_abs_mean": 0.7968434066112552,
+    "l3_x3_out_p01": -1.3659610758934702,
+    "l3_x3_out_p50": -0.05762096507740872,
+    "l3_x3_out_p99": 2.786942018462079,
+    "l3_x3_ram_abs_mean": 0.7969496369894061,
+    "raw_dark_normal_l1": 0.07767410235412951
+  },
+  "median_stats": {
+    "l1_x3_abs_mean": 0.7748379409313202,
+    "l3_l1_x3_out_l1": 0.08531664311885834,
+    "l3_local_contrib_abs_mean": 0.0007894283044151962,
+    "l3_local_contrib_abs_p99": 0.0025004148483276367,
+    "l3_local_ratio_vs_x3ram": 0.0009737508962654909,
+    "l3_x3_out_abs_mean": 0.7908658981323242,
+    "l3_x3_out_p01": -1.3716431856155396,
+    "l3_x3_out_p50": -0.177703857421875,
+    "l3_x3_out_p99": 2.5451453924179077,
+    "l3_x3_ram_abs_mean": 0.7909608781337738,
+    "raw_dark_normal_l1": 0.0711369439959526
+  },
+  "montage": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_denoise_effect/0609_2045_L3_vs_L1_ram_frontend_val112/selected_ram_panels_montage.jpg",
+  "num_val_samples": 112,
+  "run_l1": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/exp/0609_2045_L1_lod_raw_pair_lora_decoder_e10_featmiddeep_lam005_localnone",
+  "run_l3": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/exp/0609_2045_L3_lod_raw_pair_lora_decoder_e10_featmiddeep_lam005_noiseawarev1_gate003_s01",
+  "selected_panels": [
+    "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_denoise_effect/0609_2045_L3_vs_L1_ram_frontend_val112/panels/idx0000_lod-0021-0022_ram_panel.jpg",
+    "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_denoise_effect/0609_2045_L3_vs_L1_ram_frontend_val112/panels/idx0028_lod-1275-1276_ram_panel.jpg",
+    "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_denoise_effect/0609_2045_L3_vs_L1_ram_frontend_val112/panels/idx0056_lod-2531-2532_ram_panel.jpg",
+    "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_denoise_effect/0609_2045_L3_vs_L1_ram_frontend_val112/panels/idx0084_lod-3785-3786_ram_panel.jpg",
+    "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_denoise_effect/0609_2045_L3_vs_L1_ram_frontend_val112/panels/idx0111_lod-4439-4440_ram_panel.jpg"
+  ]
+}

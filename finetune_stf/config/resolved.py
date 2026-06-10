@@ -26,6 +26,7 @@ DATASET_FAMILY_CHOICES = (
     "lod_true_rgb_dark",
     "lod_true_raw_dark_rgb16",
     "lod_true_raw_normal_rgb16",
+    "lod_true_raw_dark_normal_pair_rgb16",
 )
 DATASET_INPUT_MODE_CHOICES = (
     "rgb",
@@ -35,6 +36,7 @@ DATASET_INPUT_MODE_CHOICES = (
     "rgb_dark",
     "raw_rgb16_dark",
     "raw_rgb16_normal",
+    "raw_rgb16_dark_normal_pair",
 )
 MODEL_INPUT_TENSOR_CHOICES = ("image", "raw")
 BRIDGE_CHOICES = (NONE, NA, "raw_feature_bridge")
@@ -43,6 +45,20 @@ LORA_CHOICES = (NONE, NA, "dav2_lora")
 BRIDGE_FEATURE_SOURCE_CHANNEL_CHOICES = (NONE, "x3", "x4")
 ADAPTER_FEATURE_SOURCE_CHANNEL_CHOICES = (NONE, "x3", "x4")
 RAW_STORAGE_FORMAT_CHOICES = (NONE, NA, "legacy_bggR_decomp16", "raw_rgb16_png_3ch", "raw_future")
+STUDENT_INIT_STRICT_CHOICES = ("strict", "compatible")
+TEACHER_RECIPE_CHOICES = (NA, "lora_tap_r8a16", "decoder_w0")
+TEACHER_INPUT_MODE_CHOICES = (NA, "raw_rgb16_normal")
+FEAT_DISTILL_CHOICES = (NONE, "dav2_middeep_cosine")
+FEAT_DISTILL_TEACHER_CHOICES = (NA, "normal_expert", "same_param_clean")
+RAW_RAM_LOCAL_RESIDUAL_CHOICES_RESOLVED = (NONE, "noiseaware_v1")
+RAW_RAM_LOCAL_GATE_MODE_CHOICES_RESOLVED = (NA, "scalar", "channel")
+POST_RAM_CLEANUP_CHOICES = (NONE, "cnn")
+POST_RAM_CLEANUP_NORM_CHOICES = (NA, "groupnorm")
+POST_RAM_CLEANUP_ZERO_INIT_CHOICES = (NA, "true")
+POST_RAM_OPERATION_POSITION_CHOICES = (NA, "pre_tail", "post_tail")
+POST_RAM_EXTERNAL_DENOISER_CHOICES = (NONE, "identity", "drunet", "restormer", "nafnet")
+POST_RAM_DENOISER_AFFINE_CHOICES = (NA, "q001q999", "q01q99")
+POST_RAM_DENOISER_FROZEN_CHOICES = (NA, "true")
 KITTI_EVAL_PROTOCOL_CHOICES_RESOLVED = (
     NONE,
     "rgb_pretrained_ref",
@@ -52,6 +68,7 @@ KITTI_EVAL_PROTOCOL_CHOICES_RESOLVED = (
 LOD_TRUE_RAW_RGB16_INPUT_MODE_BY_FAMILY = {
     "lod_true_raw_dark_rgb16": "raw_rgb16_dark",
     "lod_true_raw_normal_rgb16": "raw_rgb16_normal",
+    "lod_true_raw_dark_normal_pair_rgb16": "raw_rgb16_dark_normal_pair",
 }
 LOD_TRUE_RAW_RGB16_DATASET_FAMILIES = tuple(LOD_TRUE_RAW_RGB16_INPUT_MODE_BY_FAMILY)
 SOURCE_FIELDS = (
@@ -88,6 +105,33 @@ SOURCE_FIELDS = (
     "kitti_eval_protocol",
     "kitti_model_source",
     "eval_input_domain",
+    "student_init_from",
+    "student_init_strict",
+    "teacher_ckpt",
+    "teacher_recipe",
+    "teacher_input_mode",
+    "feat_distill",
+    "feat_distill_layers",
+    "feat_distill_lambda",
+    "feat_distill_teacher",
+    "raw_ram_local_residual",
+    "raw_ram_local_hidden_ch",
+    "raw_ram_local_residual_scale",
+    "raw_ram_local_gate_init",
+    "raw_ram_local_gate_mode",
+    "post_ram_cleanup",
+    "post_ram_cleanup_channels",
+    "post_ram_cleanup_blocks",
+    "post_ram_cleanup_scale",
+    "post_ram_cleanup_norm",
+    "post_ram_cleanup_zero_init",
+    "post_ram_cleanup_lr",
+    "post_ram_external_denoiser",
+    "post_ram_denoiser_sigma",
+    "post_ram_denoiser_alpha",
+    "post_ram_denoiser_affine",
+    "post_ram_denoiser_frozen",
+    "post_ram_operation_position",
 )
 
 FEATURE_KEYS_BY_SOURCE_CHANNELS = {
@@ -140,6 +184,33 @@ class ResolvedConfig:
     loss_mask_downsample: str = NOT_APPLICABLE
     kitti_model_source: str = NOT_APPLICABLE
     eval_input_domain: str = NOT_APPLICABLE
+    student_init_from: str = NOT_APPLICABLE
+    student_init_strict: str = NOT_APPLICABLE
+    teacher_ckpt: str = NOT_APPLICABLE
+    teacher_recipe: str = NOT_APPLICABLE
+    teacher_input_mode: str = NOT_APPLICABLE
+    feat_distill: str = NONE
+    feat_distill_layers: tuple[int, ...] = ()
+    feat_distill_lambda: float | str = NOT_APPLICABLE
+    feat_distill_teacher: str = NOT_APPLICABLE
+    raw_ram_local_residual: str = NONE
+    raw_ram_local_hidden_ch: int | str = NOT_APPLICABLE
+    raw_ram_local_residual_scale: float | str = NOT_APPLICABLE
+    raw_ram_local_gate_init: float | str = NOT_APPLICABLE
+    raw_ram_local_gate_mode: str = NOT_APPLICABLE
+    post_ram_cleanup: str = NONE
+    post_ram_cleanup_channels: int | str = NOT_APPLICABLE
+    post_ram_cleanup_blocks: int | str = NOT_APPLICABLE
+    post_ram_cleanup_scale: float | str = NOT_APPLICABLE
+    post_ram_cleanup_norm: str = NOT_APPLICABLE
+    post_ram_cleanup_zero_init: str = NOT_APPLICABLE
+    post_ram_cleanup_lr: float | str = NOT_APPLICABLE
+    post_ram_external_denoiser: str = NONE
+    post_ram_denoiser_sigma: float | str = NOT_APPLICABLE
+    post_ram_denoiser_alpha: float | str = NOT_APPLICABLE
+    post_ram_denoiser_affine: str = NOT_APPLICABLE
+    post_ram_denoiser_frozen: str = NOT_APPLICABLE
+    post_ram_operation_position: str = NOT_APPLICABLE
     optimizer_param_groups: tuple[dict[str, Any], ...] = ()
     sources: dict[str, str] = field(default_factory=dict)
     not_applicable: tuple[str, ...] = ()
@@ -196,6 +267,33 @@ class ResolvedConfig:
             "kitti_eval_protocol": self.kitti_eval_protocol,
             "kitti_model_source": self.kitti_model_source,
             "eval_input_domain": self.eval_input_domain,
+            "student_init_from": self.student_init_from,
+            "student_init_strict": self.student_init_strict,
+            "teacher_ckpt": self.teacher_ckpt,
+            "teacher_recipe": self.teacher_recipe,
+            "teacher_input_mode": self.teacher_input_mode,
+            "feat_distill": self.feat_distill,
+            "feat_distill_layers": self._tuple_value("feat_distill_layers", self.feat_distill_layers),
+            "feat_distill_lambda": self.feat_distill_lambda,
+            "feat_distill_teacher": self.feat_distill_teacher,
+            "raw_ram_local_residual": self.raw_ram_local_residual,
+            "raw_ram_local_hidden_ch": self.raw_ram_local_hidden_ch,
+            "raw_ram_local_residual_scale": self.raw_ram_local_residual_scale,
+            "raw_ram_local_gate_init": self.raw_ram_local_gate_init,
+            "raw_ram_local_gate_mode": self.raw_ram_local_gate_mode,
+            "post_ram_cleanup": self.post_ram_cleanup,
+            "post_ram_cleanup_channels": self.post_ram_cleanup_channels,
+            "post_ram_cleanup_blocks": self.post_ram_cleanup_blocks,
+            "post_ram_cleanup_scale": self.post_ram_cleanup_scale,
+            "post_ram_cleanup_norm": self.post_ram_cleanup_norm,
+            "post_ram_cleanup_zero_init": self.post_ram_cleanup_zero_init,
+            "post_ram_cleanup_lr": self.post_ram_cleanup_lr,
+            "post_ram_external_denoiser": self.post_ram_external_denoiser,
+            "post_ram_denoiser_sigma": self.post_ram_denoiser_sigma,
+            "post_ram_denoiser_alpha": self.post_ram_denoiser_alpha,
+            "post_ram_denoiser_affine": self.post_ram_denoiser_affine,
+            "post_ram_denoiser_frozen": self.post_ram_denoiser_frozen,
+            "post_ram_operation_position": self.post_ram_operation_position,
             "optimizer_param_groups": list(self.optimizer_param_groups),
             "not_applicable": list(self.not_applicable),
             "input_type_alias": self.input_type_alias,
@@ -222,7 +320,7 @@ class ResolvedConfig:
                 data[key] = NONE
         for key in ("feature_adapter_keys", "bridge_feature_keys"):
             data[key] = _normalise_str_tuple(data.get(key))
-        for key in ("bridge_layers", "lora_tap_layers"):
+        for key in ("bridge_layers", "lora_tap_layers", "feat_distill_layers"):
             data[key] = _normalise_int_tuple(data.get(key))
         source_payload = dict(data.get("sources") or {})
         for key in tuple(data):
@@ -330,6 +428,13 @@ _LOD_TRUE_RAW_NORMAL_RGB16 = _base_config(
     front_end="raw_rgb16_ram3",
     dataset_family="lod_true_raw_normal_rgb16",
     dataset_input_mode="raw_rgb16_normal",
+    model_input_tensor="raw",
+)
+_LOD_TRUE_RAW_DARK_NORMAL_PAIR_RGB16 = _base_config(
+    input_domain="raw3",
+    front_end="raw_rgb16_ram3",
+    dataset_family="lod_true_raw_dark_normal_pair_rgb16",
+    dataset_input_mode="raw_rgb16_dark_normal_pair",
     model_input_tensor="raw",
 )
 
@@ -504,6 +609,48 @@ INPUT_TYPE_ALIASES: dict[str, dict[str, Any]] = {
         bridge_feature_source_channels="x3",
         adapter_feature_source_channels="x3",
     ),
+    "lod_true_raw_dark_normal_pair_rgb16": _LOD_TRUE_RAW_DARK_NORMAL_PAIR_RGB16,
+    "lod_true_raw_dark_normal_pair_rgb16_lora": _with(
+        _LOD_TRUE_RAW_DARK_NORMAL_PAIR_RGB16,
+        lora="dav2_lora",
+    ),
+    "lod_true_raw_dark_normal_pair_rgb16_bridge": _with(
+        _LOD_TRUE_RAW_DARK_NORMAL_PAIR_RGB16,
+        bridge="raw_feature_bridge",
+        bridge_feature_source_channels="x3",
+    ),
+    "lod_true_raw_dark_normal_pair_rgb16_bridge_lora": _with(
+        _LOD_TRUE_RAW_DARK_NORMAL_PAIR_RGB16,
+        bridge="raw_feature_bridge",
+        lora="dav2_lora",
+        bridge_feature_source_channels="x3",
+    ),
+    "lod_true_raw_dark_normal_pair_rgb16_feature_adapter": _with(
+        _LOD_TRUE_RAW_DARK_NORMAL_PAIR_RGB16,
+        decoder_feature_adapter="raw_feature_adapter",
+        adapter_feature_source_channels="x3",
+    ),
+    "lod_true_raw_dark_normal_pair_rgb16_feature_adapter_lora": _with(
+        _LOD_TRUE_RAW_DARK_NORMAL_PAIR_RGB16,
+        decoder_feature_adapter="raw_feature_adapter",
+        lora="dav2_lora",
+        adapter_feature_source_channels="x3",
+    ),
+    "lod_true_raw_dark_normal_pair_rgb16_bridge_feature_adapter": _with(
+        _LOD_TRUE_RAW_DARK_NORMAL_PAIR_RGB16,
+        bridge="raw_feature_bridge",
+        decoder_feature_adapter="raw_feature_adapter",
+        bridge_feature_source_channels="x3",
+        adapter_feature_source_channels="x3",
+    ),
+    "lod_true_raw_dark_normal_pair_rgb16_bridge_feature_adapter_lora": _with(
+        _LOD_TRUE_RAW_DARK_NORMAL_PAIR_RGB16,
+        bridge="raw_feature_bridge",
+        decoder_feature_adapter="raw_feature_adapter",
+        lora="dav2_lora",
+        bridge_feature_source_channels="x3",
+        adapter_feature_source_channels="x3",
+    ),
 }
 
 
@@ -574,12 +721,14 @@ def _normalise_str_tuple(value: Any) -> tuple[str, ...]:
 
 
 def _normalise_int_tuple(value: Any) -> tuple[int, ...]:
-    if value in (None, NONE, NOT_APPLICABLE, "", []):
+    if value in (None, NONE, NA, NOT_APPLICABLE, "", []):
         return ()
     if isinstance(value, str):
         values = [item.strip() for item in value.split(",") if item.strip()]
     else:
         values = list(value)
+    if len(values) == 1 and str(values[0]).strip() in {NONE, NA, NOT_APPLICABLE, ""}:
+        return ()
     return tuple(dict.fromkeys(int(item) for item in values))
 
 
@@ -783,6 +932,234 @@ def _loss_details(args: Any, sources: dict[str, str]) -> tuple[float | str, int 
         int(getattr(args, "loss_grad_scales")),
         str(getattr(args, "loss_mask_downsample", "strict")),
     )
+
+
+def _normalise_disabled_str(value: Any) -> str:
+    if value is None:
+        return NONE
+    text = str(value)
+    return NONE if text in {NONE, NA, NOT_APPLICABLE, ""} else text
+
+
+def _normalise_na_str(value: Any) -> str:
+    if value is None:
+        return NA
+    text = str(value)
+    return NA if text in {NONE, NA, NOT_APPLICABLE, ""} else text
+
+
+def _int_or_not_applicable(value: Any) -> int | str:
+    text = _normalise_na_str(value)
+    return NOT_APPLICABLE if text == NA else int(text)
+
+
+def _float_or_not_applicable(value: Any) -> float | str:
+    text = _normalise_na_str(value)
+    return NOT_APPLICABLE if text == NA else float(text)
+
+
+def _distill_and_local_details(args: Any, sources: dict[str, str]) -> dict[str, Any]:
+    explicit = _explicit_arg_names(args)
+
+    student_init_from = _normalise_disabled_str(getattr(args, "student_init_from", None))
+    if student_init_from == NONE:
+        student_init_from_out = NOT_APPLICABLE
+        student_init_strict = NOT_APPLICABLE
+        sources["student_init_from"] = NOT_APPLICABLE
+        sources["student_init_strict"] = NOT_APPLICABLE
+    else:
+        student_init_from_out = student_init_from
+        student_init_strict = str(getattr(args, "student_init_strict", "compatible"))
+        sources["student_init_from"] = SOURCE_EXPLICIT if "student_init_from" in explicit else SOURCE_DEFAULT_RESOLVER
+        sources["student_init_strict"] = SOURCE_EXPLICIT if "student_init_strict" in explicit else SOURCE_DEFAULT_RESOLVER
+
+    teacher_ckpt = _normalise_disabled_str(getattr(args, "teacher_ckpt", None))
+    teacher_recipe = str(getattr(args, "teacher_recipe", NA))
+    teacher_input_mode = str(getattr(args, "teacher_input_mode", NA))
+    feat_distill = str(getattr(args, "feat_distill", NONE))
+    feat_layers = _normalise_int_tuple(getattr(args, "feat_distill_layers", None))
+    feat_lambda = float(getattr(args, "feat_distill_lambda", 0.0))
+    feat_teacher = str(getattr(args, "feat_distill_teacher", NA))
+
+    if feat_distill == NONE:
+        teacher_ckpt_out = NOT_APPLICABLE
+        teacher_recipe_out = NOT_APPLICABLE
+        teacher_input_mode_out = NOT_APPLICABLE
+        feat_layers_out = ()
+        feat_lambda_out = NOT_APPLICABLE
+        feat_teacher_out = NOT_APPLICABLE
+        for field_name in (
+            "teacher_ckpt",
+            "teacher_recipe",
+            "teacher_input_mode",
+            "feat_distill_layers",
+            "feat_distill_lambda",
+            "feat_distill_teacher",
+        ):
+            sources[field_name] = NOT_APPLICABLE
+        sources["feat_distill"] = SOURCE_EXPLICIT if "feat_distill" in explicit else SOURCE_DEFAULT_RESOLVER
+    else:
+        teacher_ckpt_out = teacher_ckpt
+        teacher_recipe_out = teacher_recipe
+        teacher_input_mode_out = teacher_input_mode
+        feat_layers_out = feat_layers
+        feat_lambda_out = feat_lambda
+        feat_teacher_out = feat_teacher
+        sources["feat_distill"] = SOURCE_EXPLICIT if "feat_distill" in explicit else SOURCE_DEFAULT_RESOLVER
+        sources["teacher_ckpt"] = SOURCE_EXPLICIT if "teacher_ckpt" in explicit else SOURCE_DEFAULT_RESOLVER
+        sources["teacher_recipe"] = SOURCE_EXPLICIT if "teacher_recipe" in explicit else SOURCE_DEFAULT_RESOLVER
+        sources["teacher_input_mode"] = SOURCE_EXPLICIT if "teacher_input_mode" in explicit else SOURCE_DEFAULT_RESOLVER
+        sources["feat_distill_layers"] = SOURCE_EXPLICIT if "feat_distill_layers" in explicit else SOURCE_DEFAULT_RESOLVER
+        sources["feat_distill_lambda"] = SOURCE_EXPLICIT if "feat_distill_lambda" in explicit else SOURCE_DEFAULT_RESOLVER
+        sources["feat_distill_teacher"] = SOURCE_EXPLICIT if "feat_distill_teacher" in explicit else SOURCE_DEFAULT_RESOLVER
+
+    raw_ram_local_residual = str(getattr(args, "raw_ram_local_residual", NONE))
+    if raw_ram_local_residual == NA:
+        raw_ram_local_residual = NONE
+    raw_ram_local_hidden_ch = int(getattr(args, "raw_ram_local_hidden_ch", 0))
+    raw_ram_local_residual_scale = float(getattr(args, "raw_ram_local_residual_scale", 0.0))
+    raw_ram_local_gate_init = float(getattr(args, "raw_ram_local_gate_init", 0.0))
+    raw_ram_local_gate_mode = str(getattr(args, "raw_ram_local_gate_mode", NA))
+
+    sources["raw_ram_local_residual"] = (
+        SOURCE_EXPLICIT if "raw_ram_local_residual" in explicit else SOURCE_DEFAULT_RESOLVER
+    )
+    if raw_ram_local_residual == NONE:
+        raw_ram_local_hidden_ch_out = NOT_APPLICABLE
+        raw_ram_local_residual_scale_out = NOT_APPLICABLE
+        raw_ram_local_gate_init_out = NOT_APPLICABLE
+        raw_ram_local_gate_mode_out = NOT_APPLICABLE
+        for field_name in (
+            "raw_ram_local_hidden_ch",
+            "raw_ram_local_residual_scale",
+            "raw_ram_local_gate_init",
+            "raw_ram_local_gate_mode",
+        ):
+            sources[field_name] = NOT_APPLICABLE
+    else:
+        raw_ram_local_hidden_ch_out = raw_ram_local_hidden_ch
+        raw_ram_local_residual_scale_out = raw_ram_local_residual_scale
+        raw_ram_local_gate_init_out = raw_ram_local_gate_init
+        raw_ram_local_gate_mode_out = raw_ram_local_gate_mode
+        sources["raw_ram_local_hidden_ch"] = (
+            SOURCE_EXPLICIT if "raw_ram_local_hidden_ch" in explicit else SOURCE_DEFAULT_RESOLVER
+        )
+        sources["raw_ram_local_residual_scale"] = (
+            SOURCE_EXPLICIT if "raw_ram_local_residual_scale" in explicit else SOURCE_DEFAULT_RESOLVER
+        )
+        sources["raw_ram_local_gate_init"] = (
+            SOURCE_EXPLICIT if "raw_ram_local_gate_init" in explicit else SOURCE_DEFAULT_RESOLVER
+        )
+        sources["raw_ram_local_gate_mode"] = (
+            SOURCE_EXPLICIT if "raw_ram_local_gate_mode" in explicit else SOURCE_DEFAULT_RESOLVER
+        )
+
+    post_ram_cleanup = str(getattr(args, "post_ram_cleanup", NONE))
+    if post_ram_cleanup == NA:
+        post_ram_cleanup = NONE
+    sources["post_ram_cleanup"] = SOURCE_EXPLICIT if "post_ram_cleanup" in explicit else SOURCE_DEFAULT_RESOLVER
+    if post_ram_cleanup == NONE:
+        post_cleanup_channels_out = NOT_APPLICABLE
+        post_cleanup_blocks_out = NOT_APPLICABLE
+        post_cleanup_scale_out = NOT_APPLICABLE
+        post_cleanup_norm_out = NOT_APPLICABLE
+        post_cleanup_zero_init_out = NOT_APPLICABLE
+        post_cleanup_lr_out = NOT_APPLICABLE
+        for field_name in (
+            "post_ram_cleanup_channels",
+            "post_ram_cleanup_blocks",
+            "post_ram_cleanup_scale",
+            "post_ram_cleanup_norm",
+            "post_ram_cleanup_zero_init",
+            "post_ram_cleanup_lr",
+        ):
+            sources[field_name] = NOT_APPLICABLE
+    else:
+        post_cleanup_channels_out = _int_or_not_applicable(getattr(args, "post_ram_cleanup_channels", NA))
+        post_cleanup_blocks_out = _int_or_not_applicable(getattr(args, "post_ram_cleanup_blocks", NA))
+        post_cleanup_scale_out = _float_or_not_applicable(getattr(args, "post_ram_cleanup_scale", NA))
+        post_cleanup_norm_out = _normalise_na_str(getattr(args, "post_ram_cleanup_norm", NA))
+        post_cleanup_zero_init_out = _normalise_na_str(getattr(args, "post_ram_cleanup_zero_init", NA))
+        post_cleanup_lr_out = _float_or_not_applicable(getattr(args, "post_ram_cleanup_lr", NA))
+        for field_name in (
+            "post_ram_cleanup_channels",
+            "post_ram_cleanup_blocks",
+            "post_ram_cleanup_scale",
+            "post_ram_cleanup_norm",
+            "post_ram_cleanup_zero_init",
+            "post_ram_cleanup_lr",
+        ):
+            sources[field_name] = SOURCE_EXPLICIT if field_name in explicit else SOURCE_DEFAULT_RESOLVER
+
+    post_ram_external_denoiser = str(getattr(args, "post_ram_external_denoiser", NONE))
+    if post_ram_external_denoiser == NA:
+        post_ram_external_denoiser = NONE
+    sources["post_ram_external_denoiser"] = (
+        SOURCE_EXPLICIT if "post_ram_external_denoiser" in explicit else SOURCE_DEFAULT_RESOLVER
+    )
+    if post_ram_external_denoiser == NONE:
+        post_denoiser_sigma_out = NOT_APPLICABLE
+        post_denoiser_alpha_out = NOT_APPLICABLE
+        post_denoiser_affine_out = NOT_APPLICABLE
+        post_denoiser_frozen_out = NOT_APPLICABLE
+        for field_name in (
+            "post_ram_denoiser_sigma",
+            "post_ram_denoiser_alpha",
+            "post_ram_denoiser_affine",
+            "post_ram_denoiser_frozen",
+        ):
+            sources[field_name] = NOT_APPLICABLE
+    else:
+        post_denoiser_sigma_out = _float_or_not_applicable(getattr(args, "post_ram_denoiser_sigma", NA))
+        post_denoiser_alpha_out = _float_or_not_applicable(getattr(args, "post_ram_denoiser_alpha", NA))
+        post_denoiser_affine_out = _normalise_na_str(getattr(args, "post_ram_denoiser_affine", NA))
+        post_denoiser_frozen_out = _normalise_na_str(getattr(args, "post_ram_denoiser_frozen", NA))
+        for field_name in (
+            "post_ram_denoiser_sigma",
+            "post_ram_denoiser_alpha",
+            "post_ram_denoiser_affine",
+            "post_ram_denoiser_frozen",
+        ):
+            sources[field_name] = SOURCE_EXPLICIT if field_name in explicit else SOURCE_DEFAULT_RESOLVER
+
+    if post_ram_cleanup != NONE or post_ram_external_denoiser != NONE:
+        post_ram_operation_position_out = _normalise_na_str(getattr(args, "post_ram_operation_position", NA))
+        sources["post_ram_operation_position"] = (
+            SOURCE_EXPLICIT if "post_ram_operation_position" in explicit else SOURCE_DEFAULT_RESOLVER
+        )
+    else:
+        post_ram_operation_position_out = NOT_APPLICABLE
+        sources["post_ram_operation_position"] = NOT_APPLICABLE
+
+    return {
+        "student_init_from": student_init_from_out,
+        "student_init_strict": student_init_strict,
+        "teacher_ckpt": teacher_ckpt_out,
+        "teacher_recipe": teacher_recipe_out,
+        "teacher_input_mode": teacher_input_mode_out,
+        "feat_distill": feat_distill,
+        "feat_distill_layers": feat_layers_out,
+        "feat_distill_lambda": feat_lambda_out,
+        "feat_distill_teacher": feat_teacher_out,
+        "raw_ram_local_residual": raw_ram_local_residual,
+        "raw_ram_local_hidden_ch": raw_ram_local_hidden_ch_out,
+        "raw_ram_local_residual_scale": raw_ram_local_residual_scale_out,
+        "raw_ram_local_gate_init": raw_ram_local_gate_init_out,
+        "raw_ram_local_gate_mode": raw_ram_local_gate_mode_out,
+        "post_ram_cleanup": post_ram_cleanup,
+        "post_ram_cleanup_channels": post_cleanup_channels_out,
+        "post_ram_cleanup_blocks": post_cleanup_blocks_out,
+        "post_ram_cleanup_scale": post_cleanup_scale_out,
+        "post_ram_cleanup_norm": post_cleanup_norm_out,
+        "post_ram_cleanup_zero_init": post_cleanup_zero_init_out,
+        "post_ram_cleanup_lr": post_cleanup_lr_out,
+        "post_ram_external_denoiser": post_ram_external_denoiser,
+        "post_ram_denoiser_sigma": post_denoiser_sigma_out,
+        "post_ram_denoiser_alpha": post_denoiser_alpha_out,
+        "post_ram_denoiser_affine": post_denoiser_affine_out,
+        "post_ram_denoiser_frozen": post_denoiser_frozen_out,
+        "post_ram_operation_position": post_ram_operation_position_out,
+    }
 
 
 def _legacy_alias_from_config(config: dict[str, Any]) -> str:
@@ -1035,6 +1412,75 @@ def validate_applicability(resolved: ResolvedConfig, args: Any | None = None) ->
             context="grad loss",
         )
 
+    if str(getattr(args, "feat_distill", NONE)) == NONE:
+        teacher_ckpt = _normalise_disabled_str(getattr(args, "teacher_ckpt", None))
+        teacher_recipe = str(getattr(args, "teacher_recipe", NA))
+        teacher_input_mode = str(getattr(args, "teacher_input_mode", NA))
+        feat_teacher = str(getattr(args, "feat_distill_teacher", NA))
+        feat_layers = _normalise_int_tuple(getattr(args, "feat_distill_layers", None))
+        feat_lambda = float(getattr(args, "feat_distill_lambda", 0.0))
+        if teacher_ckpt != NONE:
+            raise ValueError("feat_distill=none requires --teacher-ckpt n_a/none")
+        if teacher_recipe != NA:
+            raise ValueError("feat_distill=none requires --teacher-recipe n_a")
+        if teacher_input_mode != NA:
+            raise ValueError("feat_distill=none requires --teacher-input-mode n_a")
+        if feat_teacher != NA:
+            raise ValueError("feat_distill=none requires --feat-distill-teacher n_a")
+        if feat_layers:
+            raise ValueError("feat_distill=none requires --feat-distill-layers none")
+        if abs(feat_lambda) > 1e-12:
+            raise ValueError("feat_distill=none requires --feat-distill-lambda 0")
+
+    if str(getattr(args, "raw_ram_local_residual", NONE)) in {NONE, NA}:
+        local_hidden = int(getattr(args, "raw_ram_local_hidden_ch", 0))
+        local_scale = float(getattr(args, "raw_ram_local_residual_scale", 0.0))
+        local_gate_init = float(getattr(args, "raw_ram_local_gate_init", 0.0))
+        local_gate_mode = str(getattr(args, "raw_ram_local_gate_mode", NA))
+        if local_hidden != 0:
+            raise ValueError("raw_ram_local_residual=none requires --raw-ram-local-hidden-ch 0")
+        if abs(local_scale) > 1e-12:
+            raise ValueError("raw_ram_local_residual=none requires --raw-ram-local-residual-scale 0")
+        if abs(local_gate_init) > 1e-12:
+            raise ValueError("raw_ram_local_residual=none requires --raw-ram-local-gate-init 0")
+        if local_gate_mode != NA:
+            raise ValueError("raw_ram_local_residual=none requires --raw-ram-local-gate-mode n_a")
+
+    post_ram_cleanup = str(getattr(args, "post_ram_cleanup", NONE))
+    if post_ram_cleanup in {NONE, NA}:
+        inactive_fields = {
+            "post_ram_cleanup_channels": getattr(args, "post_ram_cleanup_channels", NA),
+            "post_ram_cleanup_blocks": getattr(args, "post_ram_cleanup_blocks", NA),
+            "post_ram_cleanup_scale": getattr(args, "post_ram_cleanup_scale", NA),
+            "post_ram_cleanup_norm": getattr(args, "post_ram_cleanup_norm", NA),
+            "post_ram_cleanup_zero_init": getattr(args, "post_ram_cleanup_zero_init", NA),
+            "post_ram_cleanup_lr": getattr(args, "post_ram_cleanup_lr", NA),
+        }
+        active = [name for name, value in inactive_fields.items() if _normalise_na_str(value) != NA]
+        if active:
+            flags = ", ".join(f"--{name.replace('_', '-')}" for name in active)
+            raise ValueError(f"post_ram_cleanup=none requires {flags} to be n_a")
+
+    post_ram_external = str(getattr(args, "post_ram_external_denoiser", NONE))
+    if post_ram_external in {NONE, NA}:
+        inactive_fields = {
+            "post_ram_denoiser_sigma": getattr(args, "post_ram_denoiser_sigma", NA),
+            "post_ram_denoiser_alpha": getattr(args, "post_ram_denoiser_alpha", NA),
+            "post_ram_denoiser_affine": getattr(args, "post_ram_denoiser_affine", NA),
+            "post_ram_denoiser_frozen": getattr(args, "post_ram_denoiser_frozen", NA),
+        }
+        active = [name for name, value in inactive_fields.items() if _normalise_na_str(value) != NA]
+        if active:
+            flags = ", ".join(f"--{name.replace('_', '-')}" for name in active)
+            raise ValueError(f"post_ram_external_denoiser=none requires {flags} to be n_a")
+
+    if post_ram_cleanup in {NONE, NA} and post_ram_external in {NONE, NA}:
+        if _normalise_na_str(getattr(args, "post_ram_operation_position", NA)) != NA:
+            raise ValueError(
+                "post_ram_cleanup=none and post_ram_external_denoiser=none require "
+                "--post-ram-operation-position n_a"
+            )
+
 
 def validate_resolved_config(resolved: ResolvedConfig, args: Any | None = None) -> None:
     cfg = resolved
@@ -1113,7 +1559,8 @@ def validate_resolved_config(resolved: ResolvedConfig, args: Any | None = None) 
             raise ValueError(
                 "front_end=raw_rgb16_ram3 requires "
                 "lod_true_raw_dark_rgb16/raw_rgb16_dark or "
-                "lod_true_raw_normal_rgb16/raw_rgb16_normal"
+                "lod_true_raw_normal_rgb16/raw_rgb16_normal or "
+                "lod_true_raw_dark_normal_pair_rgb16/raw_rgb16_dark_normal_pair"
             )
     if cfg.bridge == NONE:
         if cfg.bridge_feature_source_channels != NONE or cfg.bridge_feature_keys or cfg.bridge_layers:
@@ -1165,6 +1612,156 @@ def validate_resolved_config(resolved: ResolvedConfig, args: Any | None = None) 
         raise ValueError(f"Unsupported kitti_eval_protocol in resolved config: {cfg.kitti_eval_protocol}")
     if cfg.kitti_eval_protocol == "live_raw_model":
         raise ValueError("kitti_eval_protocol=live_raw_model is reserved in the schema but not implemented in train.py yet")
+    if cfg.student_init_from != NOT_APPLICABLE and cfg.student_init_strict not in STUDENT_INIT_STRICT_CHOICES:
+        raise ValueError(
+            f"Unsupported student_init_strict={cfg.student_init_strict!r}; "
+            f"valid choices: {STUDENT_INIT_STRICT_CHOICES}"
+        )
+    if cfg.feat_distill not in FEAT_DISTILL_CHOICES:
+        raise ValueError(f"Unsupported feat_distill={cfg.feat_distill!r}; valid choices: {FEAT_DISTILL_CHOICES}")
+    if cfg.feat_distill == NONE:
+        if cfg.teacher_ckpt != NOT_APPLICABLE or cfg.teacher_recipe != NOT_APPLICABLE:
+            raise ValueError("feat_distill=none requires teacher checkpoint and recipe to be not applicable")
+        if cfg.teacher_input_mode != NOT_APPLICABLE or cfg.feat_distill_layers:
+            raise ValueError("feat_distill=none requires teacher_input_mode and feat_distill_layers to be not applicable")
+        if cfg.feat_distill_lambda != NOT_APPLICABLE or cfg.feat_distill_teacher != NOT_APPLICABLE:
+            raise ValueError("feat_distill=none requires feat_distill_lambda and feat_distill_teacher to be not applicable")
+    else:
+        if cfg.feat_distill != "dav2_middeep_cosine":
+            raise ValueError(f"Unsupported enabled feat_distill={cfg.feat_distill!r}")
+        if cfg.dataset_family != "lod_true_raw_dark_normal_pair_rgb16":
+            raise ValueError("feat_distill=dav2_middeep_cosine requires paired LOD RAW dataset")
+        if cfg.teacher_ckpt in {NONE, NA, NOT_APPLICABLE, ""}:
+            raise ValueError("feat_distill=dav2_middeep_cosine requires --teacher-ckpt")
+        if cfg.teacher_recipe not in TEACHER_RECIPE_CHOICES or cfg.teacher_recipe == NA:
+            raise ValueError("feat_distill=dav2_middeep_cosine requires active teacher_recipe")
+        if cfg.teacher_input_mode != "raw_rgb16_normal":
+            raise ValueError("feat_distill=dav2_middeep_cosine requires teacher_input_mode=raw_rgb16_normal")
+        if not cfg.feat_distill_layers:
+            raise ValueError("feat_distill=dav2_middeep_cosine requires non-empty feat_distill_layers")
+        encoder = str(getattr(args, "encoder", "vitl")) if args is not None else "vitl"
+        depth_layers = set(_default_layers_for_encoder(encoder))
+        invalid_layers = sorted(set(cfg.feat_distill_layers) - depth_layers)
+        if invalid_layers:
+            raise ValueError(
+                f"feat_distill_layers must be a subset of DAv2 {encoder} depth layers "
+                f"{sorted(depth_layers)}; got invalid {invalid_layers}"
+            )
+        if not isinstance(cfg.feat_distill_lambda, (int, float)) or float(cfg.feat_distill_lambda) <= 0:
+            raise ValueError("feat_distill=dav2_middeep_cosine requires feat_distill_lambda > 0")
+        if cfg.feat_distill_teacher not in FEAT_DISTILL_TEACHER_CHOICES or cfg.feat_distill_teacher == NA:
+            raise ValueError("feat_distill=dav2_middeep_cosine requires active feat_distill_teacher")
+    if cfg.raw_ram_local_residual not in RAW_RAM_LOCAL_RESIDUAL_CHOICES_RESOLVED:
+        raise ValueError(
+            f"Unsupported raw_ram_local_residual={cfg.raw_ram_local_residual!r}; "
+            f"valid choices: {RAW_RAM_LOCAL_RESIDUAL_CHOICES_RESOLVED}"
+        )
+    if cfg.raw_ram_local_residual == NONE:
+        if cfg.raw_ram_local_hidden_ch != NOT_APPLICABLE or cfg.raw_ram_local_gate_mode != NOT_APPLICABLE:
+            raise ValueError("raw_ram_local_residual=none requires local hidden/gate fields to be not applicable")
+        if cfg.raw_ram_local_residual_scale != NOT_APPLICABLE or cfg.raw_ram_local_gate_init != NOT_APPLICABLE:
+            raise ValueError("raw_ram_local_residual=none requires local scale/gate_init to be not applicable")
+    else:
+        if cfg.front_end not in {"raw_to_base_rgb_ram3", "raw_rgb16_ram3"}:
+            raise ValueError("raw_ram_local_residual is only applicable to RamCore3 front ends")
+        if int(cfg.raw_ram_local_hidden_ch) <= 0:
+            raise ValueError("raw_ram_local_hidden_ch must be positive when local residual is enabled")
+        if float(cfg.raw_ram_local_residual_scale) <= 0:
+            raise ValueError("raw_ram_local_residual_scale must be positive when local residual is enabled")
+        if not (0.0 < float(cfg.raw_ram_local_gate_init) < 1.0):
+            raise ValueError("raw_ram_local_gate_init is tanh(g)'s target and must be in (0, 1)")
+        if cfg.raw_ram_local_gate_mode not in {"scalar", "channel"}:
+            raise ValueError("raw_ram_local_gate_mode must be scalar or channel when local residual is enabled")
+    if cfg.post_ram_cleanup not in POST_RAM_CLEANUP_CHOICES:
+        raise ValueError(
+            f"Unsupported post_ram_cleanup={cfg.post_ram_cleanup!r}; "
+            f"valid choices: {POST_RAM_CLEANUP_CHOICES}"
+        )
+    if cfg.post_ram_external_denoiser not in POST_RAM_EXTERNAL_DENOISER_CHOICES:
+        raise ValueError(
+            f"Unsupported post_ram_external_denoiser={cfg.post_ram_external_denoiser!r}; "
+            f"valid choices: {POST_RAM_EXTERNAL_DENOISER_CHOICES}"
+        )
+    if cfg.post_ram_cleanup == NONE:
+        cleanup_inactive = (
+            cfg.post_ram_cleanup_channels,
+            cfg.post_ram_cleanup_blocks,
+            cfg.post_ram_cleanup_scale,
+            cfg.post_ram_cleanup_norm,
+            cfg.post_ram_cleanup_zero_init,
+            cfg.post_ram_cleanup_lr,
+        )
+        if any(value != NOT_APPLICABLE for value in cleanup_inactive):
+            raise ValueError("post_ram_cleanup=none requires cleanup fields to be not applicable")
+    else:
+        if cfg.post_ram_cleanup != "cnn":
+            raise ValueError(f"Unsupported enabled post_ram_cleanup={cfg.post_ram_cleanup!r}")
+        if cfg.front_end != "raw_rgb16_ram3":
+            raise ValueError("post_ram_cleanup=cnn is only implemented for front_end=raw_rgb16_ram3")
+        if cfg.post_ram_external_denoiser != NONE:
+            raise ValueError("post_ram_cleanup=cnn is mutually exclusive with post_ram_external_denoiser")
+        if cfg.post_ram_cleanup_channels == NOT_APPLICABLE or int(cfg.post_ram_cleanup_channels) <= 0:
+            raise ValueError("post_ram_cleanup=cnn requires post_ram_cleanup_channels > 0")
+        if cfg.post_ram_cleanup_blocks == NOT_APPLICABLE or int(cfg.post_ram_cleanup_blocks) <= 0:
+            raise ValueError("post_ram_cleanup=cnn requires post_ram_cleanup_blocks > 0")
+        if cfg.post_ram_cleanup_scale == NOT_APPLICABLE or float(cfg.post_ram_cleanup_scale) <= 0:
+            raise ValueError("post_ram_cleanup=cnn requires post_ram_cleanup_scale > 0")
+        if cfg.post_ram_cleanup_norm != "groupnorm":
+            raise ValueError("post_ram_cleanup=cnn requires post_ram_cleanup_norm=groupnorm")
+        if cfg.post_ram_cleanup_zero_init != "true":
+            raise ValueError("post_ram_cleanup=cnn requires post_ram_cleanup_zero_init=true")
+        if cfg.post_ram_cleanup_lr == NOT_APPLICABLE or float(cfg.post_ram_cleanup_lr) <= 0:
+            raise ValueError("post_ram_cleanup=cnn requires post_ram_cleanup_lr > 0")
+
+    if cfg.post_ram_external_denoiser == NONE:
+        external_inactive = (
+            cfg.post_ram_denoiser_sigma,
+            cfg.post_ram_denoiser_alpha,
+            cfg.post_ram_denoiser_affine,
+            cfg.post_ram_denoiser_frozen,
+        )
+        if any(value != NOT_APPLICABLE for value in external_inactive):
+            raise ValueError("post_ram_external_denoiser=none requires denoiser fields to be not applicable")
+    else:
+        if cfg.post_ram_cleanup != NONE:
+            raise ValueError("post_ram_external_denoiser is mutually exclusive with post_ram_cleanup")
+        if args is not None and not bool(getattr(args, "_allow_post_ram_external_denoiser", False)):
+            raise ValueError(
+                "post_ram_external_denoiser is a stage-A inference wrapper; use tools/lod_postram_external_eval.py "
+                "or keep --post-ram-external-denoiser none in train.py runs"
+            )
+        if cfg.post_ram_denoiser_alpha == NOT_APPLICABLE or float(cfg.post_ram_denoiser_alpha) < 0:
+            raise ValueError("active post_ram_external_denoiser requires post_ram_denoiser_alpha >= 0")
+        if cfg.post_ram_denoiser_affine not in {"q001q999", "q01q99"}:
+            raise ValueError("active post_ram_external_denoiser requires post_ram_denoiser_affine=q001q999/q01q99")
+        if cfg.post_ram_external_denoiser == "identity":
+            if cfg.post_ram_denoiser_sigma != NOT_APPLICABLE:
+                raise ValueError("post_ram_external_denoiser=identity requires post_ram_denoiser_sigma n_a")
+            if cfg.post_ram_denoiser_frozen != NOT_APPLICABLE:
+                raise ValueError("post_ram_external_denoiser=identity requires post_ram_denoiser_frozen n_a")
+        elif cfg.post_ram_external_denoiser == "drunet":
+            if cfg.post_ram_denoiser_sigma == NOT_APPLICABLE or float(cfg.post_ram_denoiser_sigma) <= 0:
+                raise ValueError("post_ram_external_denoiser=drunet requires post_ram_denoiser_sigma > 0")
+            if cfg.post_ram_denoiser_frozen != "true":
+                raise ValueError("post_ram_external_denoiser=drunet requires post_ram_denoiser_frozen=true")
+        else:
+            if cfg.post_ram_denoiser_sigma != NOT_APPLICABLE:
+                raise ValueError(
+                    "post_ram_external_denoiser=restormer/nafnet requires post_ram_denoiser_sigma n_a"
+                )
+            if cfg.post_ram_denoiser_frozen != "true":
+                raise ValueError(
+                    "post_ram_external_denoiser=restormer/nafnet requires post_ram_denoiser_frozen=true"
+                )
+
+    if cfg.post_ram_cleanup == NONE and cfg.post_ram_external_denoiser == NONE:
+        if cfg.post_ram_operation_position != NOT_APPLICABLE:
+            raise ValueError("inactive post-ram operation requires post_ram_operation_position to be not applicable")
+    else:
+        if cfg.post_ram_operation_position not in POST_RAM_OPERATION_POSITION_CHOICES or cfg.post_ram_operation_position == NA:
+            raise ValueError("active post-ram operation requires post_ram_operation_position=pre_tail/post_tail")
+        if cfg.post_ram_operation_position != "pre_tail":
+            raise ValueError("This revision only implements post_ram_operation_position=pre_tail")
     validate_applicability(resolved, args)
 
 
@@ -1324,6 +1921,7 @@ def resolve_config_from_args(args: Any) -> ResolvedConfig:
     imagenet_norm_enabled = _imagenet_norm_enabled(config, args, sources)
     kitti_model_source, eval_input_domain = _kitti_details(config["kitti_eval_protocol"], sources)
     loss_lambda_grad, loss_grad_scales, loss_mask_downsample = _loss_details(args, sources)
+    distill_local = _distill_and_local_details(args, sources)
     not_applicable = tuple(sorted(field_name for field_name, source in sources.items() if source == NOT_APPLICABLE))
 
     resolved = ResolvedConfig(
@@ -1362,6 +1960,33 @@ def resolve_config_from_args(args: Any) -> ResolvedConfig:
         loss_mask_downsample=loss_mask_downsample,
         kitti_model_source=kitti_model_source,
         eval_input_domain=eval_input_domain,
+        student_init_from=distill_local["student_init_from"],
+        student_init_strict=distill_local["student_init_strict"],
+        teacher_ckpt=distill_local["teacher_ckpt"],
+        teacher_recipe=distill_local["teacher_recipe"],
+        teacher_input_mode=distill_local["teacher_input_mode"],
+        feat_distill=distill_local["feat_distill"],
+        feat_distill_layers=distill_local["feat_distill_layers"],
+        feat_distill_lambda=distill_local["feat_distill_lambda"],
+        feat_distill_teacher=distill_local["feat_distill_teacher"],
+        raw_ram_local_residual=distill_local["raw_ram_local_residual"],
+        raw_ram_local_hidden_ch=distill_local["raw_ram_local_hidden_ch"],
+        raw_ram_local_residual_scale=distill_local["raw_ram_local_residual_scale"],
+        raw_ram_local_gate_init=distill_local["raw_ram_local_gate_init"],
+        raw_ram_local_gate_mode=distill_local["raw_ram_local_gate_mode"],
+        post_ram_cleanup=distill_local["post_ram_cleanup"],
+        post_ram_cleanup_channels=distill_local["post_ram_cleanup_channels"],
+        post_ram_cleanup_blocks=distill_local["post_ram_cleanup_blocks"],
+        post_ram_cleanup_scale=distill_local["post_ram_cleanup_scale"],
+        post_ram_cleanup_norm=distill_local["post_ram_cleanup_norm"],
+        post_ram_cleanup_zero_init=distill_local["post_ram_cleanup_zero_init"],
+        post_ram_cleanup_lr=distill_local["post_ram_cleanup_lr"],
+        post_ram_external_denoiser=distill_local["post_ram_external_denoiser"],
+        post_ram_denoiser_sigma=distill_local["post_ram_denoiser_sigma"],
+        post_ram_denoiser_alpha=distill_local["post_ram_denoiser_alpha"],
+        post_ram_denoiser_affine=distill_local["post_ram_denoiser_affine"],
+        post_ram_denoiser_frozen=distill_local["post_ram_denoiser_frozen"],
+        post_ram_operation_position=distill_local["post_ram_operation_position"],
         sources=sources,
         not_applicable=not_applicable,
     )
@@ -1384,6 +2009,7 @@ def ensure_resolved_config(args: Any) -> ResolvedConfig:
     setattr(args, "feature_adapter_keys", list(resolved.feature_adapter_keys) if resolved.feature_adapter_keys else None)
     setattr(args, "bridge_layers", list(resolved.bridge_layers) if resolved.bridge_layers else None)
     setattr(args, "lora_tap_layers", list(resolved.lora_tap_layers) if resolved.lora_tap_layers else None)
+    setattr(args, "feat_distill_layers", list(resolved.feat_distill_layers) if resolved.feat_distill_layers else None)
     setattr(args, "raw_storage_format", resolved.raw_storage_format)
     return resolved
 from finetune_stf.dataset.raw_storage import get_raw_storage_spec

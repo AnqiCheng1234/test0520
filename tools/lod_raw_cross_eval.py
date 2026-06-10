@@ -40,7 +40,7 @@ from finetune_stf.dataset.lod_true import (  # noqa: E402
     LODTrueRawDarkRGB16,
 )
 from finetune_stf.train import (  # noqa: E402
-    METRIC_KEYS,
+METRIC_KEYS,
     build_model,
     parse_args as train_parse_args,
     resolve_model_state,
@@ -59,6 +59,19 @@ NORMAL_RUN_ID = "0609_0044_lod_true_raw_normal_rgb16_block8excl10_ram3_dav2s_ram
 DEFAULT_CKPT_ROOT = Path("/mnt/drive/3333_raw/0000_exp_ckpt")
 DEFAULT_EXP_ROOT = PROJECT_ROOT / "finetune_stf" / "exp"
 DEFAULT_ANALYSIS_ROOT = PROJECT_ROOT / "finetune_stf" / "analysis" / "lod_raw_cross_eval"
+POST_RAM_DEBUG_KEYS = (
+    "post_ram_enabled",
+    "post_ram_scale",
+    "post_ram_mean_abs_xram",
+    "post_ram_mean_abs_delta",
+    "post_ram_delta_ratio",
+    "post_ram_xram_p1",
+    "post_ram_xram_p50",
+    "post_ram_xram_p99",
+    "post_ram_xclean_p1",
+    "post_ram_xclean_p50",
+    "post_ram_xclean_p99",
+)
 
 
 @dataclass(frozen=True)
@@ -268,6 +281,32 @@ def train_args_from_run_config(
         str(config_value(config, "lod_raw_norm_mode", LOD_RAW_RGB16_NORM_MODE)),
         "--raw-ram-rgb-tail",
         str(config_value(config, "raw_ram_rgb_tail", "identity")),
+        "--post-ram-cleanup",
+        str(config_value(config, "post_ram_cleanup", "none")),
+        "--post-ram-cleanup-channels",
+        str(config_value(config, "post_ram_cleanup_channels", "n_a")),
+        "--post-ram-cleanup-blocks",
+        str(config_value(config, "post_ram_cleanup_blocks", "n_a")),
+        "--post-ram-cleanup-scale",
+        str(config_value(config, "post_ram_cleanup_scale", "n_a")),
+        "--post-ram-cleanup-norm",
+        str(config_value(config, "post_ram_cleanup_norm", "n_a")),
+        "--post-ram-cleanup-zero-init",
+        str(config_value(config, "post_ram_cleanup_zero_init", "n_a")),
+        "--post-ram-cleanup-lr",
+        str(config_value(config, "post_ram_cleanup_lr", "n_a")),
+        "--post-ram-external-denoiser",
+        str(config_value(config, "post_ram_external_denoiser", "none")),
+        "--post-ram-denoiser-sigma",
+        str(config_value(config, "post_ram_denoiser_sigma", "n_a")),
+        "--post-ram-denoiser-alpha",
+        str(config_value(config, "post_ram_denoiser_alpha", "n_a")),
+        "--post-ram-denoiser-affine",
+        str(config_value(config, "post_ram_denoiser_affine", "n_a")),
+        "--post-ram-denoiser-frozen",
+        str(config_value(config, "post_ram_denoiser_frozen", "n_a")),
+        "--post-ram-operation-position",
+        str(config_value(config, "post_ram_operation_position", "n_a")),
         "--dav2-train-mode",
         str(config_value(config, "dav2_train_mode", "decoder")),
         "--raw-front-end-lr",
@@ -399,6 +438,25 @@ def metric_average(rows: list[dict[str, Any]], key: str) -> float:
     return float(np.mean(values)) if values else float("nan")
 
 
+def scalar_debug_values(debug: dict[str, Any]) -> dict[str, float]:
+    values: dict[str, float] = {}
+    for key in POST_RAM_DEBUG_KEYS:
+        if key not in debug:
+            continue
+        value = debug[key]
+        if isinstance(value, torch.Tensor):
+            tensor = value.detach().float()
+            if tensor.numel() != 1:
+                continue
+            values[key] = float(tensor.cpu().item())
+            continue
+        try:
+            values[key] = float(value)
+        except (TypeError, ValueError):
+            continue
+    return values
+
+
 def evaluate_model(
     *,
     model: torch.nn.Module,
@@ -432,7 +490,9 @@ def evaluate_model(
             )
             model_input = model_input.to(device=device, non_blocking=True).float()
             with torch.autocast(device_type=device.type, dtype=amp_dtype, enabled=use_amp):
-                pred = model(model_input).float()
+                output = model(model_input, return_features=True)
+                pred = output["depth"].float()
+                batch_debug = scalar_debug_values(output.get("ram_debug", {}))
             if pred.ndim != 3:
                 raise ValueError(f"Expected model output shape (B,H,W), got {tuple(pred.shape)}")
             depth_batch = batch["depth"].float()
@@ -480,6 +540,8 @@ def evaluate_model(
                 for key in METRIC_KEYS:
                     if key in metrics:
                         row[key] = float(metrics[key])
+                for key, value in batch_debug.items():
+                    row[key] = float(value)
                 rows.append(row)
                 processed += 1
             if progress_interval > 0 and (processed % int(progress_interval) == 0) and processed > 0:
@@ -499,6 +561,8 @@ def evaluate_model(
         "elapsed_sec": float(time.time() - start),
     }
     for key in METRIC_KEYS:
+        summary[key] = metric_average(rows, key)
+    for key in POST_RAM_DEBUG_KEYS:
         summary[key] = metric_average(rows, key)
     return summary, rows
 
@@ -623,13 +687,13 @@ def write_report(path: Path, matrix_rows: list[dict[str, Any]], recovery: list[d
         "",
         "## Matrix",
         "",
-        "| variant | matrix | checkpoint | input | D1 | AbsRel | RMSE | samples | BN samples |",
-        "|---|---|---|---|---:|---:|---:|---:|---:|",
+        "| variant | matrix | checkpoint | input | D1 | AbsRel | RMSE | post_delta_ratio | samples | BN samples |",
+        "|---|---|---|---|---:|---:|---:|---:|---:|---:|",
     ]
     for row in matrix_rows:
         lines.append(
             "| {variant} | {matrix_id} | {checkpoint_label} | {eval_input_label} | {d1:.6f} | "
-            "{abs_rel:.6f} | {rmse:.6f} | {samples} | {bn_samples} |".format(
+            "{abs_rel:.6f} | {rmse:.6f} | {post_delta_ratio:.6f} | {samples} | {bn_samples} |".format(
                 variant=row["variant"],
                 matrix_id=row["matrix_id"],
                 checkpoint_label=row["checkpoint_label"],
@@ -637,6 +701,7 @@ def write_report(path: Path, matrix_rows: list[dict[str, Any]], recovery: list[d
                 d1=float(row["d1"]),
                 abs_rel=float(row["abs_rel"]),
                 rmse=float(row["rmse"]),
+                post_delta_ratio=float(row.get("post_ram_delta_ratio", float("nan"))),
                 samples=int(row["samples"]),
                 bn_samples=int(row.get("bn_recalib_samples") or 0),
             )

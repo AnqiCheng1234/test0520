@@ -39,7 +39,22 @@ from finetune_stf.config import (
     INPUT_DOMAIN_CHOICES,
     LORA_CHOICES,
     MODEL_INPUT_TENSOR_CHOICES,
+    NOT_APPLICABLE,
+    POST_RAM_CLEANUP_CHOICES,
+    POST_RAM_CLEANUP_NORM_CHOICES,
+    POST_RAM_CLEANUP_ZERO_INIT_CHOICES,
+    POST_RAM_DENOISER_AFFINE_CHOICES,
+    POST_RAM_DENOISER_FROZEN_CHOICES,
+    POST_RAM_EXTERNAL_DENOISER_CHOICES,
+    POST_RAM_OPERATION_POSITION_CHOICES,
     RAW_STORAGE_FORMAT_CHOICES,
+    FEAT_DISTILL_CHOICES,
+    FEAT_DISTILL_TEACHER_CHOICES,
+    RAW_RAM_LOCAL_GATE_MODE_CHOICES_RESOLVED,
+    RAW_RAM_LOCAL_RESIDUAL_CHOICES_RESOLVED,
+    STUDENT_INIT_STRICT_CHOICES,
+    TEACHER_INPUT_MODE_CHOICES,
+    TEACHER_RECIPE_CHOICES,
     ensure_resolved_config,
     resolve_config_from_args,
 )
@@ -63,6 +78,7 @@ from finetune_stf.dataset.lod_true import (
     LOD_RAW_RGB16_STORAGE_FORMAT,
     LODTrueRGBDark,
     LODTrueRawDarkRGB16,
+    LODTrueRawDarkNormalPairRGB16,
 )
 from finetune_stf.dataset.nyu_eval import DEFAULT_NYU_DIR, NYUv2Eval
 from finetune_stf.dataset.rod_raw_rgb import DEGREEN_GAINS, STUDENT_GAMMA, STUDENT_WHITE_PERCENTILE
@@ -129,6 +145,8 @@ from finetune_stf.models.raw_ram import (
     RAW_RAM_RGB_LORA_INPUT_TYPES,
     RAW_RAM_RGB_TAIL_CHOICES,
     RAW_RGB16_RAM3_INPUT_TYPES,
+    RAW_RAM_LOCAL_GATE_MODE_CHOICES,
+    RAW_RAM_LOCAL_RESIDUAL_CHOICES,
     RGB_INTERFACE_HEAD_MODE_CHOICES,
     build_raw_ram_depth_model,
 )
@@ -172,10 +190,12 @@ METRIC_KEYS = (
 LOD_TRUE_RAW_RGB16_INPUT_MODE_BY_FAMILY = {
     "lod_true_raw_dark_rgb16": "raw_rgb16_dark",
     "lod_true_raw_normal_rgb16": "raw_rgb16_normal",
+    "lod_true_raw_dark_normal_pair_rgb16": "raw_rgb16_dark_normal_pair",
 }
 LOD_TRUE_RAW_RGB16_STUDENT_LABEL_BY_FAMILY = {
     "lod_true_raw_dark_rgb16": "RAW_Dark",
     "lod_true_raw_normal_rgb16": "RAW_normal",
+    "lod_true_raw_dark_normal_pair_rgb16": "RAW_Dark+RAW_normal_pair",
 }
 LOD_TRUE_RAW_RGB16_DATASET_FAMILIES = set(LOD_TRUE_RAW_RGB16_INPUT_MODE_BY_FAMILY)
 RAW_PACKED_INPUT_TYPES = ("raw_packed",)
@@ -468,6 +488,11 @@ def parse_args():
     )
     parser.add_argument("--pretrained-from", type=str, required=True)
     parser.add_argument("--resume-from", type=str, default=None)
+    parser.add_argument("--student-init-from", type=str, default=None)
+    parser.add_argument("--student-init-strict", default="compatible", choices=STUDENT_INIT_STRICT_CHOICES)
+    parser.add_argument("--teacher-ckpt", type=str, default="n_a")
+    parser.add_argument("--teacher-recipe", default="n_a", choices=TEACHER_RECIPE_CHOICES)
+    parser.add_argument("--teacher-input-mode", default="n_a", choices=TEACHER_INPUT_MODE_CHOICES)
     parser.add_argument("--bridge-init-from", type=str, default=None)
     parser.add_argument("--input-height", default=512, type=int)
     parser.add_argument("--input-width", default=960, type=int)
@@ -540,6 +565,48 @@ def parse_args():
         choices=RAW_RAM_RGB_TAIL_CHOICES,
         help="Tail after RamCore3 BN for raw_ram_rgb before DAv2.",
     )
+    parser.add_argument(
+        "--raw-ram-local-residual",
+        default="none",
+        choices=RAW_RAM_LOCAL_RESIDUAL_CHOICES_RESOLVED,
+    )
+    parser.add_argument("--raw-ram-local-hidden-ch", default=0, type=int)
+    parser.add_argument("--raw-ram-local-residual-scale", default=0.0, type=float)
+    parser.add_argument("--raw-ram-local-gate-init", default=0.0, type=float)
+    parser.add_argument(
+        "--raw-ram-local-gate-mode",
+        default="n_a",
+        choices=RAW_RAM_LOCAL_GATE_MODE_CHOICES_RESOLVED,
+    )
+    parser.add_argument("--post-ram-cleanup", default="none", choices=POST_RAM_CLEANUP_CHOICES)
+    parser.add_argument("--post-ram-cleanup-channels", default="n_a")
+    parser.add_argument("--post-ram-cleanup-blocks", default="n_a")
+    parser.add_argument("--post-ram-cleanup-scale", default="n_a")
+    parser.add_argument("--post-ram-cleanup-norm", default="n_a", choices=POST_RAM_CLEANUP_NORM_CHOICES)
+    parser.add_argument(
+        "--post-ram-cleanup-zero-init",
+        default="n_a",
+        choices=POST_RAM_CLEANUP_ZERO_INIT_CHOICES,
+    )
+    parser.add_argument("--post-ram-cleanup-lr", default="n_a")
+    parser.add_argument("--post-ram-external-denoiser", default="none", choices=POST_RAM_EXTERNAL_DENOISER_CHOICES)
+    parser.add_argument("--post-ram-denoiser-sigma", default="n_a")
+    parser.add_argument("--post-ram-denoiser-alpha", default="n_a")
+    parser.add_argument("--post-ram-denoiser-affine", default="n_a", choices=POST_RAM_DENOISER_AFFINE_CHOICES)
+    parser.add_argument(
+        "--post-ram-denoiser-frozen",
+        default="n_a",
+        choices=POST_RAM_DENOISER_FROZEN_CHOICES,
+    )
+    parser.add_argument(
+        "--post-ram-operation-position",
+        default="n_a",
+        choices=POST_RAM_OPERATION_POSITION_CHOICES,
+    )
+    parser.add_argument("--feat-distill", default="none", choices=FEAT_DISTILL_CHOICES)
+    parser.add_argument("--feat-distill-layers", nargs="+", default=None)
+    parser.add_argument("--feat-distill-lambda", default=0.0, type=float)
+    parser.add_argument("--feat-distill-teacher", default="n_a", choices=FEAT_DISTILL_TEACHER_CHOICES)
     parser.add_argument("--bridge-source", default="ram_core", choices=["ram_core"])
     parser.add_argument(
         "--bridge-feature-keys",
@@ -721,6 +788,8 @@ def parse_args():
         args.stage = "eval_only"
     if args.stage == "eval_only":
         args.eval_only = True
+    if args.resume_from and args.student_init_from not in {None, "", "none", "n_a"}:
+        parser.error("--resume-from and --student-init-from have different semantics and cannot be used together")
     if args.stage == "rod_only":
         args.eval_rod = True
         if "eval_stf" not in explicit_cli_args:
@@ -744,6 +813,9 @@ def parse_args():
     args.lora_tap_layers = (
         list(args.resolved_config.lora_tap_layers) if args.resolved_config.lora_tap_layers else None
     )
+    args.feat_distill_layers = (
+        list(args.resolved_config.feat_distill_layers) if args.resolved_config.feat_distill_layers else None
+    )
     args.raw_storage_format = args.resolved_config.raw_storage_format
     try:
         resolve_lod_aug_config(args)
@@ -754,7 +826,8 @@ def parse_args():
     if args.stage == "lod_only" and not uses_lod_dataset(args):
         parser.error(
             "--stage lod_only requires --dataset-family lod_true_rgb_dark, "
-            "lod_true_raw_dark_rgb16, or lod_true_raw_normal_rgb16"
+            "lod_true_raw_dark_rgb16, lod_true_raw_normal_rgb16, "
+            "or lod_true_raw_dark_normal_pair_rgb16"
         )
     if uses_rod_dataset(args):
         if args.stage not in {"rod_only", "eval_only"}:
@@ -809,6 +882,26 @@ def parse_args():
             parser.error(f"--lod-manifest does not exist: {lod_manifest}")
         args.lod_root = str(lod_root.resolve())
         args.lod_manifest = str(lod_manifest.resolve())
+    cfg = args.resolved_config
+    if cfg.student_init_from != NOT_APPLICABLE:
+        student_init_path = Path(cfg.student_init_from).expanduser()
+        if not student_init_path.is_file():
+            parser.error(f"--student-init-from does not exist: {student_init_path}")
+        args.student_init_from = str(student_init_path.resolve())
+        args.resolved_config = resolve_config_from_args(args)
+    else:
+        args.student_init_from = None
+    cfg = args.resolved_config
+    if cfg.teacher_ckpt != NOT_APPLICABLE:
+        teacher_ckpt_path = Path(cfg.teacher_ckpt).expanduser()
+        if not teacher_ckpt_path.is_file():
+            parser.error(f"--teacher-ckpt does not exist: {teacher_ckpt_path}")
+        args.teacher_ckpt = str(teacher_ckpt_path.resolve())
+        args.resolved_config = resolve_config_from_args(args)
+    args.feat_distill_layers = (
+        list(args.resolved_config.feat_distill_layers) if args.resolved_config.feat_distill_layers else None
+    )
+    args.raw_storage_format = args.resolved_config.raw_storage_format
     if args.stf_train_target_mode in STF_PSEUDO_TRAIN_TARGET_MODES:
         pseudo_manifest = Path(args.stf_pseudo_manifest).expanduser()
         if not pseudo_manifest.is_file():
@@ -1138,6 +1231,18 @@ def build_model(args):
             rgb_interface_mode=args.rgb_interface_mode,
             rgb_residual_scale=args.rgb_residual_scale,
             raw_ram_rgb_tail=args.raw_ram_rgb_tail,
+            raw_ram_local_residual=args.raw_ram_local_residual,
+            raw_ram_local_hidden_ch=args.raw_ram_local_hidden_ch,
+            raw_ram_local_residual_scale=args.raw_ram_local_residual_scale,
+            raw_ram_local_gate_init=args.raw_ram_local_gate_init,
+            raw_ram_local_gate_mode=args.raw_ram_local_gate_mode,
+            post_ram_cleanup=args.post_ram_cleanup,
+            post_ram_cleanup_channels=args.post_ram_cleanup_channels,
+            post_ram_cleanup_blocks=args.post_ram_cleanup_blocks,
+            post_ram_cleanup_scale=args.post_ram_cleanup_scale,
+            post_ram_cleanup_norm=args.post_ram_cleanup_norm,
+            post_ram_cleanup_zero_init=args.post_ram_cleanup_zero_init == "true",
+            post_ram_operation_position=args.post_ram_operation_position,
             sensor_hw=sensor_hw,
             backbone_hw=None,
         )
@@ -1369,6 +1474,163 @@ def load_initial_weights(model, path, *, input_type="rgb"):
         model.load_state_dict(state_dict, strict=True)
 
 
+def _count_state_keys_with_prefix(state_dict, prefixes):
+    return sum(1 for key in state_dict if key.startswith(prefixes))
+
+
+def _allowed_compatible_missing_key(key):
+    return (
+        key == "ram_core.local_residual_gate"
+        or key.startswith("ram_core.local_residual_branch.")
+        or key.startswith("post_ram_cleanup.")
+    )
+
+
+def load_compatible_model_checkpoint(model, path, *, strict_mode="compatible"):
+    ckpt_obj = torch.load(path, map_location="cpu")
+    state_dict = strip_module_prefix(resolve_model_state(ckpt_obj))
+    state_dict = remap_legacy_ffm_keys(state_dict)
+    status = model.load_state_dict(state_dict, strict=False)
+    missing = list(status.missing_keys)
+    unexpected = list(status.unexpected_keys)
+    strict_mode = str(strict_mode)
+    if strict_mode == "strict":
+        if missing or unexpected:
+            raise RuntimeError(
+                f"Strict checkpoint load failed for {path}: missing={missing[:20]}, unexpected={unexpected[:20]}"
+            )
+    elif strict_mode == "compatible":
+        bad_missing = [key for key in missing if not _allowed_compatible_missing_key(key)]
+        if bad_missing or unexpected:
+            raise RuntimeError(
+                f"Compatible checkpoint load failed for {path}: "
+                f"bad_missing={bad_missing[:20]}, unexpected={unexpected[:20]}"
+            )
+    else:
+        raise ValueError(f"Unsupported strict_mode={strict_mode!r}")
+
+    return argparse.Namespace(
+        missing_keys=missing,
+        unexpected_keys=unexpected,
+        loaded_lora_keys_count=sum(1 for key in state_dict if ".lora_A." in key or ".lora_B." in key),
+        loaded_ram_keys_count=_count_state_keys_with_prefix(state_dict, ("ram_core.", "rgb_head.", "residual_head.")),
+        loaded_decoder_keys_count=_count_state_keys_with_prefix(state_dict, ("dav2.depth_head.", "depth_head.")),
+    )
+
+
+def feat_distill_enabled(args):
+    return resolved_config(args).feat_distill != "none"
+
+
+def needs_ram_debug_forward(args):
+    cfg = resolved_config(args)
+    return cfg.feat_distill != "none" or (
+        cfg.front_end == "raw_rgb16_ram3"
+        and (cfg.post_ram_cleanup != "none" or cfg.raw_ram_local_residual != "none")
+    )
+
+
+def _make_teacher_args(args):
+    cfg = resolved_config(args)
+    payload = dict(vars(args))
+    teacher_args = argparse.Namespace(**payload)
+    teacher_args.input_type = None
+    teacher_args.input_domain = "raw3"
+    teacher_args.front_end = "raw_rgb16_ram3"
+    teacher_args.dataset_family = "lod_true_raw_normal_rgb16"
+    teacher_args.dataset_input_mode = "raw_rgb16_normal"
+    teacher_args.model_input_tensor = "raw"
+    teacher_args.bridge = "none"
+    teacher_args.decoder_feature_adapter = "none"
+    teacher_args.bridge_feature_source_channels = None
+    teacher_args.adapter_feature_source_channels = None
+    teacher_args.bridge_feature_keys = None
+    teacher_args.feature_adapter_keys = None
+    teacher_args.bridge_layers = None
+    teacher_args.bridge_source = "ram_core"
+    teacher_args.raw_storage_format = "raw_rgb16_png_3ch"
+    teacher_args.raw_ram_rgb_tail = "identity"
+    teacher_args.raw_ram_local_residual = "none"
+    teacher_args.raw_ram_local_hidden_ch = 0
+    teacher_args.raw_ram_local_residual_scale = 0.0
+    teacher_args.raw_ram_local_gate_init = 0.0
+    teacher_args.raw_ram_local_gate_mode = "n_a"
+    teacher_args.student_init_from = None
+    teacher_args.student_init_strict = "compatible"
+    teacher_args.teacher_ckpt = "n_a"
+    teacher_args.teacher_recipe = "n_a"
+    teacher_args.teacher_input_mode = "n_a"
+    teacher_args.feat_distill = "none"
+    teacher_args.feat_distill_layers = None
+    teacher_args.feat_distill_lambda = 0.0
+    teacher_args.feat_distill_teacher = "n_a"
+    teacher_args.eval_kitti = False
+    teacher_args.kitti_eval_protocol = "rgb_pretrained_ref"
+    teacher_args.loss_type = "aligned_sig"
+    teacher_args.loss_lambda_grad = None
+    teacher_args.loss_grad_scales = None
+    teacher_args.loss_mask_downsample = "strict"
+
+    explicit = {
+        "input_domain",
+        "front_end",
+        "dataset_family",
+        "dataset_input_mode",
+        "model_input_tensor",
+        "raw_storage_format",
+        "raw_front_end_lr",
+    }
+    if cfg.teacher_recipe == "lora_tap_r8a16":
+        teacher_args.lora = "dav2_lora"
+        explicit.update({"lora", "lora_rank", "lora_alpha", "lora_lr", "lora_block_mode", "lora_tap_layers"})
+    elif cfg.teacher_recipe == "decoder_w0":
+        teacher_args.lora = "none"
+        teacher_args.lora_tap_layers = None
+    else:
+        raise ValueError(f"Unsupported teacher_recipe={cfg.teacher_recipe!r}")
+
+    teacher_args._explicit_cli_args = sorted(explicit)
+    teacher_args.resolved_config = resolve_config_from_args(teacher_args)
+    teacher_args.input_type = teacher_args.resolved_config.input_type_alias
+    teacher_args.lora_tap_layers = (
+        list(teacher_args.resolved_config.lora_tap_layers) if teacher_args.resolved_config.lora_tap_layers else None
+    )
+    return teacher_args
+
+
+def build_frozen_teacher(args):
+    cfg = resolved_config(args)
+    if cfg.teacher_ckpt == NOT_APPLICABLE:
+        return None, None, None
+    teacher_args = _make_teacher_args(args)
+    teacher = build_model(teacher_args)
+    load_initial_weights(teacher, args.pretrained_from, input_type=teacher_args.input_type)
+    teacher_status = load_compatible_model_checkpoint(teacher, cfg.teacher_ckpt, strict_mode="compatible")
+    teacher.eval()
+    for param in teacher.parameters():
+        param.requires_grad_(False)
+    return teacher, teacher_args, teacher_status
+
+
+def compute_feature_distill_loss(student_features, teacher_features, layers):
+    layer_losses = {}
+    losses = []
+    for layer in layers:
+        layer = int(layer)
+        fs = student_features[layer].float()
+        ft = teacher_features[layer].float()
+        if fs.shape != ft.shape:
+            raise ValueError(f"Feature shape mismatch at layer {layer}: student={tuple(fs.shape)} teacher={tuple(ft.shape)}")
+        fs = F.normalize(fs, dim=-1)
+        ft = F.normalize(ft, dim=-1)
+        layer_loss = (1.0 - (fs * ft).sum(dim=-1)).mean()
+        layer_losses[layer] = layer_loss
+        losses.append(layer_loss)
+    if not losses:
+        raise ValueError("compute_feature_distill_loss requires non-empty layers")
+    return torch.stack(losses).mean(), layer_losses
+
+
 def load_optional_bridge_init_weights(model, path):
     ckpt_obj = torch.load(path, map_location="cpu")
     state_dict = strip_module_prefix(resolve_model_state(ckpt_obj))
@@ -1442,6 +1704,44 @@ def log_resolved_summary(logger, args):
                 group["trainable_param_count"],
                 group["trainable_tensor_count"],
             )
+    logger.info(
+        "[RESOLVED][distill] student_init=%s strict=%s teacher_ckpt=%s teacher_recipe=%s "
+        "teacher_input=%s feat=%s layers=%s lambda=%s teacher_kind=%s",
+        cfg.student_init_from,
+        cfg.student_init_strict,
+        cfg.teacher_ckpt,
+        cfg.teacher_recipe,
+        cfg.teacher_input_mode,
+        cfg.feat_distill,
+        list(cfg.feat_distill_layers),
+        cfg.feat_distill_lambda,
+        cfg.feat_distill_teacher,
+    )
+    logger.info(
+        "[RESOLVED][local_ram] residual=%s hidden=%s scale=%s gate_init=%s gate_mode=%s",
+        cfg.raw_ram_local_residual,
+        cfg.raw_ram_local_hidden_ch,
+        cfg.raw_ram_local_residual_scale,
+        cfg.raw_ram_local_gate_init,
+        cfg.raw_ram_local_gate_mode,
+    )
+    logger.info(
+        "[RESOLVED][post_ram] cleanup=%s channels=%s blocks=%s scale=%s norm=%s zero_init=%s "
+        "cleanup_lr=%s external=%s sigma=%s alpha=%s affine=%s frozen=%s position=%s",
+        cfg.post_ram_cleanup,
+        cfg.post_ram_cleanup_channels,
+        cfg.post_ram_cleanup_blocks,
+        cfg.post_ram_cleanup_scale,
+        cfg.post_ram_cleanup_norm,
+        cfg.post_ram_cleanup_zero_init,
+        cfg.post_ram_cleanup_lr,
+        cfg.post_ram_external_denoiser,
+        cfg.post_ram_denoiser_sigma,
+        cfg.post_ram_denoiser_alpha,
+        cfg.post_ram_denoiser_affine,
+        cfg.post_ram_denoiser_frozen,
+        cfg.post_ram_operation_position,
+    )
 
 
 def get_stf_eval_size(args):
@@ -1482,6 +1782,13 @@ def build_datasets(args):
         if cfg.dataset_family == "lod_true_rgb_dark":
             lod_dataset_cls = LODTrueRGBDark
             lod_extra = {}
+        elif cfg.dataset_family == "lod_true_raw_dark_normal_pair_rgb16":
+            lod_dataset_cls = LODTrueRawDarkNormalPairRGB16
+            lod_extra = {
+                "raw_storage_format": args.raw_storage_format,
+                "lod_raw_norm_mode": args.lod_raw_norm_mode,
+                "raw_input_mode": LOD_TRUE_RAW_RGB16_INPUT_MODE_BY_FAMILY[cfg.dataset_family],
+            }
         else:
             lod_dataset_cls = LODTrueRawDarkRGB16
             lod_extra = {
@@ -2960,7 +3267,7 @@ def _build_layer_decay_param_groups(args, model):
             _append_param(("lora",), lora_group_lr, param)
             continue
         group_name = _optimizer_group_name_for_param(name)
-        if group_name in {"raw_front_end", "bridge", "decoder_feature_adapter", "dav2_decoder"}:
+        if group_name in {"raw_front_end", "post_ram_cleanup", "bridge", "decoder_feature_adapter", "dav2_decoder"}:
             _append_param((group_name,), _optimizer_lr_for_group(args, group_name), param)
             continue
 
@@ -2988,11 +3295,14 @@ DECODER_FEATURE_ADAPTER_PARAM_PREFIXES = (
     "merge2.",
     "merge3.",
 )
+POST_RAM_CLEANUP_PARAM_PREFIXES = ("post_ram_cleanup.",)
 
 
 def _optimizer_group_name_for_param(name):
     if ".lora_A." in name or ".lora_B." in name:
         return "lora"
+    if name.startswith(POST_RAM_CLEANUP_PARAM_PREFIXES):
+        return "post_ram_cleanup"
     if name.startswith("bridge_adapter."):
         return "bridge"
     if name.startswith(DECODER_FEATURE_ADAPTER_PARAM_PREFIXES):
@@ -3007,6 +3317,8 @@ def _optimizer_group_name_for_param(name):
 def _optimizer_lr_for_group(args, group_name):
     if group_name == "raw_front_end":
         return args.raw_front_end_lr
+    if group_name == "post_ram_cleanup":
+        return float(args.post_ram_cleanup_lr)
     if group_name in {"bridge", "decoder_feature_adapter"}:
         return args.bridge_lr
     if group_name == "lora":
@@ -3016,7 +3328,7 @@ def _optimizer_lr_for_group(args, group_name):
 
 def _build_named_param_groups(args, model):
     groups_by_name = {}
-    order = ("base", "raw_front_end", "bridge", "decoder_feature_adapter", "lora", "dav2_decoder")
+    order = ("base", "raw_front_end", "post_ram_cleanup", "bridge", "decoder_feature_adapter", "lora", "dav2_decoder")
     for name, param in model.named_parameters():
         if not param.requires_grad:
             continue
@@ -3043,6 +3355,8 @@ def _required_optimizer_groups(args):
     required = []
     if cfg.front_end in {"raw_to_rgb_head", "raw_ram4", "raw_to_base_rgb_ram3", "raw_rgb16_ram3"}:
         required.append("raw_front_end")
+    if cfg.post_ram_cleanup != "none":
+        required.append("post_ram_cleanup")
     if cfg.bridge != "none":
         required.append("bridge")
     if cfg.decoder_feature_adapter != "none":
@@ -3256,6 +3570,10 @@ def main():
     start_epoch = 0
     best_metrics = initial_best_metrics()
     bridge_init_status = None
+    student_init_status = None
+    teacher_model = None
+    teacher_args = None
+    teacher_status = None
 
     if args.resume_from:
         resume = torch.load(args.resume_from, map_location="cpu")
@@ -3264,8 +3582,16 @@ def main():
         best_metrics = get_best_metrics_from_resume(resume)
     else:
         load_initial_weights(model, args.pretrained_from, input_type=args.input_type)
+        if args.student_init_from:
+            student_init_status = load_compatible_model_checkpoint(
+                model,
+                args.student_init_from,
+                strict_mode=args.student_init_strict,
+            )
         if uses_bridge(args) and args.bridge_init_from:
             bridge_init_status = load_optional_bridge_init_weights(model, args.bridge_init_from)
+    if feat_distill_enabled(args) and not args.eval_only:
+        teacher_model, teacher_args, teacher_status = build_frozen_teacher(args)
 
     if kitti_valloader is not None and args.kitti_eval_protocol == "rgb_pretrained_ref":
         kitti_reference_eval_model = build_rgb_reference_eval_model(args)
@@ -3315,6 +3641,9 @@ def main():
         fixed_viz_rgb_baseline_model.cuda(local_rank)
     if train_viz_rgb_baseline_model is not None:
         train_viz_rgb_baseline_model.cuda(local_rank)
+    if teacher_model is not None:
+        teacher_model.cuda(local_rank)
+        teacher_model.eval()
     model = torch.nn.parallel.DistributedDataParallel(
         model,
         device_ids=[local_rank],
@@ -3334,6 +3663,37 @@ def main():
 
     if rank == 0:
         log_setup(logger, args, datasets, train_state, model)
+        if student_init_status is not None:
+            logger.info(
+                "[INIT][student] from=%s strict=%s missing=%d unexpected=%d ram_keys=%d lora_keys=%d decoder_keys=%d",
+                args.student_init_from,
+                args.student_init_strict,
+                len(student_init_status.missing_keys),
+                len(student_init_status.unexpected_keys),
+                student_init_status.loaded_ram_keys_count,
+                student_init_status.loaded_lora_keys_count,
+                student_init_status.loaded_decoder_keys_count,
+            )
+            if student_init_status.missing_keys:
+                logger.info("[INIT][student] missing_keys=%s", student_init_status.missing_keys[:50])
+            if student_init_status.unexpected_keys:
+                logger.info("[INIT][student] unexpected_keys=%s", student_init_status.unexpected_keys[:50])
+        if teacher_status is not None:
+            logger.info(
+                "[INIT][teacher] from=%s recipe=%s input_mode=%s missing=%d unexpected=%d ram_keys=%d lora_keys=%d decoder_keys=%d",
+                args.teacher_ckpt,
+                resolved_config(args).teacher_recipe,
+                resolved_config(args).teacher_input_mode,
+                len(teacher_status.missing_keys),
+                len(teacher_status.unexpected_keys),
+                teacher_status.loaded_ram_keys_count,
+                teacher_status.loaded_lora_keys_count,
+                teacher_status.loaded_decoder_keys_count,
+            )
+            if teacher_status.missing_keys:
+                logger.info("[INIT][teacher] missing_keys=%s", teacher_status.missing_keys[:50])
+            if teacher_status.unexpected_keys:
+                logger.info("[INIT][teacher] unexpected_keys=%s", teacher_status.unexpected_keys[:50])
         if bridge_init_status is not None:
             logger.info(
                 "[INIT][bridge] from=%s missing=%d unexpected=%d",
@@ -3871,9 +4231,54 @@ def main():
 
             with sync_ctx:
                 with torch.autocast(device_type="cuda", dtype=amp_dtype, enabled=args.amp):
-                    pred_disp = model(img)
-                loss, loss_info = criterion(pred_disp.float(), depth, valid_mask, target_space=target_space)
+                    if needs_ram_debug_forward(args):
+                        student_output = model(
+                            img,
+                            return_features=True,
+                            return_layers=args.feat_distill_layers if feat_distill_enabled(args) else (),
+                        )
+                        pred_disp = student_output["depth"]
+                    else:
+                        student_output = None
+                        pred_disp = model(img)
+                loss_depth, loss_info = criterion(pred_disp.float(), depth, valid_mask, target_space=target_space)
+                loss = loss_depth
+                loss_feat = None
+                feat_layer_losses = {}
+                if feat_distill_enabled(args) and loss_info["used_samples"] > 0:
+                    if teacher_model is None:
+                        raise RuntimeError("Feature distillation is enabled but teacher_model is not built")
+                    if "raw_normal" not in sample:
+                        raise RuntimeError("Feature distillation requires paired batch key 'raw_normal'")
+                    teacher_input = sample["raw_normal"].cuda(non_blocking=True).float()
+                    with torch.no_grad(), torch.autocast(device_type="cuda", dtype=amp_dtype, enabled=args.amp):
+                        teacher_output = teacher_model(
+                            teacher_input,
+                            return_features=True,
+                            return_layers=args.feat_distill_layers,
+                        )
+                    loss_feat, feat_layer_losses = compute_feature_distill_loss(
+                        student_output["features"],
+                        teacher_output["features"],
+                        args.feat_distill_layers,
+                    )
+                    loss = loss_depth + float(args.feat_distill_lambda) * loss_feat
                 if loss_info["used_samples"] > 0:
+                    loss_info["loss_depth"] = float(loss_depth.detach().item())
+                    loss_info["loss_total"] = float(loss.detach().item())
+                    if loss_feat is not None:
+                        loss_info["loss_feat_total"] = float(loss_feat.detach().item())
+                        loss_info["lambda_feat"] = float(args.feat_distill_lambda)
+                        for layer, layer_loss in feat_layer_losses.items():
+                            loss_info[f"loss_feat_l{layer}"] = float(layer_loss.detach().item())
+                    if student_output is not None:
+                        for key, value in student_output.get("ram_debug", {}).items():
+                            if torch.is_tensor(value):
+                                if value.numel() == 1:
+                                    loss_info[key] = float(value.detach().float().item())
+                                else:
+                                    flat_value = value.detach().float().reshape(-1)
+                                    loss_info[key] = [float(v.item()) for v in flat_value]
                     loss_scaled = loss / window_size
                     if scaler.is_enabled():
                         scaler.scale(loss_scaled).backward()
@@ -3915,6 +4320,47 @@ def main():
             if rank == 0 and writer is not None and loss_info["used_samples"] > 0:
                 current_iter_log = epoch * steps_per_epoch + used_steps - 1
                 writer.add_scalar("train/loss", loss_value, current_iter_log)
+                if "loss_depth" in loss_info:
+                    writer.add_scalar("train/loss_depth", loss_info["loss_depth"], current_iter_log)
+                if "loss_total" in loss_info:
+                    writer.add_scalar("train/loss_total", loss_info["loss_total"], current_iter_log)
+                if "loss_feat_total" in loss_info:
+                    writer.add_scalar("train/loss_feat_total", loss_info["loss_feat_total"], current_iter_log)
+                    writer.add_scalar("train/lambda_feat", loss_info["lambda_feat"], current_iter_log)
+                for layer in (args.feat_distill_layers or ()):
+                    key = f"loss_feat_l{int(layer)}"
+                    if key in loss_info:
+                        writer.add_scalar(f"train/{key}", loss_info[key], current_iter_log)
+                for key in (
+                    "delta_x3_l1",
+                    "delta_x3_l2",
+                    "x3_ram_p1",
+                    "x3_ram_p50",
+                    "x3_ram_p99",
+                    "x3_out_p1",
+                    "x3_out_p50",
+                    "x3_out_p99",
+                    "post_ram_enabled",
+                    "post_ram_scale",
+                    "post_ram_mean_abs_xram",
+                    "post_ram_mean_abs_delta",
+                    "post_ram_delta_ratio",
+                    "post_ram_xram_p1",
+                    "post_ram_xram_p50",
+                    "post_ram_xram_p99",
+                    "post_ram_xclean_p1",
+                    "post_ram_xclean_p50",
+                    "post_ram_xclean_p99",
+                ):
+                    if key in loss_info:
+                        writer.add_scalar(f"train/{key}", loss_info[key], current_iter_log)
+                if "raw_ram_local_gate_value" in loss_info:
+                    gate_value = loss_info["raw_ram_local_gate_value"]
+                    if isinstance(gate_value, list):
+                        for idx, value in enumerate(gate_value):
+                            writer.add_scalar(f"train/raw_ram_local_gate_value_ch{idx}", value, current_iter_log)
+                    else:
+                        writer.add_scalar("train/raw_ram_local_gate_value", gate_value, current_iter_log)
                 writer.add_scalar("train/running_avg_loss", running_loss / max(used_steps, 1), current_iter_log)
                 writer.add_scalar("train/used_samples", loss_info["used_samples"], current_iter_log)
                 writer.add_scalar("train/skipped_samples", loss_info["skipped_samples"], current_iter_log)

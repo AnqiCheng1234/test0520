@@ -788,10 +788,10 @@ def add_rod_result_slide(prs: Presentation) -> None:
     rows = [
         ("init RGB D0", "official DAv2-S init", 0.7617, "-", 13.5764, "RGB", MUTED),
         ("0604_0752", "RGB decoder-only", 0.8015, "e7", 9.1288, "RGB", BLUE),
-        ("0605_0139", "RGB LoRA tap + decoder", 0.8251, "e7", 8.3252, "RGB", BLUE),
-        ("0605_0730", "RGB full backbone LLRD", 0.8483, "e8", 5.8880, "RGB", GREEN),
         ("0606_1348 R1", "RAW-RAM decoder repl", 0.8412, "e6", 5.5653, "RAW", TEAL),
+        ("0605_0139", "RGB LoRA tap + decoder", 0.8251, "e7", 8.3252, "RGB", BLUE),
         ("0606_1348 R2", "RAW-RAM LoRA repl", 0.8437, "e3", 6.8383, "RAW", TEAL),
+        ("0605_0730", "RGB full backbone LLRD", 0.8483, "e8", 5.8880, "RGB", GREEN),
         ("0606_0330", "RAW-RAM full backbone", 0.8700, "e9", 4.2575, "RAW", PURPLE),
         ("0608_1444", "RAW-RAM LoRA + bridge/adapter", 0.8517, "e4", 5.6001, "RAW", AMBER),
     ]
@@ -810,13 +810,13 @@ def add_rod_result_slide(prs: Presentation) -> None:
         y = row_y0 + idx * row_gap
         is_best = run == "0606_0330"
         add_line(slide, 0.62, y + 0.42, 8.72, y + 0.42, RGBColor(241, 245, 249), width=0.45)
-        add_textbox(slide, 0.72, y - 0.02, 1.30, 0.20, run, size=8.6, color=accent, bold=True)
+        add_textbox(slide, 0.72, y - 0.02, 1.30, 0.20, run, size=8.6, color=accent)
         add_textbox(slide, 2.06, y - 0.02, 0.44, 0.20, domain, size=6.9, color=MUTED)
         add_textbox(slide, 2.54, y - 0.02, 2.22, 0.20, method, size=7.15, color=BODY)
 
-        add_textbox(slide, 5.16, y - 0.05, 1.24, 0.28, f"{d1:.4f}", size=12.8, color=TITLE, bold=is_best, align=PP_ALIGN.RIGHT)
+        add_textbox(slide, 5.16, y - 0.05, 1.24, 0.28, f"{d1:.4f}", size=12.8, color=TITLE, align=PP_ALIGN.RIGHT)
         add_textbox(slide, 6.46, y - 0.01, 0.42, 0.20, epoch, size=7.7, color=MUTED, align=PP_ALIGN.CENTER)
-        add_textbox(slide, 7.10, y - 0.04, 1.44, 0.26, f"{abs_rel:.4f}", size=10.7, color=TITLE if is_best else BODY, bold=is_best, align=PP_ALIGN.RIGHT)
+        add_textbox(slide, 7.10, y - 0.04, 1.44, 0.26, f"{abs_rel:.4f}", size=10.7, color=TITLE if is_best else BODY, align=PP_ALIGN.RIGHT)
 
     add_card(slide, 9.28, 0.82, 3.62, 1.52, LIGHT_PURPLE)
     add_textbox(slide, 9.48, 0.99, 3.22, 0.24, "当前最强", size=12.4, color=PURPLE, bold=True)
@@ -844,6 +844,76 @@ def add_rod_result_slide(prs: Presentation) -> None:
         size=6.85,
         color=MUTED,
     )
+
+
+def add_cross_eval_matrix(
+    slide,
+    x: float,
+    y: float,
+    w: float,
+    title: str,
+    rows: list[tuple[str, float, float]],
+    recovery_text: str,
+    accent: RGBColor,
+) -> None:
+    add_textbox(slide, x, y, w, 0.22, title, size=8.2, color=accent, bold=True)
+    add_textbox(slide, x + 1.28, y + 0.30, 0.78, 0.18, "I_dark", size=6.2, color=MUTED, align=PP_ALIGN.CENTER)
+    add_textbox(slide, x + 2.18, y + 0.30, 0.86, 0.18, "I_normal", size=6.2, color=MUTED, align=PP_ALIGN.CENTER)
+    add_line(slide, x, y + 0.53, x + w, y + 0.53, RGBColor(226, 232, 240), width=0.55)
+
+    row_y = y + 0.60
+    row_h = 0.34
+    for idx, (label, dark_d1, normal_d1) in enumerate(rows):
+        yy = row_y + idx * row_h
+        add_textbox(slide, x, yy + 0.03, 1.16, 0.18, label, size=6.0, color=BODY, bold=True)
+        add_textbox(slide, x + 1.28, yy, 0.78, 0.24, f"{dark_d1:.4f}", size=8.6, color=TITLE, align=PP_ALIGN.CENTER)
+        add_textbox(slide, x + 2.18, yy, 0.86, 0.24, f"{normal_d1:.4f}", size=8.6, color=TITLE, align=PP_ALIGN.CENTER)
+        add_line(slide, x, yy + 0.29, x + w, yy + 0.29, RGBColor(241, 245, 249), width=0.45)
+
+    add_textbox(slide, x, y + 1.36, w, 0.26, recovery_text, size=5.8, color=BODY)
+
+
+def add_lod_cross_eval_panel(slide) -> None:
+    add_card(slide, 9.28, 0.82, 3.62, 5.86, WHITE)
+    add_textbox(slide, 9.48, 0.99, 3.22, 0.24, "RAW Dark/Normal cross-eval", size=11.6, color=PURPLE, bold=True)
+    add_textbox(slide, 9.48, 1.25, 3.22, 0.18, "strict variant · D1 on 01Valid / 112 samples", size=6.15, color=MUTED)
+
+    add_cross_eval_matrix(
+        slide,
+        9.48,
+        1.62,
+        3.12,
+        "Canonical LoRA pair",
+        [
+            ("C_dark", 0.845279, 0.880533),
+            ("C_normal", 0.816972, 0.898946),
+        ],
+        "G=0.053667 · R_DN=65.7% · ΔDN=+0.035253 · ΔND=-0.028307",
+        TEAL,
+    )
+
+    add_cross_eval_matrix(
+        slide,
+        9.48,
+        3.42,
+        3.12,
+        "W0 decoder-only sanity",
+        [
+            ("C_dark_W0", 0.829694, 0.875950),
+            ("C_normal_W0", 0.792805, 0.887073),
+        ],
+        "G=0.057380 · R_DN=80.6% · ΔDN=+0.046256 · ΔND=-0.036889",
+        AMBER,
+    )
+
+    add_line(slide, 9.48, 5.24, 12.60, 5.24, RGBColor(226, 232, 240), width=0.55)
+    add_textbox(slide, 9.48, 5.42, 3.12, 0.22, "读法", size=8.6, color=BLUE, bold=True)
+    takeaways = (
+        "C_dark(I_normal) recovers most, but not all, of the canonical gap.\n"
+        "C_normal(I_dark) < C_dark(I_dark), so normal checkpoint is not robust to RAW_dark."
+    )
+    add_textbox(slide, 9.48, 5.68, 3.12, 0.48, takeaways, size=5.9, color=BODY)
+    add_textbox(slide, 9.48, 6.36, 3.12, 0.16, "source: plans/0609/lod_raw_cross_eval_combined_report.md", size=5.1, color=MUTED)
 
 
 def add_lod_result_slide(prs: Presentation) -> None:
@@ -878,8 +948,8 @@ def add_lod_result_slide(prs: Presentation) -> None:
     rows = [
         ("init RGB D0", "RGB_Dark init, DAv2-S", 0.8245, "-", 0.4593, "RGB", MUTED),
         ("0608_1509", "RGB_Dark decoder baseline", 0.8351, "e30", 0.6062, "RGB", BLUE),
-        ("0608_2246", "RGB_Dark LoRA tap", 0.8555, "e22", 0.5851, "RGB", GREEN),
         ("0608_1739", "RAW_Dark RGB16 decoder", 0.8299, "e36", 0.5397, "RAW_D", TEAL),
+        ("0608_2246", "RGB_Dark LoRA tap", 0.8555, "e22", 0.5851, "RGB", GREEN),
         ("0608_2026", "RAW_Dark RGB16 LoRA tap", 0.8451, "e37", 0.5523, "RAW_D", TEAL),
         ("0608_2059", "RAW_Dark RGB16 LoRA + bridge/FA", 0.8510, "e27", 0.5690, "RAW_D", PURPLE),
         ("0609_0044", "RAW_Normal RGB16 LoRA tap", 0.8990, "e36", 0.4912, "RAW_N", AMBER),
@@ -900,29 +970,15 @@ def add_lod_result_slide(prs: Presentation) -> None:
         y = row_y0 + idx * row_gap
         is_best = run == "0609_0117"
         add_line(slide, 0.62, y + 0.42, 8.72, y + 0.42, RGBColor(241, 245, 249), width=0.45)
-        add_textbox(slide, 0.72, y - 0.02, 1.30, 0.20, run, size=8.6, color=accent, bold=True)
+        add_textbox(slide, 0.72, y - 0.02, 1.30, 0.20, run, size=8.6, color=accent)
         add_textbox(slide, 2.05, y - 0.02, 0.52, 0.20, domain, size=6.9, color=MUTED)
         add_textbox(slide, 2.60, y - 0.02, 2.25, 0.20, method, size=7.05, color=BODY)
 
-        add_textbox(slide, 5.16, y - 0.05, 1.24, 0.28, f"{d1:.4f}", size=12.8, color=TITLE, bold=is_best, align=PP_ALIGN.RIGHT)
+        add_textbox(slide, 5.16, y - 0.05, 1.24, 0.28, f"{d1:.4f}", size=12.8, color=TITLE, align=PP_ALIGN.RIGHT)
         add_textbox(slide, 6.46, y - 0.01, 0.42, 0.20, epoch, size=7.7, color=MUTED, align=PP_ALIGN.CENTER)
-        add_textbox(slide, 7.10, y - 0.04, 1.44, 0.26, f"{silog:.4f}", size=10.7, color=TITLE if is_best else BODY, bold=is_best, align=PP_ALIGN.RIGHT)
+        add_textbox(slide, 7.10, y - 0.04, 1.44, 0.26, f"{silog:.4f}", size=10.7, color=TITLE if is_best else BODY, align=PP_ALIGN.RIGHT)
 
-    add_card(slide, 9.28, 0.82, 3.62, 1.52, LIGHT_PURPLE)
-    add_textbox(slide, 9.48, 0.99, 3.22, 0.24, "扩展表最高", size=12.4, color=PURPLE, bold=True)
-    add_textbox(slide, 9.48, 1.29, 3.18, 0.70, "0609_0117：RAW_Normal + LoRA + bridge/FA\nd1=0.8997，silog=0.5417", size=7.75, color=BODY)
-
-    add_card(slide, 9.28, 2.58, 3.62, 1.28, LIGHT_GREEN)
-    add_textbox(slide, 9.48, 2.74, 3.22, 0.22, "dark-input best", size=11.3, color=GREEN, bold=True)
-    add_textbox(slide, 9.48, 3.03, 3.18, 0.52, "0608_2246：RGB_Dark LoRA tap\nd1=0.8555，高于 RAW_Dark follow-up", size=7.25, color=BODY)
-
-    add_card(slide, 9.28, 4.04, 3.62, 1.28, LIGHT_AMBER)
-    add_textbox(slide, 9.48, 4.20, 3.22, 0.22, "RAW_Normal 影响", size=11.3, color=AMBER, bold=True)
-    add_textbox(slide, 9.48, 4.49, 3.18, 0.52, "0609 RAW_Normal 明显高于 matched RAW_Dark；\n这是输入源 ablation，不替代 dark-input 结论。", size=7.05, color=BODY)
-
-    add_card(slide, 9.28, 5.54, 3.62, 1.14, LIGHT_BLUE)
-    add_textbox(slide, 9.48, 5.68, 3.22, 0.22, "读数口径", size=11.0, color=BLUE, bold=True)
-    add_textbox(slide, 9.48, 5.94, 3.18, 0.48, "d1 越高越好；silog 越低越好。\nsilog 与 best d1 取同一 epoch。", size=7.0, color=BODY)
+    add_lod_cross_eval_panel(slide)
 
     add_textbox(
         slide,

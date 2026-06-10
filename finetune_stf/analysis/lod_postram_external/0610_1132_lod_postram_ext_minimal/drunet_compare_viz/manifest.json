@@ -1,0 +1,103 @@
+{
+  "baseline": {
+    "abs_rel": 3.6666992236404226,
+    "d1": 0.8452793347673392,
+    "ext_id": "EXT_NOOP_A0",
+    "rmse": 24.87831387280308
+  },
+  "common_delta_abs_p99": 0.1865234375,
+  "configs": [
+    {
+      "abs_rel": 3.7892100825549413,
+      "d1": 0.8419473652630058,
+      "delta_d1_vs_noop": -0.003331969504333343,
+      "delta_ratio": 0.03417375350337742,
+      "ext_id": "EXT_D1",
+      "label": "D1 sigma=10 alpha=0.25",
+      "rmse": 25.035134113806635
+    },
+    {
+      "abs_rel": 3.593060789991596,
+      "d1": 0.8462949310212851,
+      "delta_d1_vs_noop": 0.0010155962539458718,
+      "delta_ratio": 0.04421862271348281,
+      "ext_id": "EXT_D3",
+      "label": "D3 sigma=25 alpha=0.25",
+      "rmse": 24.742452147246393
+    },
+    {
+      "abs_rel": 3.6891646914856806,
+      "d1": 0.8442028994027605,
+      "delta_d1_vs_noop": -0.0010764353645786873,
+      "delta_ratio": 0.08843724496130433,
+      "ext_id": "EXT_D4",
+      "label": "D4 sigma=25 alpha=0.5",
+      "rmse": 24.80384228406411
+    }
+  ],
+  "grid": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_postram_external/0610_1132_lod_postram_ext_minimal/drunet_compare_viz/drunet_compare_grid.png",
+  "output_dir": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_postram_external/0610_1132_lod_postram_ext_minimal/drunet_compare_viz",
+  "panels": [
+    {
+      "artifact_stem": "000000_lod-0021-0022",
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_postram_external/0610_1132_lod_postram_ext_minimal/drunet_compare_viz/per_sample/000000_lod-0021-0022.png",
+      "sample_id": "lod-0021-0022"
+    },
+    {
+      "artifact_stem": "000001_lod-0023-0024",
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_postram_external/0610_1132_lod_postram_ext_minimal/drunet_compare_viz/per_sample/000001_lod-0023-0024.png",
+      "sample_id": "lod-0023-0024"
+    },
+    {
+      "artifact_stem": "000002_lod-0025-0026",
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_postram_external/0610_1132_lod_postram_ext_minimal/drunet_compare_viz/per_sample/000002_lod-0025-0026.png",
+      "sample_id": "lod-0025-0026"
+    },
+    {
+      "artifact_stem": "000003_lod-0027-0028",
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_postram_external/0610_1132_lod_postram_ext_minimal/drunet_compare_viz/per_sample/000003_lod-0027-0028.png",
+      "sample_id": "lod-0027-0028"
+    },
+    {
+      "artifact_stem": "000004_lod-0029-0030",
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_postram_external/0610_1132_lod_postram_ext_minimal/drunet_compare_viz/per_sample/000004_lod-0029-0030.png",
+      "sample_id": "lod-0029-0030"
+    },
+    {
+      "artifact_stem": "000005_lod-0031-0032",
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_postram_external/0610_1132_lod_postram_ext_minimal/drunet_compare_viz/per_sample/000005_lod-0031-0032.png",
+      "sample_id": "lod-0031-0032"
+    },
+    {
+      "artifact_stem": "000006_lod-0033-0034",
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_postram_external/0610_1132_lod_postram_ext_minimal/drunet_compare_viz/per_sample/000006_lod-0033-0034.png",
+      "sample_id": "lod-0033-0034"
+    },
+    {
+      "artifact_stem": "000007_lod-0035-0036",
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_postram_external/0610_1132_lod_postram_ext_minimal/drunet_compare_viz/per_sample/000007_lod-0035-0036.png",
+      "sample_id": "lod-0035-0036"
+    },
+    {
+      "artifact_stem": "000008_lod-0037-0038",
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_postram_external/0610_1132_lod_postram_ext_minimal/drunet_compare_viz/per_sample/000008_lod-0037-0038.png",
+      "sample_id": "lod-0037-0038"
+    },
+    {
+      "artifact_stem": "000009_lod-0039-0040",
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_postram_external/0610_1132_lod_postram_ext_minimal/drunet_compare_viz/per_sample/000009_lod-0039-0040.png",
+      "sample_id": "lod-0039-0040"
+    },
+    {
+      "artifact_stem": "000010_lod-0041-0042",
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_postram_external/0610_1132_lod_postram_ext_minimal/drunet_compare_viz/per_sample/000010_lod-0041-0042.png",
+      "sample_id": "lod-0041-0042"
+    },
+    {
+      "artifact_stem": "000011_lod-0043-0044",
+      "panel_path": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_postram_external/0610_1132_lod_postram_ext_minimal/drunet_compare_viz/per_sample/000011_lod-0043-0044.png",
+      "sample_id": "lod-0043-0044"
+    }
+  ],
+  "source_root": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_postram_external/0610_1132_lod_postram_ext_minimal"
+}
