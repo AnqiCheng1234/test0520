@@ -22,7 +22,10 @@ DATASET_FAMILY_CHOICES = (
     "stf_rgb",
     "stf_raw",
     "rod_raw_student_rgb",
+    "rod_raw_teacher_rgb",
+    "rod_raw_rawpy_rgb",
     "rod_raw",
+    "rod_raw_rgb3",
     "lod_true_rgb_dark",
     "lod_true_raw_dark_rgb16",
     "lod_true_raw_normal_rgb16",
@@ -33,6 +36,9 @@ DATASET_INPUT_MODE_CHOICES = (
     "raw_naive",
     "raw_ram",
     "raw24_student_rgb",
+    "raw24_teacher_rgb",
+    "raw24_rawpy_rgb",
+    "raw24_base_rgb3",
     "rgb_dark",
     "raw_rgb16_dark",
     "raw_rgb16_normal",
@@ -71,6 +77,22 @@ LOD_TRUE_RAW_RGB16_INPUT_MODE_BY_FAMILY = {
     "lod_true_raw_dark_normal_pair_rgb16": "raw_rgb16_dark_normal_pair",
 }
 LOD_TRUE_RAW_RGB16_DATASET_FAMILIES = tuple(LOD_TRUE_RAW_RGB16_INPUT_MODE_BY_FAMILY)
+ROD_RENDERED_RGB_INPUT_MODE_BY_FAMILY = {
+    "rod_raw_student_rgb": "raw24_student_rgb",
+    "rod_raw_teacher_rgb": "raw24_teacher_rgb",
+    "rod_raw_rawpy_rgb": "raw24_rawpy_rgb",
+}
+ROD_RENDERED_RGB_DATASET_FAMILIES = tuple(ROD_RENDERED_RGB_INPUT_MODE_BY_FAMILY)
+ROD_RAWPY_RGB_FAMILY = "rod_raw_rawpy_rgb"
+ROD_RAWPY_RGB_PIPELINE = "rawpy_default_dng_v1"
+ROD_RAWPY_DNG_PROFILE = "rggb_uint16_srgb_d65_black0_white65535_v1"
+ROD_RAWPY_POSTPROCESS_PROFILE = "default_kwargs_empty_v1"
+ROD_HAND_RENDERED_RGB_PIPELINE_BY_FAMILY = {
+    "rod_raw_student_rgb": "student_dark_degreen_v1",
+    "rod_raw_teacher_rgb": "teacher_bright_degreen_v1",
+}
+ROD_RAW_RGB3_FAMILY = "rod_raw_rgb3"
+ROD_RAW_RGB3_INPUT_MODE = "raw24_base_rgb3"
 SOURCE_FIELDS = (
     "input_domain",
     "front_end",
@@ -770,8 +792,8 @@ def _infer_from_front_end(config: dict[str, Any], explicit_fields: set[str], sou
             inferred["dataset_input_mode"] = "rgb"
         elif config.get("dataset_family") == "stf_raw":
             inferred["dataset_input_mode"] = "raw_naive"
-        elif config.get("dataset_family") == "rod_raw_student_rgb":
-            inferred["dataset_input_mode"] = "raw24_student_rgb"
+        elif config.get("dataset_family") in ROD_RENDERED_RGB_INPUT_MODE_BY_FAMILY:
+            inferred["dataset_input_mode"] = ROD_RENDERED_RGB_INPUT_MODE_BY_FAMILY[config["dataset_family"]]
         elif config.get("dataset_family") == "lod_true_rgb_dark":
             inferred["dataset_input_mode"] = "rgb_dark"
     elif front_end == "raw_to_rgb_head":
@@ -790,14 +812,17 @@ def _infer_from_front_end(config: dict[str, Any], explicit_fields: set[str], sou
         }
     elif front_end == "raw_rgb16_ram3":
         dataset_family = config.get("dataset_family")
-        dataset_input_mode = LOD_TRUE_RAW_RGB16_INPUT_MODE_BY_FAMILY.get(
-            dataset_family,
-            "raw_rgb16_dark",
-        )
+        if dataset_family == ROD_RAW_RGB3_FAMILY:
+            dataset_input_mode = ROD_RAW_RGB3_INPUT_MODE
+        else:
+            dataset_input_mode = LOD_TRUE_RAW_RGB16_INPUT_MODE_BY_FAMILY.get(
+                dataset_family,
+                "raw_rgb16_dark",
+            )
         inferred = {
             "input_domain": "raw3",
             "dataset_family": dataset_family
-            if dataset_family in LOD_TRUE_RAW_RGB16_DATASET_FAMILIES
+            if dataset_family in (*LOD_TRUE_RAW_RGB16_DATASET_FAMILIES, ROD_RAW_RGB3_FAMILY)
             else "lod_true_raw_dark_rgb16",
             "dataset_input_mode": dataset_input_mode,
             "model_input_tensor": "raw",
@@ -1176,9 +1201,9 @@ def _legacy_alias_from_config(config: dict[str, Any]) -> str:
     if dataset_family == "stf_rgb" and front_end == "dav2_rgb" and not bridge and not adapter:
         return "rgb_lora" if lora else "rgb"
     if (
-        dataset_family == "rod_raw_student_rgb"
+        dataset_family in ROD_RENDERED_RGB_INPUT_MODE_BY_FAMILY
         and front_end == "dav2_rgb"
-        and dataset_input_mode == "raw24_student_rgb"
+        and dataset_input_mode == ROD_RENDERED_RGB_INPUT_MODE_BY_FAMILY[dataset_family]
         and model_input_tensor == "image"
         and not bridge
         and not adapter
@@ -1248,6 +1273,15 @@ def _legacy_alias_from_config(config: dict[str, Any]) -> str:
                 if lora
                 else f"{family_prefix}_bridge_feature_adapter"
             )
+    if (
+        dataset_family == ROD_RAW_RGB3_FAMILY
+        and front_end == "raw_rgb16_ram3"
+        and dataset_input_mode == ROD_RAW_RGB3_INPUT_MODE
+        and model_input_tensor == "raw"
+        and not bridge
+        and not adapter
+    ):
+        return "rod_raw_rgb3_lora" if lora else "rod_raw_rgb3"
     raise ValueError(
         "The resolved orthogonal config is expressible, but this train.py revision has no "
         "legacy model factory alias for it yet: "
@@ -1491,15 +1525,65 @@ def validate_resolved_config(resolved: ResolvedConfig, args: Any | None = None) 
             raise ValueError("dataset_family=stf_rgb currently requires dav2_rgb image input")
     if cfg.dataset_family == "stf_raw" and cfg.dataset_input_mode == "rgb":
         raise ValueError("dataset_family=stf_raw requires dataset_input_mode raw_naive or raw_ram")
-    if cfg.dataset_family == "rod_raw_student_rgb":
-        if cfg.dataset_input_mode != "raw24_student_rgb":
-            raise ValueError("dataset_family=rod_raw_student_rgb requires dataset_input_mode=raw24_student_rgb")
+    if cfg.dataset_family in ROD_RENDERED_RGB_INPUT_MODE_BY_FAMILY:
+        expected_input_mode = ROD_RENDERED_RGB_INPUT_MODE_BY_FAMILY[cfg.dataset_family]
+        if cfg.dataset_input_mode != expected_input_mode:
+            raise ValueError(
+                f"dataset_family={cfg.dataset_family} requires dataset_input_mode={expected_input_mode}"
+            )
         if cfg.input_domain != "rgb" or cfg.front_end != "dav2_rgb" or cfg.model_input_tensor != "image":
-            raise ValueError("dataset_family=rod_raw_student_rgb requires rgb/dav2_rgb/image")
+            raise ValueError(f"dataset_family={cfg.dataset_family} requires rgb/dav2_rgb/image")
         if cfg.bridge != NONE or cfg.decoder_feature_adapter != NONE:
-            raise ValueError("dataset_family=rod_raw_student_rgb requires bridge/decoder_feature_adapter none")
+            raise ValueError(f"dataset_family={cfg.dataset_family} requires bridge/decoder_feature_adapter none")
         if cfg.lora not in (NONE, "dav2_lora"):
-            raise ValueError("dataset_family=rod_raw_student_rgb only supports lora in {none, dav2_lora}")
+            raise ValueError(f"dataset_family={cfg.dataset_family} only supports lora in {{none, dav2_lora}}")
+        if cfg.raw_storage_format != NONE:
+            raise ValueError(f"dataset_family={cfg.dataset_family} requires raw_storage_format=none/n_a")
+        if args is not None:
+            expected_hand_pipeline = ROD_HAND_RENDERED_RGB_PIPELINE_BY_FAMILY.get(cfg.dataset_family)
+            rod_rgb_pipeline_default = expected_hand_pipeline if expected_hand_pipeline is not None else ""
+            rod_rgb_pipeline = str(getattr(args, "rod_rgb_pipeline", rod_rgb_pipeline_default))
+            rawpy_dng_profile = str(getattr(args, "rod_rawpy_dng_profile", NA))
+            rawpy_postprocess_profile = str(getattr(args, "rod_rawpy_postprocess_profile", NA))
+            if cfg.dataset_family == ROD_RAWPY_RGB_FAMILY:
+                if rod_rgb_pipeline != ROD_RAWPY_RGB_PIPELINE:
+                    raise ValueError(
+                        f"dataset_family={ROD_RAWPY_RGB_FAMILY} requires "
+                        f"rod_rgb_pipeline={ROD_RAWPY_RGB_PIPELINE}"
+                    )
+                if rawpy_dng_profile != ROD_RAWPY_DNG_PROFILE:
+                    raise ValueError(
+                        f"dataset_family={ROD_RAWPY_RGB_FAMILY} requires "
+                        f"rod_rawpy_dng_profile={ROD_RAWPY_DNG_PROFILE}"
+                    )
+                if rawpy_postprocess_profile != ROD_RAWPY_POSTPROCESS_PROFILE:
+                    raise ValueError(
+                        f"dataset_family={ROD_RAWPY_RGB_FAMILY} requires "
+                        f"rod_rawpy_postprocess_profile={ROD_RAWPY_POSTPROCESS_PROFILE}"
+                    )
+                active_recipe_fields = [
+                    field_name
+                    for field_name in (
+                        "rod_student_white_percentile",
+                        "rod_student_gamma",
+                        "rod_student_channel_gains",
+                        "rod_teacher_white_percentile",
+                        "rod_teacher_gamma",
+                        "rod_teacher_channel_gains",
+                    )
+                    if _arg_was_explicit(args, field_name)
+                ]
+                if active_recipe_fields:
+                    flags = ", ".join(f"--{name.replace('_', '-')}" for name in active_recipe_fields)
+                    raise ValueError(f"dataset_family={ROD_RAWPY_RGB_FAMILY} does not use {flags}")
+            elif cfg.dataset_family in ROD_HAND_RENDERED_RGB_PIPELINE_BY_FAMILY:
+                expected_pipeline = ROD_HAND_RENDERED_RGB_PIPELINE_BY_FAMILY[cfg.dataset_family]
+                if rod_rgb_pipeline != expected_pipeline:
+                    raise ValueError(f"dataset_family={cfg.dataset_family} requires rod_rgb_pipeline={expected_pipeline}")
+                if rawpy_dng_profile != NA or rawpy_postprocess_profile != NA:
+                    raise ValueError(
+                        f"dataset_family={cfg.dataset_family} requires RawPy profiles to be n_a"
+                    )
     if cfg.dataset_family == "rod_raw":
         if cfg.dataset_input_mode != "raw_ram":
             raise ValueError("dataset_family=rod_raw requires dataset_input_mode=raw_ram")
@@ -1509,6 +1593,21 @@ def validate_resolved_config(resolved: ResolvedConfig, args: Any | None = None) 
             raise ValueError("dataset_family=rod_raw requires raw_storage_format=none/n_a")
         if cfg.lora not in (NONE, "dav2_lora"):
             raise ValueError("dataset_family=rod_raw only supports lora in {none, dav2_lora}")
+    if cfg.dataset_family == ROD_RAW_RGB3_FAMILY:
+        if cfg.dataset_input_mode != ROD_RAW_RGB3_INPUT_MODE:
+            raise ValueError(
+                f"dataset_family={ROD_RAW_RGB3_FAMILY} requires dataset_input_mode={ROD_RAW_RGB3_INPUT_MODE}"
+            )
+        if cfg.input_domain != "raw3" or cfg.front_end != "raw_rgb16_ram3" or cfg.model_input_tensor != "raw":
+            raise ValueError(
+                f"dataset_family={ROD_RAW_RGB3_FAMILY} requires raw3/raw_rgb16_ram3/raw"
+            )
+        if cfg.raw_storage_format != NONE:
+            raise ValueError(f"dataset_family={ROD_RAW_RGB3_FAMILY} requires raw_storage_format=none/n_a")
+        if cfg.bridge != NONE or cfg.decoder_feature_adapter != NONE:
+            raise ValueError(f"dataset_family={ROD_RAW_RGB3_FAMILY} requires bridge/decoder_feature_adapter none")
+        if cfg.lora not in (NONE, "dav2_lora"):
+            raise ValueError(f"dataset_family={ROD_RAW_RGB3_FAMILY} only supports lora in {{none, dav2_lora}}")
     if cfg.dataset_family == "lod_true_rgb_dark":
         if cfg.dataset_input_mode != "rgb_dark":
             raise ValueError("dataset_family=lod_true_rgb_dark requires dataset_input_mode=rgb_dark")
@@ -1554,13 +1653,17 @@ def validate_resolved_config(resolved: ResolvedConfig, args: Any | None = None) 
     if cfg.front_end == "raw_rgb16_ram3":
         if cfg.input_domain != "raw3" or cfg.model_input_tensor != "raw":
             raise ValueError("front_end=raw_rgb16_ram3 requires raw3/raw tensor input")
-        expected_input_mode = LOD_TRUE_RAW_RGB16_INPUT_MODE_BY_FAMILY.get(cfg.dataset_family)
+        if cfg.dataset_family == ROD_RAW_RGB3_FAMILY:
+            expected_input_mode = ROD_RAW_RGB3_INPUT_MODE
+        else:
+            expected_input_mode = LOD_TRUE_RAW_RGB16_INPUT_MODE_BY_FAMILY.get(cfg.dataset_family)
         if expected_input_mode is None or cfg.dataset_input_mode != expected_input_mode:
             raise ValueError(
                 "front_end=raw_rgb16_ram3 requires "
                 "lod_true_raw_dark_rgb16/raw_rgb16_dark or "
                 "lod_true_raw_normal_rgb16/raw_rgb16_normal or "
-                "lod_true_raw_dark_normal_pair_rgb16/raw_rgb16_dark_normal_pair"
+                "lod_true_raw_dark_normal_pair_rgb16/raw_rgb16_dark_normal_pair or "
+                "rod_raw_rgb3/raw24_base_rgb3"
             )
     if cfg.bridge == NONE:
         if cfg.bridge_feature_source_channels != NONE or cfg.bridge_feature_keys or cfg.bridge_layers:

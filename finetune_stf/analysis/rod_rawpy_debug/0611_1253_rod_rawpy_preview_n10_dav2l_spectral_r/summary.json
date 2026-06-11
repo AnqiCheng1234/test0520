@@ -1,0 +1,18 @@
+{
+  "contact_sheet": "finetune_stf/analysis/rod_rawpy_debug/0611_1253_rod_rawpy_preview_n10_dav2l_spectral_r/rod_rawpy_preview_contact_sheet.png",
+  "dav2l_cmap": "Spectral_r",
+  "dav2l_enabled": true,
+  "dav2l_shared_visualization_range": {
+    "vmax": 883.4354370117162,
+    "vmax_pct": 99.0,
+    "vmin": 0.0,
+    "vmin_pct": 1.0
+  },
+  "direct_rawpy_ok_count": 0,
+  "manifest": "finetune_stf/analysis/rod_rawpy_debug/0611_1253_rod_rawpy_preview_n10_dav2l_spectral_r/manifest_rawpy_preview.jsonl",
+  "output_root": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/rod_rawpy_debug/0611_1253_rod_rawpy_preview_n10_dav2l_spectral_r",
+  "rawpy_928x1440_mean_avg": 5.322216010093689,
+  "rawpy_928x1440_mean_max": 12.016427040100098,
+  "rawpy_928x1440_mean_min": 1.7574713230133057,
+  "sample_count": 10
+}

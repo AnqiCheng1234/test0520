@@ -1,0 +1,278 @@
+{
+  "config": {
+    "manifest": "/mnt/drive/3333_raw/seeing_through_fog/pseudo_depth_dav2_official_vitl_rgb_lut_6216_20260417/stf_rgb_lut_manifest_6216.csv",
+    "raw_npz_root": "/mnt/drive/3333_raw/seeing_through_fog/cam_stereo_left_bayer_rect/npz",
+    "output_dir": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_teacher_rgb_dav2_compare",
+    "checkpoint": "/mnt/drive/9999_backup_from_home_0514/333_cvpr/da_ours/checkpoints/depth_anything_v2_vitl.pth",
+    "encoder": "vitl",
+    "device": "cuda",
+    "input_size": 924,
+    "raw_channel_order": [
+      "R",
+      "Gr",
+      "Gb",
+      "B"
+    ],
+    "raw_to_rgb_projection": [
+      "R",
+      "0.5*(Gr+Gb)",
+      "B"
+    ],
+    "raw_normalization": "companded",
+    "teacher_white_percentile": 99.5,
+    "teacher_gamma": 0.454545,
+    "teacher_gains": [
+      1.0800000429153442,
+      0.949999988079071,
+      1.100000023841858
+    ],
+    "z_min": 1.0,
+    "z_max": 80.0,
+    "holdout_fraction": 0.2,
+    "min_prior_points": 50,
+    "min_holdout_points": 50,
+    "selection": {
+      "dark_count": 5,
+      "overexp_count": 5,
+      "dark_sort": "low official RGB luma_mean",
+      "overexposed_sort": "high official RGB saturation ratio, then high luma percentiles"
+    },
+    "visualization": {
+      "cmap": "Spectral_r",
+      "shared_inverse_vmin": 0.012500000186264515,
+      "shared_inverse_vmax": 0.1680505260825158,
+      "shared_inverse_vmin_pct": 1.0,
+      "shared_inverse_vmax_pct": 99.0
+    },
+    "metric_definition": "Fit affine mapping from DAV2-L relative inverse output to sparse LiDAR inverse depth on deterministic per-sample prior points; compute AbsRel and D1 on held-out sparse points."
+  },
+  "aggregate": {
+    "num_samples": 10,
+    "official_mean_absrel": 0.1251730921845124,
+    "official_mean_d1": 0.8522318804946067,
+    "teacher_mean_absrel": 0.11548499247944813,
+    "teacher_mean_d1": 0.863819778435483
+  },
+  "samples": [
+    {
+      "selection_group": "dark",
+      "sample_id": "2018-02-04_21-46-15_00100",
+      "split": "test",
+      "rgb_luma_mean": 16.894062042236328,
+      "rgb_luma_p99": 72.7821732330323,
+      "rgb_sat_ratio": 0.0001953125,
+      "num_sparse_in_range_points": 8203,
+      "official_metrics": {
+        "eval_points": 1641,
+        "absrel": 0.0847699497928411,
+        "d1": 0.9408897014015845
+      },
+      "teacher_metrics": {
+        "eval_points": 1641,
+        "absrel": 0.069616319741189,
+        "d1": 0.9372333942717855
+      },
+      "official_pred_npy": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_teacher_rgb_dav2_compare/official_rgb_dav2l_pred/2018-02-04_21-46-15_00100.npy",
+      "teacher_rgb_png": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_teacher_rgb_dav2_compare/teacher_rgb/2018-02-04_21-46-15_00100.png",
+      "teacher_pred_npy": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_teacher_rgb_dav2_compare/teacher_rgb_dav2l_pred/2018-02-04_21-46-15_00100.npy"
+    },
+    {
+      "selection_group": "dark",
+      "sample_id": "2018-02-04_21-37-51_00200",
+      "split": "test",
+      "rgb_luma_mean": 16.94672393798828,
+      "rgb_luma_p99": 53.22078880310066,
+      "rgb_sat_ratio": 0.0,
+      "num_sparse_in_range_points": 8238,
+      "official_metrics": {
+        "eval_points": 1648,
+        "absrel": 0.2135464253821671,
+        "d1": 0.7081310679611651
+      },
+      "teacher_metrics": {
+        "eval_points": 1648,
+        "absrel": 0.18507042660044984,
+        "d1": 0.6929611650485437
+      },
+      "official_pred_npy": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_teacher_rgb_dav2_compare/official_rgb_dav2l_pred/2018-02-04_21-37-51_00200.npy",
+      "teacher_rgb_png": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_teacher_rgb_dav2_compare/teacher_rgb/2018-02-04_21-37-51_00200.png",
+      "teacher_pred_npy": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_teacher_rgb_dav2_compare/teacher_rgb_dav2l_pred/2018-02-04_21-37-51_00200.npy"
+    },
+    {
+      "selection_group": "dark",
+      "sample_id": "2018-02-04_21-37-51_00300",
+      "split": "test",
+      "rgb_luma_mean": 17.997135162353516,
+      "rgb_luma_p99": 69.66280593872087,
+      "rgb_sat_ratio": 0.00026041666666666666,
+      "num_sparse_in_range_points": 6620,
+      "official_metrics": {
+        "eval_points": 1324,
+        "absrel": 0.05670078027468376,
+        "d1": 0.9554380664652568
+      },
+      "teacher_metrics": {
+        "eval_points": 1324,
+        "absrel": 0.059555475329732856,
+        "d1": 0.9705438066465257
+      },
+      "official_pred_npy": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_teacher_rgb_dav2_compare/official_rgb_dav2l_pred/2018-02-04_21-37-51_00300.npy",
+      "teacher_rgb_png": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_teacher_rgb_dav2_compare/teacher_rgb/2018-02-04_21-37-51_00300.png",
+      "teacher_pred_npy": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_teacher_rgb_dav2_compare/teacher_rgb_dav2l_pred/2018-02-04_21-37-51_00300.npy"
+    },
+    {
+      "selection_group": "dark",
+      "sample_id": "2018-02-04_21-35-48_00300",
+      "split": "test",
+      "rgb_luma_mean": 18.525556564331055,
+      "rgb_luma_p99": 77.82358978271496,
+      "rgb_sat_ratio": 0.0001953125,
+      "num_sparse_in_range_points": 7692,
+      "official_metrics": {
+        "eval_points": 1538,
+        "absrel": 0.1010324984331528,
+        "d1": 0.9024707412223667
+      },
+      "teacher_metrics": {
+        "eval_points": 1538,
+        "absrel": 0.0801013929916672,
+        "d1": 0.922626788036411
+      },
+      "official_pred_npy": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_teacher_rgb_dav2_compare/official_rgb_dav2l_pred/2018-02-04_21-35-48_00300.npy",
+      "teacher_rgb_png": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_teacher_rgb_dav2_compare/teacher_rgb/2018-02-04_21-35-48_00300.png",
+      "teacher_pred_npy": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_teacher_rgb_dav2_compare/teacher_rgb_dav2l_pred/2018-02-04_21-35-48_00300.npy"
+    },
+    {
+      "selection_group": "dark",
+      "sample_id": "2018-02-04_21-32-11_00300",
+      "split": "test",
+      "rgb_luma_mean": 19.668149948120117,
+      "rgb_luma_p99": 100.72047843933119,
+      "rgb_sat_ratio": 0.00029296875,
+      "num_sparse_in_range_points": 9089,
+      "official_metrics": {
+        "eval_points": 1818,
+        "absrel": 0.10580226695417759,
+        "d1": 0.8558855885588559
+      },
+      "teacher_metrics": {
+        "eval_points": 1818,
+        "absrel": 0.08997607497992763,
+        "d1": 0.9086908690869087
+      },
+      "official_pred_npy": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_teacher_rgb_dav2_compare/official_rgb_dav2l_pred/2018-02-04_21-32-11_00300.npy",
+      "teacher_rgb_png": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_teacher_rgb_dav2_compare/teacher_rgb/2018-02-04_21-32-11_00300.png",
+      "teacher_pred_npy": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_teacher_rgb_dav2_compare/teacher_rgb_dav2l_pred/2018-02-04_21-32-11_00300.npy"
+    },
+    {
+      "selection_group": "overexposed",
+      "sample_id": "2018-02-10_16-37-09_00100",
+      "split": "train",
+      "rgb_luma_mean": 122.36689758300781,
+      "rgb_luma_p99": 253.71119689941406,
+      "rgb_sat_ratio": 0.11975911458333334,
+      "num_sparse_in_range_points": 4295,
+      "official_metrics": {
+        "eval_points": 859,
+        "absrel": 0.19239673898154117,
+        "d1": 0.6647264260768335
+      },
+      "teacher_metrics": {
+        "eval_points": 859,
+        "absrel": 0.17680903721176597,
+        "d1": 0.710128055878929
+      },
+      "official_pred_npy": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_teacher_rgb_dav2_compare/official_rgb_dav2l_pred/2018-02-10_16-37-09_00100.npy",
+      "teacher_rgb_png": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_teacher_rgb_dav2_compare/teacher_rgb/2018-02-10_16-37-09_00100.png",
+      "teacher_pred_npy": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_teacher_rgb_dav2_compare/teacher_rgb_dav2l_pred/2018-02-10_16-37-09_00100.npy"
+    },
+    {
+      "selection_group": "overexposed",
+      "sample_id": "2018-02-10_16-39-47_00800",
+      "split": "test",
+      "rgb_luma_mean": 123.35151672363281,
+      "rgb_luma_p99": 253.56678771972656,
+      "rgb_sat_ratio": 0.09752604166666666,
+      "num_sparse_in_range_points": 4206,
+      "official_metrics": {
+        "eval_points": 841,
+        "absrel": 0.11163971841445026,
+        "d1": 0.8929845422116528
+      },
+      "teacher_metrics": {
+        "eval_points": 841,
+        "absrel": 0.11106034697170325,
+        "d1": 0.906064209274673
+      },
+      "official_pred_npy": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_teacher_rgb_dav2_compare/official_rgb_dav2l_pred/2018-02-10_16-39-47_00800.npy",
+      "teacher_rgb_png": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_teacher_rgb_dav2_compare/teacher_rgb/2018-02-10_16-39-47_00800.png",
+      "teacher_pred_npy": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_teacher_rgb_dav2_compare/teacher_rgb_dav2l_pred/2018-02-10_16-39-47_00800.npy"
+    },
+    {
+      "selection_group": "overexposed",
+      "sample_id": "2018-02-10_16-39-47_00200",
+      "split": "test",
+      "rgb_luma_mean": 122.63385772705078,
+      "rgb_luma_p99": 253.1363983154297,
+      "rgb_sat_ratio": 0.08968098958333333,
+      "num_sparse_in_range_points": 4230,
+      "official_metrics": {
+        "eval_points": 846,
+        "absrel": 0.11665276970255405,
+        "d1": 0.9089834515366431
+      },
+      "teacher_metrics": {
+        "eval_points": 846,
+        "absrel": 0.11838064523006211,
+        "d1": 0.8995271867612293
+      },
+      "official_pred_npy": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_teacher_rgb_dav2_compare/official_rgb_dav2l_pred/2018-02-10_16-39-47_00200.npy",
+      "teacher_rgb_png": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_teacher_rgb_dav2_compare/teacher_rgb/2018-02-10_16-39-47_00200.png",
+      "teacher_pred_npy": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_teacher_rgb_dav2_compare/teacher_rgb_dav2l_pred/2018-02-10_16-39-47_00200.npy"
+    },
+    {
+      "selection_group": "overexposed",
+      "sample_id": "2018-02-09_15-58-15_00400",
+      "split": "train",
+      "rgb_luma_mean": 95.93793487548828,
+      "rgb_luma_p99": 252.42120361328125,
+      "rgb_sat_ratio": 0.08180338541666667,
+      "num_sparse_in_range_points": 4146,
+      "official_metrics": {
+        "eval_points": 829,
+        "absrel": 0.1933834675609221,
+        "d1": 0.767189384800965
+      },
+      "teacher_metrics": {
+        "eval_points": 829,
+        "absrel": 0.1897303079389561,
+        "d1": 0.7659831121833535
+      },
+      "official_pred_npy": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_teacher_rgb_dav2_compare/official_rgb_dav2l_pred/2018-02-09_15-58-15_00400.npy",
+      "teacher_rgb_png": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_teacher_rgb_dav2_compare/teacher_rgb/2018-02-09_15-58-15_00400.png",
+      "teacher_pred_npy": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_teacher_rgb_dav2_compare/teacher_rgb_dav2l_pred/2018-02-09_15-58-15_00400.npy"
+    },
+    {
+      "selection_group": "overexposed",
+      "sample_id": "2018-02-10_16-39-47_00700",
+      "split": "test",
+      "rgb_luma_mean": 118.52425384521484,
+      "rgb_luma_p99": 253.06419372558594,
+      "rgb_sat_ratio": 0.08043619791666666,
+      "num_sparse_in_range_points": 4237,
+      "official_metrics": {
+        "eval_points": 847,
+        "absrel": 0.07580630634863407,
+        "d1": 0.9256198347107438
+      },
+      "teacher_metrics": {
+        "eval_points": 847,
+        "absrel": 0.07454989779902729,
+        "d1": 0.9244391971664699
+      },
+      "official_pred_npy": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_teacher_rgb_dav2_compare/official_rgb_dav2l_pred/2018-02-10_16-39-47_00700.npy",
+      "teacher_rgb_png": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_teacher_rgb_dav2_compare/teacher_rgb/2018-02-10_16-39-47_00700.png",
+      "teacher_pred_npy": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_teacher_rgb_dav2_compare/teacher_rgb_dav2l_pred/2018-02-10_16-39-47_00700.npy"
+    }
+  ]
+}

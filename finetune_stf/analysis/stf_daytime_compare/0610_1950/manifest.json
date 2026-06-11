@@ -1,0 +1,30 @@
+{
+  "source_manifest": "/home/caq/6666_raw/seeingthroughfog/manifests/stf_raw_depth_v1_manifest.csv",
+  "seed": 42,
+  "groups": [
+    {
+      "label": "group1_clear_dry_incity",
+      "conditions": {
+        "fog": "none",
+        "precipitation": "none",
+        "road_state": "dry",
+        "infrastructure": "inCity"
+      }
+    },
+    {
+      "label": "group2_rain_wet_incity",
+      "conditions": {
+        "fog": "none",
+        "precipitation": "rain",
+        "road_state": "wet",
+        "infrastructure": "inCity"
+      }
+    }
+  ],
+  "panels": [
+    "finetune_stf/analysis/stf_daytime_compare/0610_1950/group1_clear_dry_incity.png",
+    "finetune_stf/analysis/stf_daytime_compare/0610_1950/group2_rain_wet_incity.png"
+  ],
+  "overview": "finetune_stf/analysis/stf_daytime_compare/0610_1950/overview.png",
+  "samples_csv": "finetune_stf/analysis/stf_daytime_compare/0610_1950/samples.csv"
+}

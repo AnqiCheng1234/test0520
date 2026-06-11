@@ -174,9 +174,22 @@ class RODRaw(Dataset):
         return sample
 
 
+class RODRawRGB3(RODRaw):
+    """ROD RAW view for 3-channel RamCore3 models: raw=[R,(Gr+Gb)/2,B]."""
+
+    def build_sample(self, idx, *, rng=random, include_geometry=False):
+        sample = super().build_sample(idx, rng=rng, include_geometry=include_geometry)
+        sample["raw"] = sample["image"]
+        sample["raw_rgb3_source"] = "packed_bayer_to_base_rgb_np"
+        sample["raw_rgb3_channel_order"] = "R_Gavg_B"
+        sample["dataset_input_mode"] = "raw24_base_rgb3"
+        return sample
+
+
 __all__ = [
     "PACKED_BAYER_SOURCE",
     "RODRaw",
+    "RODRawRGB3",
     "pack_raw24_to_rggb",
     "packed_bayer_to_base_rgb_np",
 ]

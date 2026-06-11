@@ -1,0 +1,10 @@
+{
+  "contact_sheet": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/rod_rawpy_debug/0611_0015_rod_rawpy_preview_n10/rod_rawpy_preview_contact_sheet.png",
+  "direct_rawpy_ok_count": 0,
+  "manifest": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/rod_rawpy_debug/0611_0015_rod_rawpy_preview_n10/manifest_rawpy_preview.jsonl",
+  "output_root": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/rod_rawpy_debug/0611_0015_rod_rawpy_preview_n10",
+  "rawpy_928x1440_mean_avg": 5.322216010093689,
+  "rawpy_928x1440_mean_max": 12.016427040100098,
+  "rawpy_928x1440_mean_min": 1.7574713230133057,
+  "sample_count": 10
+}

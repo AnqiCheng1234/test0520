@@ -1,4 +1,4 @@
-"""ROD-night dataset: RAW24 online student RGB paired with cached pseudo labels."""
+"""ROD-night dataset: RAW24 online rendered RGB paired with cached pseudo labels."""
 
 from __future__ import annotations
 
@@ -25,9 +25,12 @@ except ImportError:
 from finetune_stf.dataset.lod_raw import _apply_crop, _sample_crop_box
 from finetune_stf.dataset.rod_raw_rgb import (
     DEGREEN_GAINS,
+    PIPELINE_PARAMS,
     ROD_NATIVE_HW,
     STUDENT_GAMMA,
     STUDENT_WHITE_PERCENTILE,
+    TEACHER_GAMMA,
+    TEACHER_WHITE_PERCENTILE,
     render_pipeline,
     unpack_raw24,
 )
@@ -99,7 +102,23 @@ def _load_rod_manifest_rows(manifest_path: str | Path, rod_root: str | Path, spl
     return rows
 
 
-class RODRawStudentRGB(Dataset):
+def _validate_pipeline_params(
+    *,
+    rgb_pipeline: str,
+    white_percentile: float,
+    gamma: float,
+    channel_gains: tuple[float, float, float],
+) -> None:
+    expected = PIPELINE_PARAMS[rgb_pipeline]
+    if abs(float(white_percentile) - float(expected["white_percentile"])) > 1e-6:
+        raise ValueError(f"{rgb_pipeline} requires white_percentile={expected['white_percentile']}")
+    if abs(float(gamma) - float(expected["gamma"])) > 1e-6:
+        raise ValueError(f"{rgb_pipeline} requires gamma={expected['gamma']}")
+    if not np.allclose(np.asarray(channel_gains, dtype=np.float32), np.asarray(expected["channel_gains"])):
+        raise ValueError(f"{rgb_pipeline} requires channel_gains={tuple(expected['channel_gains'])}")
+
+
+class RODRawRenderedRGB(Dataset):
     def __init__(
         self,
         *,
@@ -115,19 +134,30 @@ class RODRawStudentRGB(Dataset):
         student_white_percentile: float = STUDENT_WHITE_PERCENTILE,
         student_gamma: float = STUDENT_GAMMA,
         student_channel_gains: tuple[float, float, float] = tuple(float(v) for v in DEGREEN_GAINS.tolist()),
+        teacher_white_percentile: float = TEACHER_WHITE_PERCENTILE,
+        teacher_gamma: float = TEACHER_GAMMA,
+        teacher_channel_gains: tuple[float, float, float] = tuple(float(v) for v in DEGREEN_GAINS.tolist()),
     ):
         if raw_source != "raw24":
             raise ValueError(f"ROD v1 supports raw_source='raw24', got {raw_source!r}")
-        if rgb_pipeline != "student_dark_degreen_v1":
-            raise ValueError(f"ROD v1 supports rgb_pipeline='student_dark_degreen_v1', got {rgb_pipeline!r}")
+        if rgb_pipeline not in PIPELINE_PARAMS:
+            raise ValueError(f"ROD v1 supports rgb_pipeline in {tuple(PIPELINE_PARAMS)}, got {rgb_pipeline!r}")
         if label_space != "inverse_relative":
             raise ValueError(f"ROD v1 supports label_space='inverse_relative', got {label_space!r}")
-        if abs(float(student_white_percentile) - STUDENT_WHITE_PERCENTILE) > 1e-6:
-            raise ValueError("student_white_percentile must match student_dark_degreen_v1")
-        if abs(float(student_gamma) - STUDENT_GAMMA) > 1e-6:
-            raise ValueError("student_gamma must match student_dark_degreen_v1")
-        if not np.allclose(np.asarray(student_channel_gains, dtype=np.float32), DEGREEN_GAINS):
-            raise ValueError("student_channel_gains must match student_dark_degreen_v1")
+        if rgb_pipeline == "student_dark_degreen_v1":
+            _validate_pipeline_params(
+                rgb_pipeline=rgb_pipeline,
+                white_percentile=student_white_percentile,
+                gamma=student_gamma,
+                channel_gains=student_channel_gains,
+            )
+        elif rgb_pipeline == "teacher_bright_degreen_v1":
+            _validate_pipeline_params(
+                rgb_pipeline=rgb_pipeline,
+                white_percentile=teacher_white_percentile,
+                gamma=teacher_gamma,
+                channel_gains=teacher_channel_gains,
+            )
         if crop_mode not in {"center", "random"}:
             raise ValueError("crop_mode must be one of {'center', 'random'}")
 
@@ -208,8 +238,20 @@ class RODRawStudentRGB(Dataset):
         return sample
 
 
+class RODRawStudentRGB(RODRawRenderedRGB):
+    pass
+
+
+class RODRawTeacherRGB(RODRawRenderedRGB):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("rgb_pipeline", "teacher_bright_degreen_v1")
+        super().__init__(*args, **kwargs)
+
+
 __all__ = [
     "DEFAULT_ROD_ROOT",
     "DEFAULT_ROD_NIGHT_TEACHER_MANIFEST",
+    "RODRawRenderedRGB",
     "RODRawStudentRGB",
+    "RODRawTeacherRGB",
 ]

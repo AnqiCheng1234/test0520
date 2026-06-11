@@ -1,0 +1,13 @@
+sample_id,split,status,absrel_holdout,debug_vis_path
+2019-09-11_19-54-28_01590,train,ok,0.01886998998419253,/mnt/drive/3333_raw/seeing_through_fog/0610_2225_pseudo_depth_priorda_hiresfine_dav2l_geo_lidar_last_6216/debug_vis/2019-09-11_19-54-28_01590.png
+2019-09-11_18-41-27_00510,train,ok,0.027609636518497765,/mnt/drive/3333_raw/seeing_through_fog/0610_2225_pseudo_depth_priorda_hiresfine_dav2l_geo_lidar_last_6216/debug_vis/2019-09-11_18-41-27_00510.png
+2018-12-13_15-19-31_03900,test,ok,0.034925548063432656,/mnt/drive/3333_raw/seeing_through_fog/0610_2225_pseudo_depth_priorda_hiresfine_dav2l_geo_lidar_last_6216/debug_vis/2018-12-13_15-19-31_03900.png
+2018-12-13_15-54-30_03800,test,ok,0.04364085401830385,/mnt/drive/3333_raw/seeing_through_fog/0610_2225_pseudo_depth_priorda_hiresfine_dav2l_geo_lidar_last_6216/debug_vis/2018-12-13_15-54-30_03800.png
+2019-09-11_20-13-20_01230,train,ok,0.05300242549264008,/mnt/drive/3333_raw/seeing_through_fog/0610_2225_pseudo_depth_priorda_hiresfine_dav2l_geo_lidar_last_6216/debug_vis/2019-09-11_20-13-20_01230.png
+2018-12-14_08-11-32_04700,test,ok,0.06519658408717217,/mnt/drive/3333_raw/seeing_through_fog/0610_2225_pseudo_depth_priorda_hiresfine_dav2l_geo_lidar_last_6216/debug_vis/2018-12-14_08-11-32_04700.png
+2018-02-09_12-09-05_00300,train,ok,0.08414559698091603,/mnt/drive/3333_raw/seeing_through_fog/0610_2225_pseudo_depth_priorda_hiresfine_dav2l_geo_lidar_last_6216/debug_vis/2018-02-09_12-09-05_00300.png
+2018-12-22_14-22-32_00900,train,ok,0.10809565276237917,/mnt/drive/3333_raw/seeing_through_fog/0610_2225_pseudo_depth_priorda_hiresfine_dav2l_geo_lidar_last_6216/debug_vis/2018-12-22_14-22-32_00900.png
+2018-12-21_09-57-14_00000,train,ok,0.1341817891086629,/mnt/drive/3333_raw/seeing_through_fog/0610_2225_pseudo_depth_priorda_hiresfine_dav2l_geo_lidar_last_6216/debug_vis/2018-12-21_09-57-14_00000.png
+2018-02-07_16-57-29_00300,val,ok,0.18363478653416548,/mnt/drive/3333_raw/seeing_through_fog/0610_2225_pseudo_depth_priorda_hiresfine_dav2l_geo_lidar_last_6216/debug_vis/2018-02-07_16-57-29_00300.png
+2018-02-04_18-19-29_00000,test,ok,0.2625378688335334,/mnt/drive/3333_raw/seeing_through_fog/0610_2225_pseudo_depth_priorda_hiresfine_dav2l_geo_lidar_last_6216/debug_vis/2018-02-04_18-19-29_00000.png
+2018-02-06_16-34-35_00500,train,ok,0.3912850140855396,/mnt/drive/3333_raw/seeing_through_fog/0610_2225_pseudo_depth_priorda_hiresfine_dav2l_geo_lidar_last_6216/debug_vis/2018-02-06_16-34-35_00500.png

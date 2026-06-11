@@ -1,0 +1,16 @@
+{
+  "contact_sheet": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_rawpy_debug/0611_0025_lod_rawpy_preview_n10/lod_rawpy_preview_contact_sheet.png",
+  "direct_rawpy_ok_count": 0,
+  "manifest": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_rawpy_debug/0611_0025_lod_rawpy_preview_n10/manifest_lod_rawpy_preview.jsonl",
+  "output_root": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_rawpy_debug/0611_0025_lod_rawpy_preview_n10",
+  "rawpy_dark_mean_avg": 115.9953109741211,
+  "rawpy_normal_mean_avg": 99.58266143798828,
+  "rawpy_postprocess_kwargs": {
+    "use_auto_wb": true
+  },
+  "rawpy_route": "3-channel LinearRaw RGB DNG wrapper, photometric=34892, rawpy.postprocess(use_auto_wb=True)",
+  "rgb_dark_mean_avg": 8.155809295177459,
+  "rgb_normal_mean_avg": 98.65202255249024,
+  "sample_count": 10,
+  "semantic_warning": "This LOD output is not directly comparable to ROD Bayer DNG RawPy as a demosaic ISP; LOD RAW files are 3-channel uint16 PNGs."
+}

@@ -1,0 +1,46 @@
+{
+  "check_direct_rawpy": true,
+  "contact_sheet": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_rawpy_debug/0611_0025_lod_rawpy_preview_n10/lod_rawpy_preview_contact_sheet.png",
+  "dng_metadata": {
+    "as_shot_neutral": [
+      1,
+      1,
+      1
+    ],
+    "black_level": [
+      0,
+      0,
+      0
+    ],
+    "calibration_illuminant_1": "D65",
+    "channels": "RGB",
+    "color_matrix_1": "standard_xyz_to_srgb_d65",
+    "photometric": "LinearRaw",
+    "photometric_code": 34892,
+    "white_level": [
+      65535,
+      65535,
+      65535
+    ]
+  },
+  "keep_dng": true,
+  "libraw_version": [
+    0,
+    22,
+    1
+  ],
+  "limit": 10,
+  "lod_root": "/home/caq/6666_raw/0000_dataset/LOD",
+  "manifest": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_rawpy_debug/0611_0025_lod_rawpy_preview_n10/manifest_lod_rawpy_preview.jsonl",
+  "manifest_path": "/home/caq/6666_raw/0000_dataset/LOD/pseudo_depth_dav2l_rgb_normal_rel_1200x800/lod_true_rgb_normal_dav2l_rel_manifest_block8_val112_excl10_uniform.csv",
+  "output_root": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/lod_rawpy_debug/0611_0025_lod_rawpy_preview_n10",
+  "rawpy_postprocess_kwargs": {
+    "use_auto_wb": true
+  },
+  "rawpy_version": "0.27.0",
+  "sample_count": 10,
+  "script": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/scripts/build_lod_rawpy_debug_preview.py",
+  "selection": "spread",
+  "split": "01Valid",
+  "tifffile_version": "2025.5.10"
+}

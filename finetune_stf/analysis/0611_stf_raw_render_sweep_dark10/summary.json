@@ -1,0 +1,573 @@
+{
+  "config": {
+    "selected_csv": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_dark_enhance_dav2_compare/selected_dark_overexp_10_metrics.csv",
+    "output_dir": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_raw_render_sweep_dark10",
+    "checkpoint": "/mnt/drive/9999_backup_from_home_0514/333_cvpr/da_ours/checkpoints/depth_anything_v2_vitl.pth",
+    "encoder": "vitl",
+    "input_size": 924,
+    "metric_definition": "Affinely align DAV2-L relative inverse output to sparse LiDAR inverse depth on deterministic prior points, then compute AbsRel and D1 on held-out sparse points.",
+    "visualization": {
+      "cmap": "Spectral_r",
+      "shared_inverse_vmin": 0.012500000186264515,
+      "shared_inverse_vmax": 0.17237375676631927
+    },
+    "recipes": [
+      {
+        "name": "raw_rod_like_g045",
+        "raw_normalization": "companded",
+        "black_percentile": 0.0,
+        "white_percentile": 99.5,
+        "gamma": 0.454545,
+        "gains": [
+          1.0800000429153442,
+          0.949999988079071,
+          1.100000023841858
+        ],
+        "black_mode": "global",
+        "unsharp_sigma": 0.0,
+        "unsharp_amount": 0.0
+      },
+      {
+        "name": "raw_black01_g065",
+        "raw_normalization": "companded",
+        "black_percentile": 1.0,
+        "white_percentile": 99.7,
+        "gamma": 0.65,
+        "gains": [
+          1.0800000429153442,
+          0.949999988079071,
+          1.100000023841858
+        ],
+        "black_mode": "global",
+        "unsharp_sigma": 0.0,
+        "unsharp_amount": 0.0
+      },
+      {
+        "name": "raw_black05_g075",
+        "raw_normalization": "companded",
+        "black_percentile": 5.0,
+        "white_percentile": 99.8,
+        "gamma": 0.75,
+        "gains": [
+          1.0800000429153442,
+          0.949999988079071,
+          1.100000023841858
+        ],
+        "black_mode": "global",
+        "unsharp_sigma": 0.0,
+        "unsharp_amount": 0.0
+      },
+      {
+        "name": "raw_black10_g085",
+        "raw_normalization": "companded",
+        "black_percentile": 10.0,
+        "white_percentile": 99.9,
+        "gamma": 0.85,
+        "gains": [
+          1.0800000429153442,
+          0.949999988079071,
+          1.100000023841858
+        ],
+        "black_mode": "global",
+        "unsharp_sigma": 0.0,
+        "unsharp_amount": 0.0
+      },
+      {
+        "name": "raw_black05_g075_unsharp",
+        "raw_normalization": "companded",
+        "black_percentile": 5.0,
+        "white_percentile": 99.8,
+        "gamma": 0.75,
+        "gains": [
+          1.0800000429153442,
+          0.949999988079071,
+          1.100000023841858
+        ],
+        "black_mode": "global",
+        "unsharp_sigma": 1.1,
+        "unsharp_amount": 0.85
+      },
+      {
+        "name": "raw_decomp_black05_g075",
+        "raw_normalization": "decompanded",
+        "black_percentile": 5.0,
+        "white_percentile": 99.8,
+        "gamma": 0.75,
+        "gains": [
+          1.0800000429153442,
+          0.949999988079071,
+          1.100000023841858
+        ],
+        "black_mode": "global",
+        "unsharp_sigma": 0.0,
+        "unsharp_amount": 0.0
+      }
+    ]
+  },
+  "aggregate": {
+    "dataset_rgb": {
+      "mean_absrel": 0.10788008325361935,
+      "mean_d1": 0.8733744041034095,
+      "wins_by_absrel": 2
+    },
+    "raw_rod_like_g045": {
+      "mean_absrel": 0.10145322131910925,
+      "mean_d1": 0.8764321446421601,
+      "wins_by_absrel": 3
+    },
+    "raw_black01_g065": {
+      "mean_absrel": 0.1046477852269528,
+      "mean_d1": 0.8679006234541806,
+      "wins_by_absrel": 0
+    },
+    "raw_black05_g075": {
+      "mean_absrel": 0.10935391763410222,
+      "mean_d1": 0.8588743203166095,
+      "wins_by_absrel": 0
+    },
+    "raw_black10_g085": {
+      "mean_absrel": 0.1287355524532123,
+      "mean_d1": 0.8325058779315686,
+      "wins_by_absrel": 0
+    },
+    "raw_black05_g075_unsharp": {
+      "mean_absrel": 0.09860055950454112,
+      "mean_d1": 0.8768454861411215,
+      "wins_by_absrel": 5
+    },
+    "raw_decomp_black05_g075": {
+      "mean_absrel": 0.10909775189982074,
+      "mean_d1": 0.862674825433434,
+      "wins_by_absrel": 0
+    }
+  },
+  "best_by_mean_absrel": "raw_black05_g075_unsharp",
+  "best_by_mean_d1": "raw_black05_g075_unsharp",
+  "samples": [
+    {
+      "sample_id": "2018-02-04_21-46-15_00100",
+      "split": "test",
+      "best_absrel_branch": "raw_rod_like_g045",
+      "metrics": {
+        "dataset_rgb": {
+          "eval_points": 1641,
+          "absrel": 0.0847699497928411,
+          "d1": 0.9408897014015845
+        },
+        "raw_rod_like_g045": {
+          "eval_points": 1641,
+          "absrel": 0.069616319741189,
+          "d1": 0.9372333942717855
+        },
+        "raw_black01_g065": {
+          "eval_points": 1641,
+          "absrel": 0.07820315324486639,
+          "d1": 0.926873857404022
+        },
+        "raw_black05_g075": {
+          "eval_points": 1641,
+          "absrel": 0.09637506980584519,
+          "d1": 0.9049360146252285
+        },
+        "raw_black10_g085": {
+          "eval_points": 1641,
+          "absrel": 0.11798651209054001,
+          "d1": 0.8775137111517367
+        },
+        "raw_black05_g075_unsharp": {
+          "eval_points": 1641,
+          "absrel": 0.07533950360525588,
+          "d1": 0.9329677026203534
+        },
+        "raw_decomp_black05_g075": {
+          "eval_points": 1641,
+          "absrel": 0.09665504133742774,
+          "d1": 0.903107861060329
+        }
+      }
+    },
+    {
+      "sample_id": "2018-02-04_21-37-51_00200",
+      "split": "test",
+      "best_absrel_branch": "raw_black05_g075_unsharp",
+      "metrics": {
+        "dataset_rgb": {
+          "eval_points": 1648,
+          "absrel": 0.2135464253821671,
+          "d1": 0.7081310679611651
+        },
+        "raw_rod_like_g045": {
+          "eval_points": 1648,
+          "absrel": 0.18507042660044984,
+          "d1": 0.6929611650485437
+        },
+        "raw_black01_g065": {
+          "eval_points": 1648,
+          "absrel": 0.19470187157494218,
+          "d1": 0.6565533980582524
+        },
+        "raw_black05_g075": {
+          "eval_points": 1648,
+          "absrel": 0.2006483584810525,
+          "d1": 0.6595873786407767
+        },
+        "raw_black10_g085": {
+          "eval_points": 1648,
+          "absrel": 0.22522740169092562,
+          "d1": 0.6419902912621359
+        },
+        "raw_black05_g075_unsharp": {
+          "eval_points": 1648,
+          "absrel": 0.18131953916723356,
+          "d1": 0.6565533980582524
+        },
+        "raw_decomp_black05_g075": {
+          "eval_points": 1648,
+          "absrel": 0.20156968731529418,
+          "d1": 0.6595873786407767
+        }
+      }
+    },
+    {
+      "sample_id": "2018-02-04_21-37-51_00300",
+      "split": "test",
+      "best_absrel_branch": "dataset_rgb",
+      "metrics": {
+        "dataset_rgb": {
+          "eval_points": 1324,
+          "absrel": 0.05670078027468376,
+          "d1": 0.9554380664652568
+        },
+        "raw_rod_like_g045": {
+          "eval_points": 1324,
+          "absrel": 0.059555475329732856,
+          "d1": 0.9705438066465257
+        },
+        "raw_black01_g065": {
+          "eval_points": 1324,
+          "absrel": 0.059200530309431156,
+          "d1": 0.972809667673716
+        },
+        "raw_black05_g075": {
+          "eval_points": 1324,
+          "absrel": 0.0571985214297133,
+          "d1": 0.972809667673716
+        },
+        "raw_black10_g085": {
+          "eval_points": 1324,
+          "absrel": 0.0612056771746067,
+          "d1": 0.9735649546827795
+        },
+        "raw_black05_g075_unsharp": {
+          "eval_points": 1324,
+          "absrel": 0.05707363908151585,
+          "d1": 0.9697885196374623
+        },
+        "raw_decomp_black05_g075": {
+          "eval_points": 1324,
+          "absrel": 0.05811299180837914,
+          "d1": 0.9735649546827795
+        }
+      }
+    },
+    {
+      "sample_id": "2018-02-04_21-35-48_00300",
+      "split": "test",
+      "best_absrel_branch": "raw_black05_g075_unsharp",
+      "metrics": {
+        "dataset_rgb": {
+          "eval_points": 1538,
+          "absrel": 0.1010324984331528,
+          "d1": 0.9024707412223667
+        },
+        "raw_rod_like_g045": {
+          "eval_points": 1538,
+          "absrel": 0.0801013929916672,
+          "d1": 0.922626788036411
+        },
+        "raw_black01_g065": {
+          "eval_points": 1538,
+          "absrel": 0.08921573218058118,
+          "d1": 0.9096228868660599
+        },
+        "raw_black05_g075": {
+          "eval_points": 1538,
+          "absrel": 0.08948977221639716,
+          "d1": 0.9096228868660599
+        },
+        "raw_black10_g085": {
+          "eval_points": 1538,
+          "absrel": 0.12372895405021828,
+          "d1": 0.864109232769831
+        },
+        "raw_black05_g075_unsharp": {
+          "eval_points": 1538,
+          "absrel": 0.07488834660758847,
+          "d1": 0.9408322496749024
+        },
+        "raw_decomp_black05_g075": {
+          "eval_points": 1538,
+          "absrel": 0.08997386416228034,
+          "d1": 0.9096228868660599
+        }
+      }
+    },
+    {
+      "sample_id": "2018-02-04_21-32-11_00300",
+      "split": "test",
+      "best_absrel_branch": "raw_black05_g075_unsharp",
+      "metrics": {
+        "dataset_rgb": {
+          "eval_points": 1818,
+          "absrel": 0.10580226695417759,
+          "d1": 0.8558855885588559
+        },
+        "raw_rod_like_g045": {
+          "eval_points": 1818,
+          "absrel": 0.08997607497992763,
+          "d1": 0.9086908690869087
+        },
+        "raw_black01_g065": {
+          "eval_points": 1818,
+          "absrel": 0.09052300443950492,
+          "d1": 0.9081408140814081
+        },
+        "raw_black05_g075": {
+          "eval_points": 1818,
+          "absrel": 0.08838456762504267,
+          "d1": 0.9053905390539054
+        },
+        "raw_black10_g085": {
+          "eval_points": 1818,
+          "absrel": 0.09096571703452155,
+          "d1": 0.8888888888888888
+        },
+        "raw_black05_g075_unsharp": {
+          "eval_points": 1818,
+          "absrel": 0.08723218292588135,
+          "d1": 0.9053905390539054
+        },
+        "raw_decomp_black05_g075": {
+          "eval_points": 1818,
+          "absrel": 0.08902834962303666,
+          "d1": 0.9015401540154016
+        }
+      }
+    },
+    {
+      "sample_id": "2018-02-04_21-49-30_00300",
+      "split": "test",
+      "best_absrel_branch": "dataset_rgb",
+      "metrics": {
+        "dataset_rgb": {
+          "eval_points": 1374,
+          "absrel": 0.10836341452664545,
+          "d1": 0.8777292576419214
+        },
+        "raw_rod_like_g045": {
+          "eval_points": 1374,
+          "absrel": 0.13816042907915962,
+          "d1": 0.8187772925764192
+        },
+        "raw_black01_g065": {
+          "eval_points": 1374,
+          "absrel": 0.1360582991985271,
+          "d1": 0.8122270742358079
+        },
+        "raw_black05_g075": {
+          "eval_points": 1374,
+          "absrel": 0.14676572366979224,
+          "d1": 0.7809315866084425
+        },
+        "raw_black10_g085": {
+          "eval_points": 1374,
+          "absrel": 0.195602081096536,
+          "d1": 0.7292576419213974
+        },
+        "raw_black05_g075_unsharp": {
+          "eval_points": 1374,
+          "absrel": 0.12134905265658483,
+          "d1": 0.8362445414847162
+        },
+        "raw_decomp_black05_g075": {
+          "eval_points": 1374,
+          "absrel": 0.14069994560825588,
+          "d1": 0.8231441048034934
+        }
+      }
+    },
+    {
+      "sample_id": "2018-02-04_21-46-57_00000",
+      "split": "test",
+      "best_absrel_branch": "raw_rod_like_g045",
+      "metrics": {
+        "dataset_rgb": {
+          "eval_points": 1596,
+          "absrel": 0.09946862735474468,
+          "d1": 0.8709273182957393
+        },
+        "raw_rod_like_g045": {
+          "eval_points": 1596,
+          "absrel": 0.09873466527467661,
+          "d1": 0.8859649122807017
+        },
+        "raw_black01_g065": {
+          "eval_points": 1596,
+          "absrel": 0.0998760432405532,
+          "d1": 0.8834586466165414
+        },
+        "raw_black05_g075": {
+          "eval_points": 1596,
+          "absrel": 0.10467130698934776,
+          "d1": 0.8703007518796992
+        },
+        "raw_black10_g085": {
+          "eval_points": 1596,
+          "absrel": 0.12253225542554512,
+          "d1": 0.8139097744360902
+        },
+        "raw_black05_g075_unsharp": {
+          "eval_points": 1596,
+          "absrel": 0.10052094697427037,
+          "d1": 0.8859649122807017
+        },
+        "raw_decomp_black05_g075": {
+          "eval_points": 1596,
+          "absrel": 0.10453847454633658,
+          "d1": 0.8734335839598998
+        }
+      }
+    },
+    {
+      "sample_id": "2018-02-04_21-35-48_00400",
+      "split": "test",
+      "best_absrel_branch": "raw_black05_g075_unsharp",
+      "metrics": {
+        "dataset_rgb": {
+          "eval_points": 1522,
+          "absrel": 0.13378754425616515,
+          "d1": 0.8383705650459922
+        },
+        "raw_rod_like_g045": {
+          "eval_points": 1522,
+          "absrel": 0.1194327574428811,
+          "d1": 0.8554533508541393
+        },
+        "raw_black01_g065": {
+          "eval_points": 1522,
+          "absrel": 0.1193483408035989,
+          "d1": 0.8580814717477004
+        },
+        "raw_black05_g075": {
+          "eval_points": 1522,
+          "absrel": 0.11948366624800467,
+          "d1": 0.8528252299605782
+        },
+        "raw_black10_g085": {
+          "eval_points": 1522,
+          "absrel": 0.1250933686923538,
+          "d1": 0.842969776609724
+        },
+        "raw_black05_g075_unsharp": {
+          "eval_points": 1522,
+          "absrel": 0.11862610481976657,
+          "d1": 0.8521681997371879
+        },
+        "raw_decomp_black05_g075": {
+          "eval_points": 1522,
+          "absrel": 0.11874040426553711,
+          "d1": 0.8528252299605782
+        }
+      }
+    },
+    {
+      "sample_id": "2018-02-04_21-44-44_00100",
+      "split": "test",
+      "best_absrel_branch": "raw_rod_like_g045",
+      "metrics": {
+        "dataset_rgb": {
+          "eval_points": 1723,
+          "absrel": 0.06675489668929978,
+          "d1": 0.9315147997678468
+        },
+        "raw_rod_like_g045": {
+          "eval_points": 1723,
+          "absrel": 0.06255206501520838,
+          "d1": 0.9378990133488102
+        },
+        "raw_black01_g065": {
+          "eval_points": 1723,
+          "absrel": 0.06510874058479302,
+          "d1": 0.9315147997678468
+        },
+        "raw_black05_g075": {
+          "eval_points": 1723,
+          "absrel": 0.07003883521490793,
+          "d1": 0.9245502031340684
+        },
+        "raw_black10_g085": {
+          "eval_points": 1723,
+          "absrel": 0.07644942838477353,
+          "d1": 0.9158444573418456
+        },
+        "raw_black05_g075_unsharp": {
+          "eval_points": 1723,
+          "absrel": 0.06317864467149195,
+          "d1": 0.9361578641903656
+        },
+        "raw_decomp_black05_g075": {
+          "eval_points": 1723,
+          "absrel": 0.07045031523785059,
+          "d1": 0.9233894370284388
+        }
+      }
+    },
+    {
+      "sample_id": "2018-02-04_18-26-37_00200",
+      "split": "test",
+      "best_absrel_branch": "raw_black05_g075_unsharp",
+      "metrics": {
+        "dataset_rgb": {
+          "eval_points": 1592,
+          "absrel": 0.10857442887231614,
+          "d1": 0.8523869346733668
+        },
+        "raw_rod_like_g045": {
+          "eval_points": 1592,
+          "absrel": 0.11133260673620025,
+          "d1": 0.8341708542713567
+        },
+        "raw_black01_g065": {
+          "eval_points": 1592,
+          "absrel": 0.11424213669273,
+          "d1": 0.8197236180904522
+        },
+        "raw_black05_g075": {
+          "eval_points": 1592,
+          "absrel": 0.12048335466091874,
+          "d1": 0.8077889447236181
+        },
+        "raw_black10_g085": {
+          "eval_points": 1592,
+          "absrel": 0.14856412889210252,
+          "d1": 0.7770100502512562
+        },
+        "raw_black05_g075_unsharp": {
+          "eval_points": 1592,
+          "absrel": 0.10647763453582246,
+          "d1": 0.8523869346733668
+        },
+        "raw_decomp_black05_g075": {
+          "eval_points": 1592,
+          "absrel": 0.12120844509380907,
+          "d1": 0.8065326633165829
+        }
+      }
+    }
+  ],
+  "artifacts": {
+    "render_sheet": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_raw_render_sweep_dark10/stf_raw_render_variants_10dark.png",
+    "depth_sheet": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_raw_render_sweep_dark10/stf_raw_render_dav2l_depth_variants_10dark_spectral_r.png",
+    "metrics_csv": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/0611_stf_raw_render_sweep_dark10/raw_render_sweep_metrics_long.csv"
+  }
+}

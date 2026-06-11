@@ -81,13 +81,27 @@ from finetune_stf.dataset.lod_true import (
     LODTrueRawDarkNormalPairRGB16,
 )
 from finetune_stf.dataset.nyu_eval import DEFAULT_NYU_DIR, NYUv2Eval
-from finetune_stf.dataset.rod_raw_rgb import DEGREEN_GAINS, STUDENT_GAMMA, STUDENT_WHITE_PERCENTILE
-from finetune_stf.dataset.rod_raw import RODRaw
+from finetune_stf.dataset.rod_raw_rgb import (
+    DEGREEN_GAINS,
+    STUDENT_GAMMA,
+    STUDENT_WHITE_PERCENTILE,
+    TEACHER_GAMMA,
+    TEACHER_WHITE_PERCENTILE,
+)
+from finetune_stf.dataset.rod_raw import RODRaw, RODRawRGB3
 from finetune_stf.dataset.rod_raw_student_rgb import (
     DEFAULT_ROD_NIGHT_TEACHER_MANIFEST,
     DEFAULT_ROD_ROOT,
     RODRawStudentRGB,
+    RODRawTeacherRGB,
 )
+from finetune_stf.dataset.rod_rawpy_render import (
+    RAWPY_DNG_PROFILE,
+    RAWPY_POSTPROCESS_PROFILE,
+    RAWPY_RGB_PIPELINE,
+    get_rawpy_runtime_versions,
+)
+from finetune_stf.dataset.rod_rawpy_rgb import DEFAULT_ROD_RAWPY_TEMP_ROOT, RODRawRawPyRGB
 from finetune_stf.dataset.robotcar import (
     DEFAULT_ROBOTCAR_ROOT,
     ROBOTCAR_FAST_EVAL_BACKENDS,
@@ -198,6 +212,15 @@ LOD_TRUE_RAW_RGB16_STUDENT_LABEL_BY_FAMILY = {
     "lod_true_raw_dark_normal_pair_rgb16": "RAW_Dark+RAW_normal_pair",
 }
 LOD_TRUE_RAW_RGB16_DATASET_FAMILIES = set(LOD_TRUE_RAW_RGB16_INPUT_MODE_BY_FAMILY)
+ROD_RAWPY_RGB_DATASET_FAMILY = "rod_raw_rawpy_rgb"
+ROD_RENDERED_RGB_DATASET_FAMILIES = {"rod_raw_student_rgb", "rod_raw_teacher_rgb", ROD_RAWPY_RGB_DATASET_FAMILY}
+ROD_HAND_RENDERED_RGB_DATASET_FAMILIES = {"rod_raw_student_rgb", "rod_raw_teacher_rgb"}
+ROD_RGB_DATASET_CLS_BY_FAMILY = {
+    "rod_raw_student_rgb": RODRawStudentRGB,
+    "rod_raw_teacher_rgb": RODRawTeacherRGB,
+    ROD_RAWPY_RGB_DATASET_FAMILY: RODRawRawPyRGB,
+}
+ROD_RAW_RGB3_DATASET_FAMILIES = {"rod_raw_rgb3"}
 RAW_PACKED_INPUT_TYPES = ("raw_packed",)
 RGB_ONLY_INPUT_TYPES = ("rgb",)
 RGB_LORA_INPUT_TYPES = ("rgb_lora",)
@@ -278,15 +301,35 @@ def uses_stf_rgb_dataset(args):
 
 
 def uses_rod_dataset(args):
-    return resolved_config(args).dataset_family in {"rod_raw_student_rgb", "rod_raw"}
+    return resolved_config(args).dataset_family in {
+        *ROD_RENDERED_RGB_DATASET_FAMILIES,
+        *ROD_RAW_RGB3_DATASET_FAMILIES,
+        "rod_raw",
+    }
 
 
 def uses_rod_raw_student_rgb_dataset(args):
     return resolved_config(args).dataset_family == "rod_raw_student_rgb"
 
 
+def uses_rod_raw_teacher_rgb_dataset(args):
+    return resolved_config(args).dataset_family == "rod_raw_teacher_rgb"
+
+
+def uses_rod_rawpy_rgb_dataset(args):
+    return resolved_config(args).dataset_family == ROD_RAWPY_RGB_DATASET_FAMILY
+
+
+def uses_rod_rendered_rgb_dataset(args):
+    return resolved_config(args).dataset_family in ROD_RENDERED_RGB_DATASET_FAMILIES
+
+
 def uses_rod_raw_dataset(args):
     return resolved_config(args).dataset_family == "rod_raw"
+
+
+def uses_rod_raw_rgb3_dataset(args):
+    return resolved_config(args).dataset_family == "rod_raw_rgb3"
 
 
 def uses_raw_model_tensor(args):
@@ -307,7 +350,7 @@ def uses_lora(args):
 
 def supports_rgb_eval_inputs(args):
     cfg = resolved_config(args)
-    return cfg.dataset_family in {"stf_rgb", "rod_raw_student_rgb"} or cfg.dataset_input_mode == "raw_ram"
+    return cfg.dataset_family in {"stf_rgb", *ROD_RENDERED_RGB_DATASET_FAMILIES} or cfg.dataset_input_mode == "raw_ram"
 
 
 def uses_lod_dataset(args):
@@ -474,7 +517,22 @@ def parse_args():
     parser.add_argument("--rod-root", default=DEFAULT_ROD_ROOT)
     parser.add_argument("--rod-night-manifest", default=DEFAULT_ROD_NIGHT_TEACHER_MANIFEST)
     parser.add_argument("--rod-raw-source", default="raw24", choices=["raw24"])
-    parser.add_argument("--rod-rgb-pipeline", default="student_dark_degreen_v1", choices=["student_dark_degreen_v1"])
+    parser.add_argument(
+        "--rod-rgb-pipeline",
+        default="student_dark_degreen_v1",
+        choices=["student_dark_degreen_v1", "teacher_bright_degreen_v1", RAWPY_RGB_PIPELINE],
+    )
+    parser.add_argument(
+        "--rod-rawpy-dng-profile",
+        default="n_a",
+        choices=["n_a", RAWPY_DNG_PROFILE],
+    )
+    parser.add_argument(
+        "--rod-rawpy-postprocess-profile",
+        default="n_a",
+        choices=["n_a", RAWPY_POSTPROCESS_PROFILE],
+    )
+    parser.add_argument("--rod-rawpy-temp-root", default=DEFAULT_ROD_RAWPY_TEMP_ROOT)
     parser.add_argument("--rod-label-space", default="inverse_relative", choices=["inverse_relative"])
     parser.add_argument("--rod-train-crop-mode", default="random", choices=["random", "center"])
     parser.add_argument("--rod-val-crop-mode", default="center", choices=["center", "random"])
@@ -482,6 +540,14 @@ def parse_args():
     parser.add_argument("--rod-student-gamma", default=STUDENT_GAMMA, type=float)
     parser.add_argument(
         "--rod-student-channel-gains",
+        nargs=3,
+        type=float,
+        default=[float(v) for v in DEGREEN_GAINS.tolist()],
+    )
+    parser.add_argument("--rod-teacher-white-percentile", default=TEACHER_WHITE_PERCENTILE, type=float)
+    parser.add_argument("--rod-teacher-gamma", default=TEACHER_GAMMA, type=float)
+    parser.add_argument(
+        "--rod-teacher-channel-gains",
         nargs=3,
         type=float,
         default=[float(v) for v in DEGREEN_GAINS.tolist()],
@@ -822,7 +888,10 @@ def parse_args():
     except ValueError as exc:
         parser.error(str(exc))
     if args.stage == "rod_only" and not uses_rod_dataset(args):
-        parser.error("--stage rod_only requires --dataset-family rod_raw_student_rgb or rod_raw")
+        parser.error(
+            "--stage rod_only requires --dataset-family rod_raw_student_rgb, "
+            "rod_raw_teacher_rgb, rod_raw_rawpy_rgb, rod_raw, or rod_raw_rgb3"
+        )
     if args.stage == "lod_only" and not uses_lod_dataset(args):
         parser.error(
             "--stage lod_only requires --dataset-family lod_true_rgb_dark, "
@@ -845,6 +914,38 @@ def parse_args():
                 parser.error("ROD student-RGB v1 requires --rod-student-gamma 0.9")
             if not np.allclose(np.asarray(args.rod_student_channel_gains, dtype=np.float32), DEGREEN_GAINS):
                 parser.error("ROD student-RGB v1 requires --rod-student-channel-gains 1.08 0.95 1.10")
+        if uses_rod_raw_teacher_rgb_dataset(args):
+            if args.rod_rgb_pipeline != "teacher_bright_degreen_v1":
+                parser.error("ROD teacher-RGB v1 requires --rod-rgb-pipeline teacher_bright_degreen_v1")
+            if abs(args.rod_teacher_white_percentile - TEACHER_WHITE_PERCENTILE) > 1e-6:
+                parser.error("ROD teacher-RGB v1 requires --rod-teacher-white-percentile 99.5")
+            if abs(args.rod_teacher_gamma - TEACHER_GAMMA) > 1e-6:
+                parser.error("ROD teacher-RGB v1 requires --rod-teacher-gamma 0.454545")
+            if not np.allclose(np.asarray(args.rod_teacher_channel_gains, dtype=np.float32), DEGREEN_GAINS):
+                parser.error("ROD teacher-RGB v1 requires --rod-teacher-channel-gains 1.08 0.95 1.10")
+        if uses_rod_rawpy_rgb_dataset(args):
+            if args.rod_rgb_pipeline != RAWPY_RGB_PIPELINE:
+                parser.error(f"ROD RawPy RGB requires --rod-rgb-pipeline {RAWPY_RGB_PIPELINE}")
+            if args.rod_rawpy_dng_profile != RAWPY_DNG_PROFILE:
+                parser.error(f"ROD RawPy RGB requires --rod-rawpy-dng-profile {RAWPY_DNG_PROFILE}")
+            if args.rod_rawpy_postprocess_profile != RAWPY_POSTPROCESS_PROFILE:
+                parser.error(
+                    f"ROD RawPy RGB requires --rod-rawpy-postprocess-profile {RAWPY_POSTPROCESS_PROFILE}"
+                )
+            rawpy_inactive_render_flags = {
+                "rod_student_white_percentile",
+                "rod_student_gamma",
+                "rod_student_channel_gains",
+                "rod_teacher_white_percentile",
+                "rod_teacher_gamma",
+                "rod_teacher_channel_gains",
+            }
+            explicit_inactive = sorted(rawpy_inactive_render_flags & set(explicit_cli_args))
+            if explicit_inactive:
+                flags = ", ".join(f"--{name.replace('_', '-')}" for name in explicit_inactive)
+                parser.error(f"ROD RawPy RGB does not use student/teacher renderer parameters: {flags}")
+        elif args.rod_rawpy_dng_profile != "n_a" or args.rod_rawpy_postprocess_profile != "n_a":
+            parser.error("Non-RawPy ROD datasets require --rod-rawpy-dng-profile n_a and --rod-rawpy-postprocess-profile n_a")
         rod_root = Path(args.rod_root).expanduser()
         rod_manifest = Path(args.rod_night_manifest).expanduser()
         if not rod_root.is_dir():
@@ -1830,7 +1931,7 @@ def build_datasets(args):
             )
         return datasets
 
-    if cfg.dataset_family in {"rod_raw_student_rgb", "rod_raw"}:
+    if cfg.dataset_family in {*ROD_RENDERED_RGB_DATASET_FAMILIES, *ROD_RAW_RGB3_DATASET_FAMILIES, "rod_raw"}:
         rod_common = {
             "rod_root": args.rod_root,
             "manifest_path": args.rod_night_manifest,
@@ -1838,16 +1939,31 @@ def build_datasets(args):
             "raw_source": args.rod_raw_source,
             "label_space": args.rod_label_space,
         }
-        if cfg.dataset_family == "rod_raw_student_rgb":
-            rod_dataset_cls = RODRawStudentRGB
-            rod_common.update(
-                {
-                    "rgb_pipeline": args.rod_rgb_pipeline,
-                    "student_white_percentile": args.rod_student_white_percentile,
-                    "student_gamma": args.rod_student_gamma,
-                    "student_channel_gains": tuple(args.rod_student_channel_gains),
-                }
-            )
+        if cfg.dataset_family in ROD_RENDERED_RGB_DATASET_FAMILIES:
+            rod_dataset_cls = ROD_RGB_DATASET_CLS_BY_FAMILY[cfg.dataset_family]
+            if cfg.dataset_family == ROD_RAWPY_RGB_DATASET_FAMILY:
+                rod_common.update(
+                    {
+                        "rgb_pipeline": args.rod_rgb_pipeline,
+                        "rawpy_dng_profile": args.rod_rawpy_dng_profile,
+                        "rawpy_postprocess_profile": args.rod_rawpy_postprocess_profile,
+                        "rawpy_temp_root": args.rod_rawpy_temp_root,
+                    }
+                )
+            else:
+                rod_common.update(
+                    {
+                        "rgb_pipeline": args.rod_rgb_pipeline,
+                        "student_white_percentile": args.rod_student_white_percentile,
+                        "student_gamma": args.rod_student_gamma,
+                        "student_channel_gains": tuple(args.rod_student_channel_gains),
+                        "teacher_white_percentile": args.rod_teacher_white_percentile,
+                        "teacher_gamma": args.rod_teacher_gamma,
+                        "teacher_channel_gains": tuple(args.rod_teacher_channel_gains),
+                    }
+                )
+        elif cfg.dataset_family in ROD_RAW_RGB3_DATASET_FAMILIES:
+            rod_dataset_cls = RODRawRGB3
         else:
             rod_dataset_cls = RODRaw
         if args.eval_rod:
@@ -2013,6 +2129,12 @@ def build_dataloaders(args, datasets):
             loader_kwargs["persistent_workers"] = True
         loader_kwargs["prefetch_factor"] = 4
 
+    def kwargs_for_dataset(dataset_key: str):
+        kwargs = dict(loader_kwargs)
+        if args.num_workers > 0 and uses_rod_rawpy_rgb_dataset(args) and dataset_key in {"rod_train", "val"}:
+            kwargs["multiprocessing_context"] = "spawn"
+        return kwargs
+
     state = {"samplers": {}}
     if args.eval_only:
         state["mode"] = "eval_only"
@@ -2034,7 +2156,7 @@ def build_dataloaders(args, datasets):
             train_sampler,
             args.bs,
             args.num_workers,
-            loader_kwargs,
+            kwargs_for_dataset(train_key),
             drop_last=True,
         )
         state["mode"] = "single"
@@ -2051,7 +2173,7 @@ def build_dataloaders(args, datasets):
             valsampler,
             1,
             args.num_workers,
-            loader_kwargs,
+            kwargs_for_dataset("val"),
             drop_last=False,
         )
         state["samplers"]["val"] = valsampler
@@ -2495,28 +2617,62 @@ def log_setup(logger, args, datasets, train_state, model):
             args.stf_train_target_mode,
             args.stf_pseudo_manifest,
         )
-    elif cfg.dataset_family == "rod_raw_student_rgb":
+    elif cfg.dataset_family == ROD_RAWPY_RGB_DATASET_FAMILY:
+        rawpy_versions = get_rawpy_runtime_versions()
         logger.info(
-            "[ROD] root=%s manifest=%s raw_source=%s rgb_pipeline=%s wp=%.3f gamma=%.6f gains=%s label_space=%s train_crop=%s val_crop=%s",
+            "[ROD_RAWPY_RGB] root=%s manifest=%s raw_source=%s rgb_pipeline=%s dng_profile=%s postprocess_profile=%s temp_root=%s label_space=%s train_crop=%s val_crop=%s rawpy=%s libraw=%s tifffile=%s",
             args.rod_root,
             args.rod_night_manifest,
             args.rod_raw_source,
             args.rod_rgb_pipeline,
-            args.rod_student_white_percentile,
-            args.rod_student_gamma,
-            tuple(float(v) for v in args.rod_student_channel_gains),
+            args.rod_rawpy_dng_profile,
+            args.rod_rawpy_postprocess_profile,
+            args.rod_rawpy_temp_root,
+            args.rod_label_space,
+            args.rod_train_crop_mode,
+            args.rod_val_crop_mode,
+            rawpy_versions["rawpy_version"],
+            rawpy_versions["libraw_version"],
+            rawpy_versions["tifffile_version"],
+        )
+    elif cfg.dataset_family in ROD_HAND_RENDERED_RGB_DATASET_FAMILIES:
+        if cfg.dataset_family == "rod_raw_teacher_rgb":
+            recipe_white_percentile = args.rod_teacher_white_percentile
+            recipe_gamma = args.rod_teacher_gamma
+            recipe_channel_gains = tuple(float(v) for v in args.rod_teacher_channel_gains)
+        else:
+            recipe_white_percentile = args.rod_student_white_percentile
+            recipe_gamma = args.rod_student_gamma
+            recipe_channel_gains = tuple(float(v) for v in args.rod_student_channel_gains)
+        logger.info(
+            "[ROD_RGB] family=%s root=%s manifest=%s raw_source=%s rgb_pipeline=%s wp=%.3f gamma=%.6f gains=%s label_space=%s train_crop=%s val_crop=%s",
+            cfg.dataset_family,
+            args.rod_root,
+            args.rod_night_manifest,
+            args.rod_raw_source,
+            args.rod_rgb_pipeline,
+            recipe_white_percentile,
+            recipe_gamma,
+            recipe_channel_gains,
             args.rod_label_space,
             args.rod_train_crop_mode,
             args.rod_val_crop_mode,
         )
-    elif cfg.dataset_family == "rod_raw":
+    elif cfg.dataset_family in {"rod_raw", *ROD_RAW_RGB3_DATASET_FAMILIES}:
         packed_bayer_source = getattr(datasets.get("rod_train") or datasets.get("val"), "packed_bayer_source", "n/a")
+        raw_view = (
+            "[R,(Gr+Gb)/2,B] raw3 for raw_rgb16_ram3"
+            if cfg.dataset_family in ROD_RAW_RGB3_DATASET_FAMILIES
+            else "[R,Gr,Gb,B] raw4 for raw_to_base_rgb_ram3"
+        )
         logger.info(
-            "[ROD_RAW] root=%s manifest=%s raw_source=%s packed_bayer_source=%s label_space=%s train_crop=%s val_crop=%s",
+            "[ROD_RAW] family=%s root=%s manifest=%s raw_source=%s packed_bayer_source=%s raw_view=%s label_space=%s train_crop=%s val_crop=%s",
+            cfg.dataset_family,
             args.rod_root,
             args.rod_night_manifest,
             args.rod_raw_source,
             packed_bayer_source,
+            raw_view,
             args.rod_label_space,
             args.rod_train_crop_mode,
             args.rod_val_crop_mode,
@@ -2722,8 +2878,14 @@ def log_setup(logger, args, datasets, train_state, model):
             args.raw_front_end_lr,
         )
     if cfg.front_end == "raw_rgb16_ram3" and not uses_bridge(args) and not uses_decoder_feature_adapter(args):
+        source_desc = (
+            "rod_raw24_base_rgb3"
+            if cfg.dataset_family in ROD_RAW_RGB3_DATASET_FAMILIES
+            else "raw_rgb16_png_3ch"
+        )
         logger.info(
-            "[MODEL] raw_rgb16_png_3ch -> RamCore3 -> %s -> DAv2",
+            "[MODEL] %s -> RamCore3 -> %s -> DAv2",
+            source_desc,
             args.raw_ram_rgb_tail,
         )
         logger.info(

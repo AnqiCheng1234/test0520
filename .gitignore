@@ -35,6 +35,8 @@ plans/0524_unprocessing/**/*.pth
 plans/0525_pre/*.pdf
 plans/0525_pre/*.pptx
 finetune_stf/analysis/**/*.npz
+finetune_stf/analysis/**/*.npy
+finetune_stf/analysis/**/*.dng
 finetune_stf/analysis/**/*.png
 finetune_stf/analysis/**/*.jpg
 finetune_stf/analysis/**/artifacts/

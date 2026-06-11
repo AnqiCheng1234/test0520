@@ -1,0 +1,79 @@
+{
+  "check_direct_rawpy": true,
+  "contact_sheet": "finetune_stf/analysis/rod_rawpy_debug/0611_1253_rod_rawpy_preview_n10_dav2l_spectral_r/rod_rawpy_preview_contact_sheet.png",
+  "dav2l_prediction": {
+    "checkpoint": "/mnt/drive/9999_backup_from_home_0514/333_cvpr/da_ours/checkpoints/depth_anything_v2_vitl.pth",
+    "cmap": "Spectral_r",
+    "device": "cuda",
+    "enabled": true,
+    "encoder": "vitl",
+    "input_size": 924,
+    "input_views": [
+      "student_dark_degreen_v1",
+      "teacher_bright_degreen_v1",
+      "rawpy_default_928x1440"
+    ],
+    "label_space": "relative_inverse_depth_from_dav2l",
+    "shared_visualization_range": {
+      "vmax": 883.4354370117162,
+      "vmax_pct": 99.0,
+      "vmin": 0.0,
+      "vmin_pct": 1.0
+    }
+  },
+  "dng_metadata": {
+    "as_shot_neutral": [
+      1,
+      1,
+      1
+    ],
+    "black_level": 0,
+    "calibration_illuminant_1": "D65",
+    "cfa": "RGGB",
+    "cfa_pattern": [
+      0,
+      1,
+      1,
+      2
+    ],
+    "color_matrix_1": "standard_xyz_to_srgb_d65",
+    "white_level": 65535
+  },
+  "imageio_version": "2.37.2",
+  "keep_dng": true,
+  "libraw_version": [
+    0,
+    22,
+    1
+  ],
+  "limit": 10,
+  "manifest": "finetune_stf/analysis/rod_rawpy_debug/0611_1253_rod_rawpy_preview_n10_dav2l_spectral_r/manifest_rawpy_preview.jsonl",
+  "manifest_path": "/home/caq/6666_raw/0000_dataset/ROD/pseudo_depth_dav2l_night_teacherbright_rel_1440x928/rod_night_dav2_rel_manifest.csv",
+  "output_root": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/analysis/rod_rawpy_debug/0611_1253_rod_rawpy_preview_n10_dav2l_spectral_r",
+  "rawpy_postprocess_kwargs": {},
+  "rawpy_version": "0.27.0",
+  "rod_root": "/home/caq/6666_raw/0000_dataset/ROD",
+  "sample_count": 10,
+  "script": "/home/caq/6666_raw/dav2_raw_0603/finetune_stf/scripts/build_rod_rawpy_debug_preview.py",
+  "selection": "spread",
+  "split": "01Valid",
+  "student_pipeline_params": {
+    "channel_gains": [
+      1.0800000429153442,
+      0.949999988079071,
+      1.100000023841858
+    ],
+    "gamma": 0.9,
+    "white_percentile": 99.9
+  },
+  "teacher_pipeline_params": {
+    "channel_gains": [
+      1.0800000429153442,
+      0.949999988079071,
+      1.100000023841858
+    ],
+    "gamma": 0.454545,
+    "white_percentile": 99.5
+  },
+  "tifffile_version": "2025.5.10"
+}
